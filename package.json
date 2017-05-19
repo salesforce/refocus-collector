@@ -1,0 +1,22 @@
+{
+  "name": "refocus-collector",
+  "version": "1.0.0",
+  "description": "Collector system to automate feeding data in to the Refocus platform.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salesforce/refocus-collector.git"
+  },
+  "author": "",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/salesforce/refocus-collector/issues"
+  },
+  "homepage": "https://github.com/salesforce/refocus-collector#readme"
+}

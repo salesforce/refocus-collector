@@ -1,0 +1,20 @@
+language: node_js
+node_js:
+  - "6"
+
+env:
+  global:
+    - NODE_ENV=build
+    - CXX=g++-4.8
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+
+services:
+
+script:
+  - npm test
