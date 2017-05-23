@@ -7,8 +7,8 @@
     "test": "test"
   },
   "scripts": {
-    "test": "npm test"
-  },
+	"test" :  "./node_modules/.bin/mocha -R dot --recursive ./test"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/salesforce/refocus-collector.git"
@@ -18,5 +18,8 @@
   "bugs": {
     "url": "https://github.com/salesforce/refocus-collector/issues"
   },
-  "homepage": "https://github.com/salesforce/refocus-collector#readme"
+  "homepage": "https://github.com/salesforce/refocus-collector#readme",
+  "dependencies": {
+    "mocha": "^3.4.1"
+  }
 }
