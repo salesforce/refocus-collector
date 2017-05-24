@@ -7,25 +7,25 @@
  */
 
 /**
- * api/v1/coreErrors.js
+ * api/v1/errors.js
  *
- * Core Error Definitions
+ * Error Definitions
  */
 'use strict';
 
-const coreErrors = require('errors');
-coreErrors.create({
-  name: 'CollectorCoreError',
+const errors = require('errors');
+errors.create({
+  name: 'CollectorError',
 });
 
 // ----------------------------------------------------------------------------
 // Validation Errors
 // ----------------------------------------------------------------------------
 
-coreErrors.create({
+errors.create({
   name: 'ValidationError',
   status: 400,
-  parent: coreErrors.CollectorCoreError,
+  parent: errors.CollectorError,
 });
 
 // ----------------------------------------------------------------------------
@@ -33,12 +33,12 @@ coreErrors.create({
 // ----------------------------------------------------------------------------
 //
 
-coreErrors.create({
+errors.create({
   name: 'ResourceNotFoundError',
   status: 404,
-  parent: coreErrors.CollectorCoreError,
+  parent: errors.CollectorError,
 });
 
 // ----------------------------------------------------------------------------
 
-module.exports = coreErrors;
+module.exports = errors;

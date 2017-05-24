@@ -10,43 +10,31 @@
  * tests/configs/config.js
  */
 const expect = require('chai').expect;
-const createConfigObj = require('../../config').createConfigObj;
+const assert = require('chai').assert;
+const errors = require('../../src/errors/errors');
+const util = require('util');
+const fs = require('fs');
+const registryLoc = require('../../src/constants').localRegistryLocation;
 
-describe('tests/configs/config.js - config unit tests', () => {
-  it('config object is created after reading registry', (done) => {
-    createConfigObj('./tests/configs/testRegistry.json')
-    .then((obj) => {
-      expect(obj.registryInfo).to.not.equal(null);
-      expect(obj.registryInfo.collectorName1.url).to.equal('www.xyz.com');
-      expect(obj.registryInfo.collectorName1.token).to.exist;
-    })
-    .then(() => done())
-    .catch(done);
-  });
+describe('tests/configs/config.js - unit tests', () => {
+  it('Import config object', (done) => {
+    fs.stat(registryLoc, (err, stat) => {
+      if (err == null) { // if no error, file exists, expect object
+        const config = require('../../src/configs/config');
+        expect(config).to.be.an('object');
+      } else if (err.code == 'ENOENT') { // file does not exist, expect error
+        const fn = function () {
+          require('../../src/configs/config');
+        };
 
-  it('error if registry file not present', (done) => {
-    createConfigObj('./tests/configs/notPresent.json')
-    .catch((err) => {
-      expect(err.status).to.be.equal(404);
-      expect(err.name).to.be.equal('ResourceNotFoundError');
-      expect(err.message).to.be.equal(
-        'File: ./tests/configs/notPresent.json not found'
-      );
-    })
-    .then(done)
-    .catch(done);
-  });
+        expect(fn).to.throw(new errors.ResourceNotFoundError(
+          util.format('File: %s not found', registryLoc)
+        ).toString());
+      } else { // some other error
+        throw err;
+      }
 
-  it('error if a collector in registry does not have url property', (done) => {
-    createConfigObj('./tests/configs/testRegistryInvalid.json')
-    .catch((err) => {
-      expect(err.status).to.be.equal(400);
-      expect(err.name).to.be.equal('ValidationError');
-      expect(err.message).to.be.equal(
-        'Collector entries in Regisry.json should have url property.'
-      );
-    })
-    .then(done)
-    .catch(done);
+      done();
+    });
   });
 });
