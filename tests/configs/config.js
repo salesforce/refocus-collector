@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const createConfigObj = require('../../config').createConfigObj;
 
-describe('config unit tests', () => {
+describe('tests/configs/config.js - config unit tests', () => {
   it('config object is created after reading registry', (done) => {
     createConfigObj('./tests/configs/testRegistry.json')
     .then((obj) => {

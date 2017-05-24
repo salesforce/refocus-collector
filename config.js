@@ -11,7 +11,7 @@
  *
  * Configuration Settings - Exports in-memory config object
  */
-const debug = require('debug')('refocus-collector-config');
+const debug = require('debug')('refocus-collector:config');
 const cUtils = require('./src/utils/commonUtils');
 const coreErrors = require('./src/errors/coreErrors');
 
@@ -62,5 +62,7 @@ const getConfigObj = createConfigObj(registryLoc);
 
 module.exports = {
   getConfigObj,
+
+  // only exported for testing with given registry file location.
   createConfigObj,
 };

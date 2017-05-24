@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const commonUtils = require('../../src/utils/commonUtils');
 
-describe('common utils unit tests', () => {
+describe('tests/utils/commonUtils.js - common utils unit tests', () => {
   it('readFile, success', (done) => {
     commonUtils.readFile('./tests/utils/fileToRead.txt', 'utf8')
     .then((data) => {

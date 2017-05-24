@@ -14,7 +14,7 @@
 const fs = require('fs');
 const util = require('util');
 const coreErrors = require('../errors/coreErrors');
-const debug = require('debug')('refocus-collector-commonUtils');
+const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 
 module.exports = {
