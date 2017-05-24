@@ -14,8 +14,14 @@
     "type": "git",
     "url": "git+https://github.com/salesforce/refocus-collector.git"
   },
-  "author": "",
+  "author": "CX Tools",
   "license": "BSD-3-Clause",
+  "keywords": [
+    "refocus",
+    "collector",
+    "collectors",
+    "refocus-collector"
+  ],
   "bugs": {
     "url": "https://github.com/salesforce/refocus-collector/issues"
   },
@@ -24,13 +30,21 @@
     "errors": "^0.3.0",
     "fs": "0.0.1-security",
     "notevil": "^1.1.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "debug": "^2.6.8",
+    "winston": "^2.3.1",
+    "repeat": "0.0.6",
   },
   "devDependencies": {
     "jscs": "^3.0.7",
     "eslint": "^3.19.0",
     "chai": "^3.5.0",
     "mocha": "^3.4.1",
-    "debug": "^2.6.8"
-  }
+    "babel-eslint": "^7.2.3",
+    "chai": "^3.5.0",
+    "debug": "^2.6.8",
+    "eslint": "^3.19.0",
+    "mocha": "^3.4.1",
+    "eslint-plugin-react": "^7.0.1"
+  },
 }
