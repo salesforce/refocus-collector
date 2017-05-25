@@ -82,7 +82,6 @@ describe('test/utils/evalUtils >', (done) => {
         eu.safeEval(str);
         done('Expecting FunctionBodyError here');
       } catch (err) {
-        console.log(err)
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
