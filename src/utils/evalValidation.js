@@ -68,8 +68,8 @@ module.exports = {
           'an array.');
       }
 
-      subjects.forEach((subj) => {
-        isObject('subjects[x]', subject);
+      subjects.forEach((subj, n) => {
+        isObject(`subjects[${n}]`, subj);
         if (subj.absolutePath === undefined || subj.absolutePath === null ||
         typeof subj.absolutePath !== 'string') {
           throw new errors.ArgsError('Every element in the ' +
