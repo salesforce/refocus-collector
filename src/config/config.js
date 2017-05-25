@@ -7,19 +7,18 @@
  */
 
 /**
- * ./src/configs/config.js
+ * ./src/config/config.js
  *
  * Configuration Settings - Exports in-memory config object
  */
 const debug = require('debug')('refocus-collector:config');
 const constants = require('../constants');
-const createConfigObj = require('./configInit').createConfigObj;
-
+const init = require('./utils').init;
 
 /**
  * Config object created by loading local registry
  * @type {Object}
  */
-const config = createConfigObj(constants.localRegistryLocation);
-debug('Config object created: %s', JSON.stringify(config));
+const config = init(constants.localRegistryLocation);
+debug('Initialized config: %s', JSON.stringify(config));
 module.exports = config;

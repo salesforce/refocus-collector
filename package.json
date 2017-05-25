@@ -7,8 +7,8 @@
     "test": "test"
   },
   "scripts": {
-	 "test" :  "./node_modules/.bin/mocha -R dot --recursive ./tests",
-   "jscs": "./node_modules/jscs/bin/jscs *.js src tests"
+    "jscs": "./node_modules/jscs/bin/jscs *.js src test",
+    "test": "./node_modules/.bin/mocha -R dot --recursive ./test"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   "dependencies": {
     "errors": "^0.3.0",
     "fs": "0.0.1-security",
+    "notevil": "^1.1.0",
     "path": "^0.12.7"
   },
   "devDependencies": {
