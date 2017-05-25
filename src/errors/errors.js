@@ -59,4 +59,17 @@ errors.create({
   parent: errors.FunctionBodyError,
 });
 
+errors.create({
+  name: 'ArgsError',
+  defaultExplanation: 'Invalid args supplied to the "tranform" or "toUrl" ' +
+    'function.',
+  defaultResponse: 'Tranform args must contain a "ctx" attribute of type ' +
+    'object, a "res" attribute of type object, and either a "subject" ' +
+    'attribute (object) or a "subjects" attribute (array). ToUrl args must ' +
+    'contain a "ctx" attribute of type object, and either a "subject" ' +
+    'attribute (object) or a "subjects" attribute (array).',
+  status: 400,
+  parent: errors.FunctionBodyError,
+});
+
 module.exports = errors;

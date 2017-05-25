@@ -13,6 +13,7 @@
 const debug = require('debug')('refocus-collector:evalUtils');
 const notevil = require('notevil');
 const errors = require('../errors/errors');
+const evalValidation = require('./evalValidation');
 const ERROR_MESSAGE = {
   TRANSFORM: {
     ELEMENT_NOT_OBJECT: 'The transform function must return an array of ' +
@@ -45,25 +46,88 @@ function safeEval(functionBody, args) {
      *  the generated func as part of the generator config in the config
      */
     const func = notevil.Function('ctx', functionBody);
-    debug(`safeEval generated function: ${func}`);
-    debug(`safeEval calling function with args: ${args}`);
+    debug(`evalUtils.safeEval generated function: ${func}`);
+    debug(`evalUtils.safeEval calling function with args: ${args}`);
     const retval = func(args);
-    debug(`safeEval function returning: ${retval}`);
+    debug(`evalUtils.safeEval returning: ${retval}`);
     return retval;
   } catch (err) {
     throw new errors.FunctionBodyError(`${err.name}: ${err.message}`);
   }
 } // safeEval
 
+/**
+ * Makes sure that the args contain all the expected attributes.
+ *
+ * @param {Object} args - An object containing the required args
+ * @returns {Boolean} - true if args ok
+ * @throws {ArgsError} - If args missing or incorrect type
+ */
+function validateTransformArgs(args) {
+  debug('Entered evalUtils.validateTransformArgs:', args);
+  if (!args) {
+    throw new errors.ArgsError('Missing args.');
+  }
+
+  if (typeof args !== 'object' || Array.isArray(args)) {
+    throw new errors.ArgsError('args must be an object.'); 
+  }
+
+  return evalValidation.isObject('ctx', args.ctx) &&
+    evalValidation.isObject('res', args.res) &&
+    evalValidation.subjects(args.subject, args.subjects);
+} // validateTransformArgs
+
+/**
+ * Makes sure that the args contain all the expected attributes.
+ *
+ * @param {Object} args - An object containing the required args
+ * @returns {Boolean} - true if args ok
+ * @throws {ArgsError} - If args missing or incorrect type
+ */
+function validateToUrlArgs(args) {
+  debug('Entered evalUtils.validateToUrlArgs:', args);
+  if (!args) {
+    throw new errors.ArgsError('Missing args.');
+  }
+
+  if (typeof args !== 'object' || Array.isArray(args)) {
+    throw new errors.ArgsError('args must be an object.'); 
+  }
+
+  return evalValidation.isObject('ctx', args.ctx) &&
+    evalValidation.subjects(args.subject, args.subjects);
+} // validateToUrlArgs
+
+/**
+ * Safely executes the transform function with the arguments provided.
+ *
+ * @param {String} functionBody - The transform function body as provided by
+ *  the sample generator template.
+ * @param {Object} args - An object containing the following attributes:
+ *  {Object} ctx - The sample generator context.
+ *  {Object} res - The response object returned by calling the remote data
+ *    source.
+ *  {Object} subject - If not bulk, this is the subject; if bulk, this is null
+ *    or undefined.
+ *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
+ *    is null or undefined.
+ * @returns {Array} - Array of zero or more samples.
+ * @throws {TransformError} - if transform function does not return an array
+ *  of zero or more samples
+ * @throws {ArgsError} - if thrown by validateTransformArgs function
+ * @throws {FunctionBodyError} - if thrown by safeEval function
+ */
 function safeTransform(functionBody, args) {
-  debug('Entered safeTransform');
+  debug('Entered evalUtils.safeTransform');
+  validateTransformArgs(args);
   const retval = safeEval(functionBody, args);
   if (!Array.isArray(retval)) {
     throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NOT_ARRAY);
   }
 
   retval.forEach((element) => {
-    if (typeof element !== 'object') {
+    if (typeof element !== 'object' || Array.isArray(element)) {
       throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM
         .ELEMENT_NOT_OBJECT);
     }
@@ -73,23 +137,26 @@ function safeTransform(functionBody, args) {
     }
   });
 
-  debug('safeTransform returning: ${retval}');
+  debug('evalUtils.safeTransform returning: ${retval}');
   return retval;
 }
 
 function safeToUrl(functionBody, args) {
-  debug('Entered safeToUrl');
+  debug('Entered evalUtils.safeToUrl');
+  validateToUrlArgs(args);
   const retval = safeEval(functionBody, args);
   if (typeof retval !== 'string') {
     throw new errors.ToUrlError(ERROR_MESSAGE.TO_URL.NOT_STRING);
   }
 
-  debug('safeToUrl returning: ${retval}');
+  debug('evalUtils.safeToUrl returning: ${retval}');
   return retval;
 }
 
 module.exports = {
-  safeEval, // exporting this for testability
+  safeEval, // exporting for testability
   safeToUrl,
   safeTransform,
+  validateTransformArgs, // exporting for testability
+  validateToUrlArgs, // exporting for testability
 };
