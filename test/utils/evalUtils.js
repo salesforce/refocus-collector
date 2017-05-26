@@ -23,7 +23,7 @@ describe('test/utils/evalUtils >', (done) => {
           subject: { absolutePath: 'abc' },
         });
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -32,7 +32,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs({});
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -45,7 +45,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs({ ctx: {} });
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -58,7 +58,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs();
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -71,7 +71,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs(undefined);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -84,7 +84,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs(null);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -97,7 +97,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs(123);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -110,7 +110,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs([1, 2, 3]);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -123,7 +123,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs('abc defgh');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -136,7 +136,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs(true);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -149,7 +149,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs(false);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -167,7 +167,7 @@ describe('test/utils/evalUtils >', (done) => {
           subject: { absolutePath: 'abc' },
         });
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -176,7 +176,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs({});
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -189,7 +189,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs({ ctx: {} });
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -202,7 +202,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs();
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -215,7 +215,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs(undefined);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -228,7 +228,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs(null);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -241,7 +241,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs(123);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -254,7 +254,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs([1, 2, 3]);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -267,7 +267,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs('abc defgh');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -280,7 +280,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs(true);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -293,7 +293,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs(false);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -313,7 +313,7 @@ describe('test/utils/evalUtils >', (done) => {
         return [ctx.abc, ctx.n, ctx.abc.slice(ctx.n)];
       `;
       const res = eu.safeEval(str, ctx);
-      expect(res).to.be.array
+      expect(res).to.be.array;
       expect(res).to.have.length(3);
       expect(res[0]).to.equal(ctx.abc);
       expect(res[1]).to.equal(ctx.n);
@@ -334,7 +334,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeEval(str, ctx);
         done('Expecting FunctionBodyError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
@@ -356,7 +356,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeEval(str, ctx);
         done('Expecting FunctionBodyError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
@@ -370,13 +370,13 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeEval(str);
         done('Expecting FunctionBodyError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
           done('Expecting FunctionBodyError here');
         }
-      } 
+      }
     });
 
     it('no eval', (done) => {
@@ -384,13 +384,13 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeEval(str);
         done('Expecting FunctionBodyError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
           done('Expecting FunctionBodyError here');
         }
-      } 
+      }
     });
 
     it('no access to "process"', (done) => {
@@ -398,13 +398,13 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         const retval = eu.safeEval(str);
         done('Expecting FunctionBodyError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
           done('Expecting FunctionBodyError here');
         }
-      } 
+      }
     });
   });
 
@@ -420,7 +420,7 @@ describe('test/utils/evalUtils >', (done) => {
         eu.safeTransform('return [{ name: "Foo" }, { name: "Bar" }]',
           validArgs);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -429,7 +429,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return []', validArgs);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -438,7 +438,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         const retval = eu.safeTransform('return null;', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -451,7 +451,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return;', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -464,7 +464,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return { name: "Foo" };', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -477,7 +477,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return "Foo";', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -490,7 +490,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return 99;', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -503,7 +503,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return false;', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -517,7 +517,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeTransform('return [{ name: "Foo" }, 2]', validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -532,7 +532,7 @@ describe('test/utils/evalUtils >', (done) => {
         eu.safeTransform('return [{ value: "Foo" }, { name: "Bar" }]',
           validArgs);
         done('Expecting TransformError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'TransformError') {
           done();
         } else {
@@ -552,7 +552,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return "Hello, World"', validArgs);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -561,7 +561,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return ""', validArgs);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -570,7 +570,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return null;', validArgs);
         done('Expecting ToUrlError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ToUrlError') {
           done();
         } else {
@@ -583,7 +583,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return;', validArgs);
         done('Expecting ToUrlError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ToUrlError') {
           done();
         } else {
@@ -596,7 +596,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return { name: "Foo" };', validArgs);
         done('Expecting ToUrlError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ToUrlError') {
           done();
         } else {
@@ -609,7 +609,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return 99;', validArgs);
         done('Expecting ToUrlError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ToUrlError') {
           done();
         } else {
@@ -622,7 +622,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.safeToUrl('return false;', validArgs);
         done('Expecting ToUrlError here');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ToUrlError') {
           done();
         } else {

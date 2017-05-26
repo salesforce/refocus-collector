@@ -24,6 +24,7 @@ describe('test/config/config.js - unit tests >', () => {
         expect(config).to.be.an('object');
       } else if (err.code == 'ENOENT') { // file does not exist, expect error
         const fn = () => { require('../../src/config/config'); };
+
         expect(fn).to.throw(new errors.ResourceNotFoundError(
           util.format('File: %s not found', registryLoc)
         ).toString());

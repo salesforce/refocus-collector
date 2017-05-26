@@ -22,7 +22,7 @@ function isObject(name, val) {
     throw new errors.ArgsError(`"${name}" attribute must be an object.`);
   }
 
-  return true;    
+  return true;
 } // isObject
 
 module.exports = {
@@ -40,16 +40,9 @@ module.exports = {
    */
   subjects: (subject, subjects) => {
     debug('Entered evalValidation.subjects:', subject, subjects);
-    if ((subject === undefined || subject === null) &&
-    (subjects === undefined || subjects === null)) {
-      throw new errors.ArgsError('Must include EITHER a ' +
-        '"subject" attribute OR a "subjects" attribute.');
-    }
-
-    if (subject !== undefined && subject !== null &&
-    subjects !== undefined && subjects !== null) {
-      throw new errors.ArgsError('Must include EITHER a ' +
-        '"subject" attribute OR a "subjects" attribute.');
+    if ((!subject && !subjects) || (subject && subjects)) {
+      throw new errors.ArgsError('Must include EITHER a "subject" attribute ' +
+        'OR a "subjects" attribute.');
     }
 
     if (subject) {
@@ -57,23 +50,22 @@ module.exports = {
       if (subject.absolutePath === undefined ||
       subject.absolutePath === null ||
       typeof subject.absolutePath !== 'string') {
-        throw new errors.ArgsError('"subject" attribute must be ' +
-          'a valid subject.');
+        throw new errors.ArgsError('"subject" attribute must be a valid ' +
+          'subject.');
       }
     }
 
     if (subjects) {
       if (!Array.isArray(subjects)) {
-        throw new errors.ArgsError('"subjects" attribute must be ' +
-          'an array.');
+        throw new errors.ArgsError('"subjects" attribute must be an array.');
       }
 
       subjects.forEach((subj, n) => {
         isObject(`subjects[${n}]`, subj);
         if (subj.absolutePath === undefined || subj.absolutePath === null ||
         typeof subj.absolutePath !== 'string') {
-          throw new errors.ArgsError('Every element in the ' +
-            '"subjects" array must be a valid subject.');
+          throw new errors.ArgsError('Every element in the "subjects" array ' +
+            'must be a valid subject.');
         }
       });
     }

@@ -24,7 +24,7 @@ const ERROR_MESSAGE = {
   },
   TO_URL: {
     NOT_STRING: 'The toUrl function must return a string',
-  }
+  },
 };
 
 /**
@@ -70,7 +70,7 @@ function validateTransformArgs(args) {
   }
 
   if (typeof args !== 'object' || Array.isArray(args)) {
-    throw new errors.ArgsError('args must be an object.'); 
+    throw new errors.ArgsError('args must be an object.');
   }
 
   return evalValidation.isObject('ctx', args.ctx) &&
@@ -92,7 +92,7 @@ function validateToUrlArgs(args) {
   }
 
   if (typeof args !== 'object' || Array.isArray(args)) {
-    throw new errors.ArgsError('args must be an object.'); 
+    throw new errors.ArgsError('args must be an object.');
   }
 
   return evalValidation.isObject('ctx', args.ctx) &&
@@ -141,6 +141,23 @@ function safeTransform(functionBody, args) {
   return retval;
 }
 
+/**
+ * Safely executes the toUrl function with the arguments provided.
+ *
+ * @param {String} functionBody - The toUrl function body as provided by the
+ *  sample generator template.
+ * @param {Object} args - An object containing the following attributes:
+ *  {Object} ctx - The sample generator context.
+ *  {Object} subject - If not bulk, this is the subject; if bulk, this is null
+ *    or undefined.
+ *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
+ *    is null or undefined.
+ * @returns {String} - The generated url as a string
+ * @throws {ToUrlError} - if transform function does not return an array
+ *  of zero or more samples
+ * @throws {ArgsError} - if thrown by validateToUrlArgs function
+ * @throws {FunctionBodyError} - if thrown by safeEval function
+ */
 function safeToUrl(functionBody, args) {
   debug('Entered evalUtils.safeToUrl');
   validateToUrlArgs(args);

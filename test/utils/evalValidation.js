@@ -17,10 +17,10 @@ describe('test/utils/evalValidation >', (done) => {
   describe('isObject >', (done) => {
     it('object with attributes', (done) => {
       try {
-        val.isObject('myname', { foo: "bar" });
+        val.isObject('myname', { foo: 'bar' });
         done();
-      } catch(err) {
-        done(err)
+      } catch (err) {
+        done(err);
       }
     });
 
@@ -28,8 +28,8 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', {});
         done();
-      } catch(err) {
-        done(err)
+      } catch (err) {
+        done(err);
       }
     });
 
@@ -37,11 +37,10 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', undefined);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
-          console.log(err)
           done('Expecting ArgsError here');
         }
       }
@@ -51,7 +50,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', null);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -64,7 +63,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -77,7 +76,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', true);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -90,7 +89,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', false);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -103,7 +102,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', 'Abcd efghijkl');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -116,7 +115,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', 1234);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -129,7 +128,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.isObject('myname', [1, 2]);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -144,7 +143,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects();
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -157,7 +156,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, null);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -170,7 +169,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(undefined, undefined);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -183,7 +182,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects({ absolutePath: 'a' }, []);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -196,7 +195,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(true);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -209,7 +208,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects('abcd efgh');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -222,7 +221,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(99);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -235,7 +234,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects([1, 2], []);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -248,7 +247,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, true);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -261,7 +260,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, 'abcd efgh');
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -274,7 +273,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, 103);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -287,7 +286,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, { a: 'b' });
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -300,7 +299,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, []);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
@@ -309,7 +308,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, [{ absolutePath: 'q' }, { foo: 'bar' }]);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -322,7 +321,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, [{ absolutePath: 'q' }, 99]);
         done('Expecting ArgsError');
-      } catch(err) {
+      } catch (err) {
         if (err.name === 'ArgsError') {
           done();
         } else {
@@ -335,7 +334,7 @@ describe('test/utils/evalValidation >', (done) => {
       try {
         val.subjects(null, [{ absolutePath: 'q' }, { absolutePath: 'w' }]);
         done();
-      } catch(err) {
+      } catch (err) {
         done(err);
       }
     });
