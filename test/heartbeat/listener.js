@@ -15,24 +15,23 @@ const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
-
 describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
   let hbResponse;
   beforeEach((done) => {
     hbResponse = {
       collectorConfig: {
-        'refocusHeartBeatTimeout': 50,
+        refocusHeartBeatTimeout: 50,
       },
       generatorsAdded: [
         {
           name: 'SFDC_Core_Trust1',
           generatorTemplateName: 'refocus-trust1-collector',
           subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-          context: { 'baseUrl': 'https://argus-ui.data.sfdc.net', },
-          agents: [{ 'name': 'agent1' }],
+          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          agents: [{ name: 'agent1' }],
           generatorTemplate: {
-            'name': 'refocus-trust1-collector',
-          }
+            name: 'refocus-trust1-collector',
+          },
         },
       ],
       generatorsUpdated: [
@@ -40,14 +39,14 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
       ],
       generatorsDeleted: [
 
-      ]
+      ],
     };
     done();
   });
 
   it('should handle errors passed to the function', (done) => {
-    const err = { 'status': 404,
-      'description': 'heartbeat not received' };
+    const err = { status: 404,
+      description: 'heartbeat not received' };
     const ret = listener.handleHeartbeatResponse(err, hbResponse);
 
     expect(ret).to.deep.equal(err);
@@ -80,13 +79,13 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
     hbResponse.generatorsUpdated = [
       {
         name: 'SFDC_Core_Trust1',
-        context: { 'baseUrl': 'https://argus-api.data.sfdc.net', },
+        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
       },
     ];
     hbResponse.generatorsAdded = [];
     listener.handleHeartbeatResponse(null, hbResponse);
     expect(config.generators.SFDC_Core_Trust1.context)
-      .to.deep.equal({ 'baseUrl': 'https://argus-api.data.sfdc.net', });
+      .to.deep.equal({ baseUrl: 'https://argus-api.data.sfdc.net', });
 
     expect(repeatTracker.SFDC_Core_Trust1).not.equal(null);
     done();
@@ -100,7 +99,7 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
         name: 'SFDC_LIVE_AGENT',
         generatorTemplateName: 'refocus-trust1-collector',
         subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-        context: { 'baseUrl': 'https://argus-ui.data.sfdc.net', }
+        context: { baseUrl: 'https://argus-ui.data.sfdc.net', }
       }
     );
     listener.handleHeartbeatResponse(null, hbResponse);

@@ -20,7 +20,7 @@ const repeatTracker = {
  * data back. This function will be exported from another module once that is
  * ready.
  */
-function collectStub () { }
+function collectStub() { }
 
 /**
  * The default function that is called every time a task is repeated
@@ -76,9 +76,9 @@ function startNewRepeat(obj, fnToRepeat, // eslint-disable-line max-params
   repeatTracker[obj.name] = repeatHandle;
   const returnObj = {
     repeatHandle,
-    'repeatInterval': obj.interval,
-    'repeat': fnToRepeat,
-    'repeatName': obj.name,
+    repeatInterval: obj.interval,
+    repeat: fnToRepeat,
+    repeatName: obj.name,
   };
   return returnObj;
 } // startNewRepeat

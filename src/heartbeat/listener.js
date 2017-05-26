@@ -58,6 +58,7 @@ function handleHeartbeatResponse(err, res) {
       });
     });
   }
+
   return config;
 } // handleHeartbeatResponse
 

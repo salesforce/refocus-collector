@@ -97,6 +97,7 @@ describe('tests/repeater/repeater.js: unit tests', () => {
     setTimeout(() => {
       // proves repeat ran
       expect(currentCount).to.be.at.least(1);
+
       // repeate stopped
       repeater.stopRepeat(obj.name);
       oldCount = currentCount;
@@ -128,8 +129,10 @@ describe('tests/repeater/repeater.js: unit tests', () => {
     }
     repeater.startNewRepeat(obj, stub);
     setTimeout(() => {
+
       // proves repeat ran
       expect(count).to.be.at.least(1);
+
       // repeate updated
       obj.interval = 100000;
 
@@ -141,6 +144,7 @@ describe('tests/repeater/repeater.js: unit tests', () => {
       expect(repeatTracker.Generator5).to.equal(ret.repeatHandle);
     }, 100);
     setTimeout(() => {
+
       // proves repeat was updated
       expect(newCount).to.equal(1);
       return done();
@@ -157,6 +161,7 @@ describe('tests/repeater/repeater.js: unit tests', () => {
     function onProgress() {
       counter++;
     }
+
     repeater.startNewRepeat(obj, stub, stub, stub, onProgress);
     setTimeout(() => {
       expect(counter).to.be.at.least(1);
