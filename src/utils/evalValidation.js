@@ -62,8 +62,7 @@ module.exports = {
 
       subjects.forEach((subj, n) => {
         isObject(`subjects[${n}]`, subj);
-        if (subj.absolutePath === undefined || subj.absolutePath === null ||
-        typeof subj.absolutePath !== 'string') {
+        if (typeof subj.absolutePath !== 'string') {
           throw new errors.ArgsError('Every element in the "subjects" array ' +
             'must be a valid subject.');
         }
