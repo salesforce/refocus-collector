@@ -13,5 +13,6 @@
  */
 
 module.exports = {
-  localRegistryLocation: './registry.json', // registry json file location
+  // registry json file location
+  localRegistryLocation: './src/config/registry.json',
 };

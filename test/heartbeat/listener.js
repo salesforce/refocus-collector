@@ -11,7 +11,7 @@
  */
 
 const listener = require('../../src/heartbeat/listener');
-const config = require('../../src/config');
+const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
@@ -56,7 +56,7 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
 
   it('collector config should be updated', (done) => {
     listener.handleHeartbeatResponse(null, hbResponse);
-    expect(config.collectorConfig.refocusHeartBeatTimeout)
+    expect(config.refocusHeartBeatTimeout)
       .to.equal(hbResponse.collectorConfig.refocusHeartBeatTimeout);
 
     done();

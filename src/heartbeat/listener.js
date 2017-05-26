@@ -10,7 +10,7 @@
  * /heartbeat/listener.js
  */
 
-const config = require('../config');
+const config = require('../config/config');
 const repeater = require('../repeater/repeater');
 
 /**
@@ -26,7 +26,13 @@ function handleHeartbeatResponse(err, res) {
     return err;
   }
 
-  config.updateCollectorConfig(res.collectorConfig);
+  // update the collector config from heartbeat
+  if (res.collectorConfig) {
+    Object.keys(res.collectorConfig).forEach((key) => {
+      config[key] = res.collectorConfig[key];
+    });
+  }
+
   if (res.generatorsAdded && Array.isArray(res.generatorsAdded)) {
     // call repeate to setup a new repeat
     res.generatorsAdded.forEach((generator) => {
