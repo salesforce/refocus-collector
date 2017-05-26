@@ -9,8 +9,9 @@
 /**
  * /src/repeater/repeater.js
  */
-
+const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
+const logger = require('winston');
 const repeatTracker = {
 
 };
@@ -23,24 +24,32 @@ const repeatTracker = {
 function collectStub() { }
 
 /**
- * The default function that is called every time a task is repeated
+ * The default function that is called every time a task is repeated.
+ * @param {Object} result - The return value of one particular task
+ *  invocation.
  */
-function onProgress() {
-
+function onProgress(result) {
+  debug('onProgress: task was successfully repeated with' +
+    `the following response: ${result}`);
 } // onProgress
 
 /**
- * The defailt function that is called when all the repeation is complete
+ * The default function that is called when all the repetition is complete
+ * @param {Array} results - An array of objects, where each element is the
+ * return value for each invocation.
  */
-function onSuccess() {
-
+function onSuccess(results) {
+  debug('onSuccess: All the repeat tasks were completed with the ' +
+  `the following response: ${results}`);
 } // onSuccess
 
 /**
- * The default function that is called when the task function throws an error
+ * The default function that is called when the task function invocation
+ * throws an error.
+ * @param {Object} err - Error thrown by the repeatable task.
  */
-function onFailure() {
-
+function onFailure(err) {
+  logger.log('error', `onFailure: The task returned an error ${err}`);
 } // onFailure
 
 /**
@@ -52,6 +61,7 @@ function stopRepeat(obj) {
   const name = obj.name || obj;
   repeatTracker[name].stop();
   delete repeatTracker[name];
+  logger.log('info', `Stopping repeat identified by: ${obj.name}`);
 } // stopRepeat
 
 /**
@@ -80,11 +90,14 @@ function startNewRepeat(obj, fnToRepeat, // eslint-disable-line max-params
     repeat: fnToRepeat,
     repeatName: obj.name,
   };
+  logger.log('info', 'Started a repeat task to repeat function: ' +
+   `${fnToRepeat.name}, identified by name: ${obj.name}, every ` +
+   `${obj.interval} ms`);
   return returnObj;
 } // startNewRepeat
 
 /**
- * This is a generic function to update a repeat indetified by name.
+ * This is a generic function to update a repeat identified by name.
  * @param  {Object} obj - An object having a name and an interval attribute
  * @param  {Function} fnToRepeat - A task that is to be repeated
  * @param  {Function} successCb - A function that is called after all the repeat
@@ -112,7 +125,7 @@ function startNewGeneratorRepeat(obj) {
 } // startNewGeneratorRepeat
 
 /**
- * Function to update the generator Repeat.
+ * Function to update the generator repeat.
  * @param  {Object} obj - An object having a name and an interval attribute
  * @returns {Object} - A read-only Promise instance
  */
@@ -121,7 +134,6 @@ function updateGeneratorRepeat(obj) {
 } // updateGeneratorRepeat
 
 module.exports = {
-
   stopRepeat,
 
   startNewRepeat,

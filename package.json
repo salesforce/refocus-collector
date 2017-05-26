@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/salesforce/refocus-collector.git"
   },
-  "author": "CX Tools",
+  "author": "Salesforce CX Tools",
   "license": "BSD-3-Clause",
   "keywords": [
     "refocus",
@@ -38,7 +38,6 @@
   "devDependencies": {
     "babel-eslint": "^7.2.3",
     "chai": "^3.5.0",
-    "debug": "^2.6.8",
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^7.0.1",
     "jscs": "^3.0.7",

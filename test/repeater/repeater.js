@@ -7,14 +7,14 @@
  */
 
 /**
- * tests/repeater/repeater.js
+ * test/repeater/repeater.js
  */
 
 const repeater = require('../../src/repeater/repeater');
 const repeatTracker = repeater.repeatTracker;
 const expect = require('chai').expect;
 
-describe('tests/repeater/repeater.js: unit tests', () => {
+describe('test/repeater/repeater.js >', () => {
   it('startNewGeneratorRepeat should start a new generator repeat', (done) => {
     const obj = {
       name: 'Generator1',

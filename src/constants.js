@@ -14,5 +14,5 @@
 
 module.exports = {
   // registry json file location
-  localRegistryLocation: './src/config/registry.json',
+  localRegistryLocation: './registry.json',
 };

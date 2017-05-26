@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/heartbeat/listner.js
+ * test/heartbeat/listner.js
  */
 
 const listener = require('../../src/heartbeat/listener');
@@ -15,7 +15,7 @@ const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
-describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
+describe('test/heartbeat/listner.js >', () => {
   let hbResponse;
   beforeEach((done) => {
     hbResponse = {
@@ -32,6 +32,7 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
           generatorTemplate: {
             name: 'refocus-trust1-collector',
           },
+          interval: 6000,
         },
       ],
       generatorsUpdated: [
@@ -79,6 +80,7 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
     hbResponse.generatorsUpdated = [
       {
         name: 'SFDC_Core_Trust1',
+        interval: 1000,
         context: { baseUrl: 'https://argus-api.data.sfdc.net', },
       },
     ];
@@ -97,6 +99,7 @@ describe('tests/heartbeat/listner.js: heartbeat listener tests', () => {
     hbResponse.generatorsAdded.push(
       {
         name: 'SFDC_LIVE_AGENT',
+        interval: 6000,
         generatorTemplateName: 'refocus-trust1-collector',
         subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
         context: { baseUrl: 'https://argus-ui.data.sfdc.net', }
