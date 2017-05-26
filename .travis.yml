@@ -17,4 +17,5 @@ addons:
 services:
 
 script:
+  - npm run jscs
   - npm test

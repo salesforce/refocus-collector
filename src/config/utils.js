@@ -7,48 +7,47 @@
  */
 
 /**
- * ./src/configs/configInit.js
+ * ./src/config/utils.js
  *
  * Configuration Initialization
  */
-const debug = require('debug')('refocus-collector:configInit');
-const cUtils = require('../utils/commonUtils');
+const debug = require('debug')('refocus-collector:config');
+const common = require('../utils/commonUtils');
 const errors = require('../errors/errors');
 const fs = require('fs');
 const util = require('util');
 
 /**
- * Read registry.json and create config object which contains registryInfo
- * property.
- * @param  {String} registryFileLoc - Location of registry.json
+ * Read registry.json and initialize config object with registry.
+ *
+ * @param {String} registryFileLoc - Location of registry.json
  * @return {Object} - Config object
+ * @throws {ValidationError} - If a registry entry is missing a "url" attribute
+ * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
  */
-function createConfigObj(registryFileLoc) {
-
-  // get file contents synchronously
-  const fileContents = cUtils.readFileSynchr(registryFileLoc);
+function init(registryFileLoc) {
+  // Get file contents synchronously.
+  const fileContents = common.readFileSynchr(registryFileLoc);
   const registryJson = JSON.parse(fileContents);
 
-  // read from registry and load registryInfo in config object.
+  // Read from registry and load registryInfo in config object.
   debug('Reading from file %s', registryFileLoc);
   for (const controllerName in registryJson) {
     if (!registryJson[controllerName].hasOwnProperty('url')) {
-
       // Throw error if url is not present for a collector entry in registry.
       debug('Error: url not found for collector entry: %s', controllerName);
       throw new errors.ValidationError(
-        'Collector entries in Regisry.json should have url property.'
+        'Collector entries in regisry.json must have "url" attribute.'
       );
     }
   }
 
-  // set registryInfo in config object
-  const configObj = { registryInfo: registryJson };
-
-  debug('Config object updated: %s', JSON.stringify(configObj));
-  return configObj;
-}
+  // Set config.registry.
+  const conf = { registry: registryJson };
+  debug('Initialized config: %s', JSON.stringify(conf));
+  return conf;
+} // init
 
 module.exports = {
-  createConfigObj,
+  init,
 };

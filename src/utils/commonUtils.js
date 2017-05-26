@@ -10,7 +10,6 @@
  * ./src/utils/commonUtils.js
  * Common utilities.
  */
-
 const fs = require('fs');
 const util = require('util');
 const errors = require('../errors/errors');
@@ -20,11 +19,13 @@ const path = require('path');
 module.exports = {
   /**
    * Read a file asynchronously.
-   * @param  {String} fileLoc - File location relative to root folder i.e.
-   * refocus-collector folder
-   * @param  {string} encoding - Encoding type
+   *
+   * @param {String} fileLoc - File location relative to root folder i.e.
+   *  refocus-collector folder
+   * @param {string} encoding - Encoding type
    * @return {Promise} - If success, resolves with file data, else rejects
-   * with error
+   *  with error
+   * @throws {ResourceNotFoundError} - If specified file not found.
    */
   readFileAsynchr(fileLoc, encoding) {
     debug('Reading file: %s', path.resolve(fileLoc));
@@ -47,9 +48,11 @@ module.exports = {
 
   /**
    * Read file synchronously.
-   * @param  {String} fileLoc - File location relative to root folder i.e.
-   * refocus-collector folder.
+   *
+   * @param {String} fileLoc - File location relative to root folder i.e.
+   *  refocus-collector folder.
    * @return {String} - File contents
+   * @throws {ResourceNotFoundError} - If specified file not found.
    */
   readFileSynchr(fileLoc) {
     debug('Reading file: %s', path.resolve(fileLoc));
