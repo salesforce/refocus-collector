@@ -31,6 +31,7 @@ function expand(url, ctx) {
     if (value == null) {
       throw new errors.ValidationError(`Can't expand url: No property '${key}' in context`);
     }
+
     expandedUrl = expandedUrl.replace(match, value);
   });
 
