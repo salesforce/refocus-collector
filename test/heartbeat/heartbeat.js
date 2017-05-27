@@ -10,11 +10,10 @@
  * tests/heartbeat/heartbeat.js
  */
 'use strict';
-require('../../src/config/config').setRegsitry({ registry: {} });
-const config = require('../../src/config/config').getConfig();
 const expect = require('chai').expect;
 const heartbeat = require('../../src/heartbeat/heartbeat');
 const sendHeartbeat = heartbeat.sendHeartbeat;
+const config = heartbeat.config;
 
 describe('test/heartbeat/heartbeat.js >', () => {
   const url = 'https://www.example.com';
@@ -22,6 +21,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const collectorName = 'exampleCollector';
 
   it('sendHeartbeat', (done) => {
+    config.registry = {};
     config.registry[collectorName] = {
       url: url,
       token: token,
@@ -37,6 +37,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing token', (done) => {
+    config.registry = {};
     config.registry[collectorName] = {
       url: url,
       token: null,
@@ -52,6 +53,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing url', (done) => {
+    config.registry = {};
     config.registry[collectorName] = {
       url: null,
       token: token,
@@ -66,6 +68,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing url', (done) => {
+    config.registry = {};
     config.registry[collectorName] = {
       token: token,
     };
@@ -97,5 +100,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       done();
     }
   });
+
+
 
 });

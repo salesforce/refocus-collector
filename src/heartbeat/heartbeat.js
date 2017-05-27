@@ -13,7 +13,7 @@
 const debug = require('debug')('refocus-collector:heartbeat');
 const errors = require('../errors/errors');
 const request = require('superagent');
-const config = require('../config/config').getConfig();
+const config = require('../config/config');
 
 /**
  * Send a heartbeat to the Refocus server
@@ -22,16 +22,12 @@ const config = require('../config/config').getConfig();
  */
 function sendHeartbeat() {
   debug('Entered sendHeartbeat');
-  let collectorName;
-  let baseUrl;
-  let token;
-  let path;
-  let url;
+  let collectorName, baseUrl, token, path, url;
 
   try {
-    //collectorName = config.collectorName;
     //assume the registry only has one entry for this version
     collectorName = Object.keys(config.registry)[0];
+    //collectorName = config.collectorName;
     baseUrl = config.registry[collectorName].url;
     token = config.registry[collectorName].token;
     path = `/v1/collectors/${collectorName}/heartbeat`;
