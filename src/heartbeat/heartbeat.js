@@ -22,12 +22,16 @@ const config = require('../config/config');
  */
 function sendHeartbeat() {
   debug('Entered sendHeartbeat');
-  let collectorName, baseUrl, token, path, url;
+  let collectorName;
+  let baseUrl;
+  let token;
+  let path;
+  let url;
 
   try {
+    //collectorName = config.collectorName;
     //assume the registry only has one entry for this version
     collectorName = Object.keys(config.registry)[0];
-    //collectorName = config.collectorName;
     baseUrl = config.registry[collectorName].url;
     token = config.registry[collectorName].token;
     path = `/v1/collectors/${collectorName}/heartbeat`;

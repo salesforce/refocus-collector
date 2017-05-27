@@ -101,6 +101,4 @@ describe('test/heartbeat/heartbeat.js >', () => {
     }
   });
 
-
-
 });
