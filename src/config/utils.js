@@ -14,14 +14,12 @@
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
 const errors = require('../errors/errors');
-const fs = require('fs');
-const util = require('util');
 
 /**
  * Read registry.json and initialize config object with registry.
  *
  * @param {String} registryFileLoc - Location of registry.json
- * @return {Object} - Config object
+ * @returns {Object} - Config object
  * @throws {ValidationError} - If a registry entry is missing a "url" attribute
  * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
  */

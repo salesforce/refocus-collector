@@ -9,45 +9,40 @@
 /**
  * test/heartbeat/listner.js
  */
-
 const listener = require('../../src/heartbeat/listener');
 const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
 describe('test/heartbeat/listner.js >', () => {
-  let hbResponse;
-  beforeEach((done) => {
-    hbResponse = {
-      collectorConfig: {
-        refocusHeartBeatTimeout: 50,
-      },
-      generatorsAdded: [
-        {
-          name: 'SFDC_Core_Trust1',
-          generatorTemplateName: 'refocus-trust1-collector',
-          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
-          agents: [{ name: 'agent1' }],
-          generatorTemplate: {
-            name: 'refocus-trust1-collector',
-          },
-          interval: 6000,
+  const hbResponse = {
+    collectorConfig: {
+      refocusHeartBeatTimeout: 50,
+    },
+    generatorsAdded: [
+      {
+        name: 'SFDC_Core_Trust1',
+        generatorTemplateName: 'refocus-trust1-collector',
+        subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
+        context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+        agents: [{ name: 'agent1' }],
+        generatorTemplate: {
+          name: 'refocus-trust1-collector',
         },
-      ],
-      generatorsUpdated: [
+        interval: 6000,
+      },
+    ],
+    generatorsUpdated: [
 
-      ],
-      generatorsDeleted: [
+    ],
+    generatorsDeleted: [
 
-      ],
-    };
-    done();
-  });
+    ],
+  };
 
   it('should handle errors passed to the function', (done) => {
     const err = { status: 404,
-      description: 'heartbeat not received' };
+      description: 'heartbeat not received', };
     const ret = listener.handleHeartbeatResponse(err, hbResponse);
 
     expect(ret).to.deep.equal(err);
@@ -58,13 +53,26 @@ describe('test/heartbeat/listner.js >', () => {
     listener.handleHeartbeatResponse(null, hbResponse);
     expect(config.refocusHeartBeatTimeout)
       .to.equal(hbResponse.collectorConfig.refocusHeartBeatTimeout);
-
     done();
   });
 
-  it('added generators should added to the config and the repeat tracker ' +
+  it('added generators should be added to the config and the repeat tracker ' +
     'should be setup', (done) => {
-    listener.handleHeartbeatResponse(null, hbResponse);
+    const res = {
+      refocusHeartBeatTimeout: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_Core_Trust2',
+          generatorTemplateName: 'refocus-trust1-collector',
+          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
+          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          agents: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+
+    listener.handleHeartbeatResponse(null, res);
 
     expect(config.generators.SFDC_Core_Trust1)
       .to.deep.equal(hbResponse.generatorsAdded[0]);
@@ -76,42 +84,67 @@ describe('test/heartbeat/listner.js >', () => {
   });
 
   it('updated generators should be updated in the config', (done) => {
-    listener.handleHeartbeatResponse(null, hbResponse);
+    const res = {
+      refocusHeartBeatTimeout: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_Core_Trust3',
+          generatorTemplateName: 'refocus-trust1-collector',
+          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
+          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          agents: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+    listener.handleHeartbeatResponse(null, res);
     hbResponse.generatorsUpdated = [
       {
-        name: 'SFDC_Core_Trust1',
+        name: 'SFDC_Core_Trust3',
         interval: 1000,
         context: { baseUrl: 'https://argus-api.data.sfdc.net', },
       },
     ];
     hbResponse.generatorsAdded = [];
     listener.handleHeartbeatResponse(null, hbResponse);
-    expect(config.generators.SFDC_Core_Trust1.context)
+    expect(config.generators.SFDC_Core_Trust3.context)
       .to.deep.equal({ baseUrl: 'https://argus-api.data.sfdc.net', });
 
-    expect(repeatTracker.SFDC_Core_Trust1).not.equal(null);
+    expect(repeatTracker.SFDC_Core_Trust3).not.equal(null);
     done();
   });
 
-
   it('deleted generators information should be deleted in the ' +
     ' config', (done) => {
-    hbResponse.generatorsAdded.push(
-      {
-        name: 'SFDC_LIVE_AGENT',
-        interval: 6000,
-        generatorTemplateName: 'refocus-trust1-collector',
-        subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-        context: { baseUrl: 'https://argus-ui.data.sfdc.net', }
-      }
-    );
-    listener.handleHeartbeatResponse(null, hbResponse);
+    const res = {
+      refocusHeartBeatTimeout: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_LIVE_AGENT',
+          interval: 6000,
+          generatorTemplateName: 'refocus-trust1-collector',
+          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
+          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+        },
+        {
+          name: 'SFDC_Core_Trust4',
+          interval: 1000,
+          context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+        },
+      ],
+    };
+
+    listener.handleHeartbeatResponse(null, res);
     expect(config.generators.SFDC_LIVE_AGENT).to.not.equal(undefined);
     expect(config.generators.SFDC_Core_Trust1).to.not.equal(undefined);
-    hbResponse.generatorsDeleted = ['SFDC_LIVE_AGENT'];
-    listener.handleHeartbeatResponse(null, hbResponse);
-    expect(Object.keys(repeatTracker)).to.contain('SFDC_Core_Trust1');
-    expect(config.generators.SFDC_Core_Trust1).to.not.equal(undefined);
+    const resDel = {
+      generatorsDeleted: [{ name: 'SFDC_LIVE_AGENT', },
+      ],
+    };
+
+    listener.handleHeartbeatResponse(null, resDel);
+    expect(Object.keys(repeatTracker)).to.contain('SFDC_Core_Trust4');
+    expect(config.generators.SFDC_Core_Trust4).to.not.equal(undefined);
     expect(repeatTracker.SFDC_LIVE_AGENT).equal(undefined);
     expect(config.generators.SFDC_LIVE_AGENT).to.equal(undefined);
     done();
