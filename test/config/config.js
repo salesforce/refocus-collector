@@ -10,7 +10,6 @@
  * test/config/config.js
  */
 const expect = require('chai').expect;
-const assert = require('chai').assert;
 const errors = require('../../src/errors/errors');
 const util = require('util');
 const fs = require('fs');
@@ -19,10 +18,10 @@ const registryLoc = require('../../src/constants').localRegistryLocation;
 describe('test/config/config.js - unit tests >', () => {
   it('Import config object', (done) => {
     fs.stat(registryLoc, (err, stat) => {
-      if (err == null) { // if no error, file exists, expect object
+      if (err === null) { // if no error, file exists, expect object
         const config = require('../../src/config/config');
         expect(config).to.be.an('object');
-      } else if (err.code == 'ENOENT') { // file does not exist, expect error
+      } else if (err.code === 'ENOENT') { // file does not exist, expect error
         const fn = () => { require('../../src/config/config'); };
 
         expect(fn).to.throw(new errors.ResourceNotFoundError(
