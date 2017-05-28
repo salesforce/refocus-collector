@@ -20,7 +20,10 @@ const init = require('./utils').init;
  * is also updated by the response from the hearbeat.
  * @type {Object}
  */
-const config = init(constants.localRegistryLocation);
+const pe = process.env.NODE_ENV; // eslint-disable-line no-process-env
+const fileLoc = pe === 'test' ?
+  constants.mockRegistryLocation : constants.localRegistryLocation;
+const config = init(fileLoc);
 debug('Initialized config: %s', JSON.stringify(config));
 
 // add the generator attribute to the config object

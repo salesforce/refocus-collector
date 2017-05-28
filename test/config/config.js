@@ -13,12 +13,12 @@ const expect = require('chai').expect;
 const errors = require('../../src/errors/errors');
 const util = require('util');
 const fs = require('fs');
-const registryLoc = require('../../src/constants').localRegistryLocation;
+const registryLoc = require('../../src/constants').mockRegistryLocation;
 
 describe('test/config/config.js - unit tests >', () => {
   it('Import config object', (done) => {
     fs.stat(registryLoc, (err, stat) => {
-      if (err === null) { // if no error, file exists, expect object
+      if (!err) { // if no error, file exists, expect object
         const config = require('../../src/config/config');
         expect(config).to.be.an('object');
       } else if (err.code === 'ENOENT') { // file does not exist, expect error

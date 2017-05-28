@@ -15,4 +15,7 @@
 module.exports = {
   // registry json file location
   localRegistryLocation: './registry.json',
+
+  // exported for the purpose of testing
+  mockRegistryLocation: './test/config/testRegistry.json',
 };

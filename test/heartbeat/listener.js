@@ -9,6 +9,7 @@
 /**
  * test/heartbeat/listner.js
  */
+process.env.NODE_ENV = 'test'; // eslint-disable-line no-process-env
 const listener = require('../../src/heartbeat/listener');
 const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
