@@ -16,9 +16,16 @@ const constants = require('../constants');
 const init = require('./utils').init;
 
 /**
- * Config object created by loading local registry
+ * Config object created by loading local registry. This object
+ * is also updated by the response from the hearbeat.
  * @type {Object}
  */
-const config = init(constants.localRegistryLocation);
+const pe = process.env.NODE_ENV; // eslint-disable-line no-process-env
+const fileLoc = pe === 'test' ?
+  constants.mockRegistryLocation : constants.localRegistryLocation;
+const config = init(fileLoc);
 debug('Initialized config: %s', JSON.stringify(config));
+
+// add the generator attribute to the config object
+config.generators = {};
 module.exports = config;
