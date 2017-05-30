@@ -24,7 +24,8 @@
     "errors": "^0.3.0",
     "fs": "0.0.1-security",
     "notevil": "^1.1.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "superagent": "^3.5.2"
   },
   "devDependencies": {
     "jscs": "^3.0.7",
