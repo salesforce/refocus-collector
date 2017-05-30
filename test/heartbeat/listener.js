@@ -24,8 +24,8 @@ describe('test/heartbeat/listener.js >', () => {
       {
         name: 'SFDC_Core_Trust1',
         generatorTemplateName: 'refocus-trust1-collector',
-        subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-        context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+        subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+        context: { baseUrl: 'https://example.api', },
         agents: [{ name: 'agent1' }],
         generatorTemplate: {
           name: 'refocus-trust1-collector',
@@ -65,8 +65,8 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust2',
           generatorTemplateName: 'refocus-trust1-collector',
-          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
           agents: [{ name: 'agent1' }],
           interval: 6000,
         },
@@ -91,8 +91,8 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust3',
           generatorTemplateName: 'refocus-trust1-collector',
-          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
           agents: [{ name: 'agent1' }],
           interval: 6000,
         },
@@ -103,13 +103,13 @@ describe('test/heartbeat/listener.js >', () => {
       {
         name: 'SFDC_Core_Trust3',
         interval: 1000,
-        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+        context: { baseUrl: 'https://example.api', },
       },
     ];
     hbResponse.generatorsAdded = [];
     listener.handleHeartbeatResponse(null, hbResponse);
     expect(config.generators.SFDC_Core_Trust3.context)
-      .to.deep.equal({ baseUrl: 'https://argus-api.data.sfdc.net', });
+      .to.deep.equal({ baseUrl: 'https://example.api', });
 
     expect(repeatTracker.SFDC_Core_Trust3).not.equal(null);
     done();
@@ -124,8 +124,8 @@ describe('test/heartbeat/listener.js >', () => {
           name: 'SFDC_LIVE_AGENT',
           interval: 6000,
           generatorTemplateName: 'refocus-trust1-collector',
-          subjectQuery: 'absolutePath=Salesforce.SFDC_Core.*&tags=Pod,Primary',
-          context: { baseUrl: 'https://argus-ui.data.sfdc.net', },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
         },
         {
           name: 'SFDC_Core_Trust4',
@@ -160,7 +160,7 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsAdded: {
         name: 'SFDC_Core_Trust4',
         interval: 1000,
-        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+        context: { baseUrl: 'https://example.api', },
       },
       generatorsDeleted: {
         name: 'SFDC_Core_Trust4',
@@ -168,7 +168,7 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsUpdated: {
         name: 'SFDC_Core_Trust4',
         interval: 1000,
-        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+        context: { baseUrl: 'https://example.api', },
       },
     };
     const ret = listener.handleHeartbeatResponse(null, res);
