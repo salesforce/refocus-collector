@@ -35,39 +35,51 @@ function handleHeartbeatResponse(err, res) {
     Object.keys(res.collectorConfig).forEach((key) => {
       config[key] = res.collectorConfig[key];
     });
-    debug('collector config updated');
+    debug('Collector config updated');
   }
 
-  if (res.generatorsAdded && Array.isArray(res.generatorsAdded)) {
-    // call repeat to setup a new repeat
-    res.generatorsAdded.forEach((generator) => {
-      repeater.startNewGeneratorRepeat(generator);
-      config.generators[generator.name] = generator;
-    });
-
-    debug('Done adding generators added to the config:', res.generatorsAdded);
-  }
-
-  if (res.generatorsDeleted && Array.isArray(res.generatorsDeleted)) {
-    // call repeat to delete a repeat
-    res.generatorsDeleted.forEach((generator) => {
-      repeater.stopRepeat(generator);
-      delete config.generators[generator.name];
-    });
-
-    debug('Done deleting generators from the config: ', res.generatorsDeleted);
-  }
-
-  if (res.generatorsUpdated && Array.isArray(res.generatorsUpdated)) {
-    // call repeat to update the repeat
-    res.generatorsUpdated.forEach((generator) => {
-      repeater.updateGeneratorRepeat(generator);
-      Object.keys(generator).forEach((key) => {
-        config.generators[generator.name][key] = generator[key];
+  if (res.generatorsAdded) {
+    if (Array.isArray(res.generatorsAdded)) {
+      // call repeat to setup a new repeat
+      res.generatorsAdded.forEach((generator) => {
+        repeater.startNewGeneratorRepeat(generator);
+        config.generators[generator.name] = generator;
       });
-    });
 
-    debug('Done updating generators in the config: ', res.generatorsUpdated);
+      debug('Added generators to the config:', res.generatorsAdded);
+    } else {
+      logger.log('error', 'generatorsAdded attribute should be an array');
+    }
+  }
+
+  if (res.generatorsDeleted) {
+    if (Array.isArray(res.generatorsDeleted)) {
+      // call repeat to delete a repeat
+      res.generatorsDeleted.forEach((generator) => {
+        repeater.stopRepeat(generator);
+        delete config.generators[generator.name];
+      });
+
+      debug('Deleted generators from the config: ', res.generatorsDeleted);
+    } else {
+      logger.log('error', 'generatorsDeleted attribute should be an array');
+    }
+  }
+
+  if (res.generatorsUpdated) {
+    if (Array.isArray(res.generatorsDeleted)) {
+      // call repeat to update the repeat
+      res.generatorsUpdated.forEach((generator) => {
+        repeater.updateGeneratorRepeat(generator);
+        Object.keys(generator).forEach((key) => {
+          config.generators[generator.name][key] = generator[key];
+        });
+      });
+
+      debug('Updated generators in the config: ', res.generatorsUpdated);
+    } else {
+      logger.log('error', 'generatorsDeleted attribute should be an array');
+    }
   }
 
   return config;

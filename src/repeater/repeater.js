@@ -32,8 +32,8 @@ function collectStub() { }
  *  invocation.
  */
 function onProgress(result) {
-  debug('onProgress: task was successfully repeated with' +
-    'he following response: ', result);
+  debug('onProgress: task was successfully repeated with ' +
+    'the following response: ', result);
 } // onProgress
 
 /**

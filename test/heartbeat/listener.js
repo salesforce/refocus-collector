@@ -15,7 +15,7 @@ const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
-describe('test/heartbeat/listner.js >', () => {
+describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
       refocusHeartBeatTimeout: 50,
@@ -148,6 +148,31 @@ describe('test/heartbeat/listner.js >', () => {
     expect(config.generators.SFDC_Core_Trust4).to.not.equal(undefined);
     expect(repeatTracker.SFDC_LIVE_AGENT).equal(undefined);
     expect(config.generators.SFDC_LIVE_AGENT).to.equal(undefined);
+    done();
+  });
+
+  it('should log error when the heartbeat response does not have ' +
+    'generators(Added|Deleted|Updated) as an array', (done) => {
+    const res = {
+      collectorConfig: {
+        refocusHeartBeatTimeout: 50,
+      },
+      generatorsAdded: {
+        name: 'SFDC_Core_Trust4',
+        interval: 1000,
+        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+      },
+      generatorsDeleted: {
+        name: 'SFDC_Core_Trust4',
+      },
+      generatorsUpdated: {
+        name: 'SFDC_Core_Trust4',
+        interval: 1000,
+        context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+      },
+    };
+    const ret = listener.handleHeartbeatResponse(null, res);
+    expect(ret.refocusHeartBeatTimeout).to.deep.equal(50);
     done();
   });
 });
