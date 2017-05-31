@@ -12,6 +12,7 @@
 const debug = require('debug')('refocus-collector:utils');
 const errors = require('../errors/errors');
 const request = require('superagent');
+const bulkUpsertPath = require('../constants').bulkUpsertPath;
 
 module.exports = {
   /**
@@ -19,6 +20,8 @@ module.exports = {
    *
    * @param {Object} registry contains Refocus url and token,
    * @param {Array} arr is the array of samples to upsert;
+   * @throws {ValidationError} if argument(s) is missing,
+   * or in a wrong format.
    * @returns {Promise} contains a successful response, or failed error
    */
   doBulkUpsert(registry, arr) {
@@ -42,7 +45,7 @@ module.exports = {
         ));
       }
 
-      if (!arr) {
+      if (!arr || !Array.isArray(arr)) {
 
         // Throw error if no array is supplied
         debug('Error: array of samples to post not found. Supplied %s', url);
@@ -51,7 +54,7 @@ module.exports = {
         ));
       }
 
-      const upsertUrl = url + '/v1/samples/upsert/bulk';
+      const upsertUrl = url + bulkUpsertPath;
       debug('Bulk upserting to: %s', upsertUrl);
 
       request

@@ -12,6 +12,7 @@
 const expect = require('chai').expect;
 const sampleUpsertUtils = require('../../src/utils/sampleUpsertUtils');
 const request = require('superagent');
+const bulkUpsertPath = require('../../src/constants').bulkUpsertPath;
 const mock = require('superagent-mocker')(request);
 
 describe('test/utils/sampleUpsertUtils.js >', () => {
@@ -45,6 +46,16 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
       });
     });
 
+    it('array input of non-array type gives validation error', (done) => {
+      sampleUpsertUtils.doBulkUpsert(properRegistryObject, dummyStr)
+      .then(() => done(new Error('Expected validation error')))
+      .catch((err) => {
+        expect(err.name).to.equal('ValidationError');
+        expect(err.status).to.equal(400);
+        done();
+      });
+    });
+
     it('no token in registry object, gives validation error', (done) => {
       sampleUpsertUtils.doBulkUpsert(properRegistryObject)
       .then(() => done(new Error('Expected validation error')))
@@ -58,7 +69,7 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
     it('empty array is ok', (done) => {
 
       // set up stub
-      mock.post(properRegistryObject.url + '/v1/samples/upsert/bulk', () => Promise.resolve());
+      mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
       sampleUpsertUtils.doBulkUpsert(properRegistryObject, [])
       .then((object) => {
         expect(object.status).to.equal(200);
@@ -70,7 +81,7 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
     it('array of samples is returned', (done) => {
 
       // set up stub to return the request
-      mock.post(properRegistryObject.url + '/v1/samples/upsert/bulk',
+      mock.post(properRegistryObject.url + bulkUpsertPath,
         (req) => req);
       sampleUpsertUtils.doBulkUpsert(properRegistryObject, sampleArr)
       .then((object) => {
