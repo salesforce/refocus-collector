@@ -48,7 +48,7 @@ module.exports = {
       if (!arr || !Array.isArray(arr)) {
 
         // Throw error if no array is supplied
-        debug('Error: array of samples to post not found. Supplied %s', url);
+        debug('Error: array of samples to post not found. Supplied %s', arr);
         reject(new errors.ValidationError(
           'bulk upsert needs an array of samples to send. No samples array found.'
         ));

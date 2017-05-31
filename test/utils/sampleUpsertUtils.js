@@ -66,9 +66,12 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
       });
     });
 
+    // TODO: add test to show how doBulkUpsert handles
+    // failed bulkUpsert response
+
     it('empty array is ok', (done) => {
 
-      // set up stub
+      // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
       sampleUpsertUtils.doBulkUpsert(properRegistryObject, [])
       .then((object) => {
@@ -80,7 +83,7 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
 
     it('array of samples is returned', (done) => {
 
-      // set up stub to return the request
+      // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath,
         (req) => req);
       sampleUpsertUtils.doBulkUpsert(properRegistryObject, sampleArr)
