@@ -29,7 +29,16 @@ module.exports = {
         // Throw error if url is not present in registry.
         debug('Error: refocus url not found. Supplied %s', url);
         reject(new errors.ValidationError(
-          'registry should have url property.'
+          'registry should have an url property.'
+        ));
+      }
+
+      if (!token) {
+
+        // Throw error if token is not present in registry.
+        debug('Error: refocus url not found. Supplied %s', token);
+        reject(new errors.ValidationError(
+          'registry should have a token property.'
         ));
       }
 
@@ -42,10 +51,13 @@ module.exports = {
         ));
       }
 
-      debug('Bulk upserting to: %s', url);
+      const upsertUrl = url + '/v1/samples/upsert/bulk';
+      debug('Bulk upserting to: %s', upsertUrl);
+
       request
-      .post(url)
+      .post(upsertUrl)
       .send(arr)
+      .set('Authorization', token)
       .set('Accept', 'application/json')
       .end((err, res) => {
         if (err) {
