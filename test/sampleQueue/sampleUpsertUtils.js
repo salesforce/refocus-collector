@@ -7,15 +7,15 @@
  */
 
 /**
- * test/utils/sampleUpsertUtils.js
+ * test/sampleQueue/sampleUpsertUtils.js
  */
 const expect = require('chai').expect;
-const sampleUpsertUtils = require('../../src/utils/sampleUpsertUtils');
+const sampleUpsertUtils = require('../../src/sampleQueue/sampleUpsertUtils');
 const request = require('superagent');
 const bulkUpsertPath = require('../../src/constants').bulkUpsertPath;
 const mock = require('superagent-mocker')(request);
 
-describe('test/utils/sampleUpsertUtils.js >', () => {
+describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
   const dummyStr = 'http://dummy.refocus.url';
   const dummyToken = '3245678754323356475654356758675435647qwertyrytu';
   const properRegistryObject = { url: dummyStr, token: dummyToken };
