@@ -55,6 +55,6 @@ function getConfig() {
 
 module.exports = {
   setRegsitry,
-  getConfig, // exported for testing
+  getConfig,
   clearConfig, // exported for testing
 };
