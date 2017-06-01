@@ -10,7 +10,7 @@
  * /heartbeat/listener.js
  */
 const debug = require('debug')('refocus-collector:heartbeat');
-const config = require('../config/config');
+const config = require('../config/config').getConfig();
 const repeater = require('../repeater/repeater');
 const logger = require('winston');
 

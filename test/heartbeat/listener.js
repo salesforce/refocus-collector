@@ -9,12 +9,20 @@
 /**
  * test/heartbeat/listner.js
  */
-process.env.NODE_ENV = 'test'; // eslint-disable-line no-process-env
+const obj = {
+  registry: {
+    collectorName1: {
+      url: 'www.xyz.com111',
+      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+    },
+  },
+};
+
+require('../../src/config/config').setRegsitry(obj);
+const config = require('../../src/config/config').getConfig();
 const listener = require('../../src/heartbeat/listener');
-const config = require('../../src/config/config');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
-
 describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
