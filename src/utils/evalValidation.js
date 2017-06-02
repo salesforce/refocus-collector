@@ -47,9 +47,7 @@ module.exports = {
 
     if (subject) {
       isObject('subject', subject);
-      if (subject.absolutePath === undefined ||
-      subject.absolutePath === null ||
-      typeof subject.absolutePath !== 'string') {
+      if (typeof subject.absolutePath !== 'string') {
         throw new errors.ArgsError('"subject" attribute must be a valid ' +
           'subject.');
       }

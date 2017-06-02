@@ -17,20 +17,21 @@ const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 
 module.exports = {
+
   /**
    * Read a file asynchronously.
    *
    * @param {String} fileLoc - File location relative to root folder i.e.
    *  refocus-collector folder
    * @param {string} encoding - Encoding type
-   * @return {Promise} - If success, resolves with file data, else rejects
+   * @returns {Promise} - If success, resolves with file data, else rejects
    *  with error
    * @throws {ResourceNotFoundError} - If specified file not found.
    */
   readFileAsynchr(fileLoc, encoding) {
     debug('Reading file: %s', path.resolve(fileLoc));
     return new Promise((resolve, reject) => {
-      fs.readFile(fileLoc, encoding, function (err, data) {
+      fs.readFile(fileLoc, encoding, (err, data) => {
         if (err) {
           if (err.code === 'ENOENT') {
             reject(new errors.ResourceNotFoundError(
@@ -47,16 +48,16 @@ module.exports = {
   },
 
   /**
-   * Read file synchronously.
+   * Read a file synchronously.
    *
    * @param {String} fileLoc - File location relative to root folder i.e.
    *  refocus-collector folder.
-   * @return {String} - File contents
+   * @returns {String} - File contents
    * @throws {ResourceNotFoundError} - If specified file not found.
    */
   readFileSynchr(fileLoc) {
     debug('Reading file: %s', path.resolve(fileLoc));
-    var fileContents;
+    let fileContents;
     try {
       fileContents = fs.readFileSync(fileLoc).toString();
     } catch (err) {

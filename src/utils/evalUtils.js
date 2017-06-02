@@ -132,7 +132,7 @@ function safeTransform(functionBody, args) {
         .ELEMENT_NOT_OBJECT);
     }
 
-    if (element.name === undefined || typeof element.name !== 'string') {
+    if (typeof element.name !== 'string') {
       throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NO_ELEMENT_NAME);
     }
   });
