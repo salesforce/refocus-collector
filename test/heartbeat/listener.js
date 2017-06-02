@@ -7,14 +7,12 @@
  */
 
 /**
- * test/heartbeat/listner.js
+ * test/heartbeat/listener.js
  */
 const obj = {
-  registry: {
-    collectorName1: {
-      url: 'www.xyz.com111',
-      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-    },
+  collectorName1: {
+    url: 'www.xyz.com111',
+    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
   },
 };
 
