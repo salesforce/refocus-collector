@@ -49,7 +49,7 @@ describe('test/config/config.js - unit tests >', () => {
   });
 
   it('set Config by passing it an an object', (done) => {
-    conf.setRegsitry(confObj);
+    conf.setRegistry(confObj);
     const obj = conf.getConfig();
     expect(obj).to.deep.equal(confObj);
     expect(obj.generators).to.not.equal(undefined);
@@ -57,7 +57,7 @@ describe('test/config/config.js - unit tests >', () => {
   });
 
   it('set Config by forcing a read from a file', (done) => {
-    conf.setRegsitry(registryLoc);
+    conf.setRegistry(registryLoc);
     const obj = conf.getConfig();
 
     // read object from the file

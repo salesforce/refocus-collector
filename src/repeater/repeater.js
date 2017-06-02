@@ -168,16 +168,10 @@ function updateGeneratorRepeat(obj) {
 } // updateGeneratorRepeat
 
 module.exports = {
-  stopRepeat,
-
-  startNewRepeat,
-
-  updateRepeat,
-
+  repeatTracker, // export for testing only
   startNewGeneratorRepeat,
-
+  startNewRepeat,
+  stopRepeat,
   updateGeneratorRepeat,
-
-  // exported for the purpose of testing
-  repeatTracker,
+  updateRepeat,
 };

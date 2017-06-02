@@ -8,7 +8,7 @@
   },
   "scripts": {
     "jscs": "./node_modules/jscs/bin/jscs *.js src test",
-    "test": "./node_modules/.bin/mocha -R dot --recursive ./test"
+    "test": "npm run jscs && ./node_modules/.bin/mocha -R dot --recursive ./test"
   },
   "repository": {
     "type": "git",

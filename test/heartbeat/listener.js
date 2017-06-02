@@ -18,7 +18,7 @@ const obj = {
   },
 };
 
-require('../../src/config/config').setRegsitry(obj);
+require('../../src/config/config').setRegistry(obj);
 const config = require('../../src/config/config').getConfig();
 const listener = require('../../src/heartbeat/listener');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
