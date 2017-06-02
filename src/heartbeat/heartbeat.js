@@ -13,7 +13,7 @@
 const debug = require('debug')('refocus-collector:heartbeat');
 const errors = require('../errors/errors');
 const request = require('superagent');
-const config = require('../config/config');
+const config = require('../config/config').getConfig();
 
 /**
  * Send a heartbeat to the Refocus server
