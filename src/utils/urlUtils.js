@@ -22,21 +22,23 @@ const errors = require('../errors/errors');
  * property referenced by the url
  */
 function expand(url, ctx) {
-  debug(`expand(${url}, ${ctx}`);
-  const matches = url.match(/{{[^\s{}]+?}}/g); // match {{...}} with no inner space or {}
+  debug(`expand(${url}, ${ctx})`);
+  const matches = url.match(/{{[^\s{}]+?}}/g); // match {{...}}
   let expandedUrl = url;
   matches.forEach((match) => {
     const key = match.match(/{{(.+)}}/)[1]; // extract "..." from "{{...}}"
     const value = ctx[key];
     if (value == null) {
-      throw new errors.ValidationError(`Can't expand url: No property '${key}' in context`);
+      throw new errors.ValidationError(
+        `Can't expand url: No property '${key}' in context`);
     }
 
     expandedUrl = expandedUrl.replace(match, value);
   });
 
-  if (expandedUrl.match(/[{}]/)) { // there are curly braces that were not replaced
-    throw new errors.ValidationError(`Can't expand url: Invalid url template: ${url}`);
+  if (expandedUrl.match(/[{}]/)) { // there are braces that were not replaced
+    throw new errors.ValidationError(
+      `Can't expand url: Invalid url template: ${url}`);
   }
 
   debug(`expand returning ${expandedUrl}`);

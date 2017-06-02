@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/utils/urlUtils.js
+ * test/utils/urlUtils.js
  */
 const expect = require('chai').expect;
 const expand = require('../../src/utils/urlUtils').expand;
@@ -40,6 +40,19 @@ describe('test/utils/urlUtils.js >', () => {
   it('expand - 3 variables', (done) => {
     const url = 'http://www.{{domain}}.com?id={{key}}&ok={{ok}}';
     const expandedUrl = 'http://www.xyz.com?id=12345&ok=true';
+    const ctx = {
+      key: '12345',
+      ok: 'true',
+      domain: 'xyz',
+    };
+
+    expect(expand(url, ctx)).to.equal(expandedUrl);
+    done();
+  });
+
+  it('expand - duplicate variables', (done) => {
+    const url = 'http://www.{{domain}}.com?id={{key}}&ok={{key}}';
+    const expandedUrl = 'http://www.xyz.com?id=12345&ok=12345';
     const ctx = {
       key: '12345',
       ok: 'true',
