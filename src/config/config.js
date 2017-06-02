@@ -37,13 +37,13 @@ function clearConfig() {
  * contents and assign it ot the config.
  * @param {String|Object} objOrString - An object or a string.
  */
-function setRegsitry(objOrString) {
+function setRegistry(objOrString) {
   if (!config) {
     config = typeof objOrString === 'object' ? objOrString : init(objOrString);
     config.generators = {};
     debug('Initialized config: %o', config);
   }
-} // setRegsitry
+} // setRegistry
 
 /**
  * Returns the config object
@@ -54,7 +54,7 @@ function getConfig() {
 } // getConfig
 
 module.exports = {
-  setRegsitry,
+  setRegistry,
   getConfig,
   clearConfig, // exported for testing
 };
