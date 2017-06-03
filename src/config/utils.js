@@ -57,7 +57,9 @@ function validateRegistry(reg) {
  */
 function init(reg) {
   const conf = {
-    collectorConfig: {},
+    collectorConfig: {
+      heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
+    },
     generators: {},
     registry: {},
   };

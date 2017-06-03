@@ -15,95 +15,98 @@ const repeatTracker = repeater.repeatTracker;
 const expect = require('chai').expect;
 
 describe('test/repeater/repeater.js >', () => {
-  it('startNewGeneratorRepeat should start a new generator repeat', (done) => {
-    const obj = {
+  it('createGeneratorRepeater should start a new generator repeat', (done) => {
+    const def = {
       name: 'Generator0',
       interval: 6000,
     };
-    const ret = repeater.startNewGeneratorRepeat(obj);
-    expect(ret.repeatHandle).to.not.equal(undefined);
-    expect(ret.repeatInterval).to.equal(obj.interval);
-    expect(ret.repeatName).to.equal('Generator0');
-    expect(ret.repeat.name).to.equal('collectStub');
-    expect(repeatTracker.Generator0).to.equal(ret.repeatHandle);
+    const ret = repeater.createGeneratorRepeater(def);
+    expect(ret.handle).to.not.equal(undefined);
+    expect(ret.interval).to.equal(def.interval);
+    expect(ret.name).to.equal('Generator0');
+    expect(ret.funcName).to.equal('collectStub');
+    expect(repeatTracker.Generator0).to.equal(ret.handle);
     done();
   });
 
   it('updateGeneratorRepeat should start a new generator repeat', (done) => {
-    const obj = {
+    const def = {
       name: 'Generator1',
       interval: 6000,
     };
-    repeater.startNewGeneratorRepeat(obj);
-    obj.name = 'Generator1';
-    obj.interval = 60;
-    const ret = repeater.updateGeneratorRepeat(obj);
-    expect(ret.repeatHandle).to.not.equal(undefined);
-    expect(ret.repeatInterval).to.equal(obj.interval);
-    expect(ret.repeatName).to.equal('Generator1');
-    expect(ret.repeat.name).to.equal('collectStub');
-    expect(repeatTracker.Generator1).to.equal(ret.repeatHandle);
+    repeater.createGeneratorRepeater(def);
+    def.name = 'Generator1';
+    def.interval = 60;
+    const ret = repeater.updateGeneratorRepeater(def);
+    expect(ret.handle).to.not.equal(undefined);
+    expect(ret.interval).to.equal(def.interval);
+    expect(ret.name).to.equal('Generator1');
+    expect(ret.funcName).to.equal('collectStub');
+    expect(repeatTracker.Generator1).to.equal(ret.handle);
     done();
   });
 
-  it('startNewRepeat should start a repeat function that was passed ' +
-    'in as an argument', (done) => {
-    const obj = {
-      name: 'Generator2',
-      interval: 6000,
-    };
+  it('create should start a repeat function that was passed in as an argument',
+  (done) => {
     function taskStub() {}
 
-    const ret = repeater.startNewRepeat(obj, taskStub);
-    expect(ret.repeatHandle).to.not.equal(undefined);
-    expect(ret.repeatInterval).to.equal(obj.interval);
-    expect(ret.repeatName).to.equal('Generator2');
-    expect(ret.repeat.name).to.equal('taskStub');
-    expect(repeatTracker.Generator2).to.equal(ret.repeatHandle);
+    const def = {
+      name: 'Generator2',
+      interval: 6000,
+      func: taskStub,
+    };
+    const ret = repeater.create(def);
+    expect(ret.handle).to.not.equal(undefined);
+    expect(ret.interval).to.equal(def.interval);
+    expect(ret.name).to.equal('Generator2');
+    expect(ret.funcName).to.equal('taskStub');
+    expect(repeatTracker.Generator2).to.equal(ret.handle);
     done();
   });
 
-  it('startNewRepeat should work with all the params passed', (done) => {
-    const obj = {
-      name: 'Generator3',
-      interval: 10,
-    };
-    let counter = 0;
+  it('create should work with all the params passed', (done) => {
     function stub() {
       counter++;
     }
 
-    const ret = repeater.startNewRepeat(obj, stub, stub, stub, stub);
+    const def = {
+      name: 'Generator3',
+      interval: 10,
+      func: stub,
+    };
+    let counter = 0;
+
+    const ret = repeater.create(def);
     setTimeout(() => {
       expect(counter).to.be.at.least(1);
-      expect(ret.repeatHandle).to.not.equal(undefined);
-      expect(ret.repeatInterval).to.equal(obj.interval);
-      expect(ret.repeatName).to.equal('Generator3');
-      expect(ret.repeat.name).to.equal('stub');
-      expect(repeatTracker.Generator3).to.equal(ret.repeatHandle);
+      expect(ret.handle).to.not.equal(undefined);
+      expect(ret.interval).to.equal(def.interval);
+      expect(ret.name).to.equal('Generator3');
+      expect(ret.funcName).to.equal('stub');
+      expect(repeatTracker.Generator3).to.equal(ret.handle);
       return done();
     }, 100);
   });
 
-  it('calling stopRepeat should stop the repeat and delete it ' +
-    'from the tracker', (done) => {
-    const obj = {
-      name: 'Generator4',
-      interval: 100,
-    };
-    let currentCount = 0;
-    let oldCount = 0;
+  it('calling stop should stop the repeat and delete it from the tracker',
+  (done) => {
     function stub() {
       currentCount++;
     }
 
-    repeater.startNewRepeat(obj, stub);
+    const def = {
+      name: 'Generator4',
+      interval: 100,
+      func: stub,
+    };
+    let currentCount = 0;
+    let oldCount = 0;
+
+    repeater.create(def);
     setTimeout(() => {
       // proves repeat ran
       expect(currentCount).to.be.at.least(1);
-
-      // repeat stopped
-      repeater.stopRepeat(obj);
+      repeater.stop(def.name);
       oldCount = currentCount;
       expect(repeatTracker.Generator4).to.equal(undefined);
     }, 100);
@@ -117,37 +120,38 @@ describe('test/repeater/repeater.js >', () => {
     }, 500);
   });
 
-  it('updating a repeat should update the repeat and the ' +
-    'repeatTracker', (done) => {
-    const obj = {
-      name: 'Generator5',
-      interval: 1,
-    };
-    let count = 0;
+  it('updating a repeat should update the repeat and the repeatTracker',
+  (done) => {
     function stub() {
       count++;
     }
 
-    let newCount = 0;
     function stubNew() {
       newCount++;
     }
 
-    repeater.startNewRepeat(obj, stub);
+    const def = {
+      name: 'Generator5',
+      interval: 1,
+      func: stub,
+    };
+    let count = 0;
+    let newCount = 0;
+    repeater.create(def);
     setTimeout(() => {
-
-      // proves repeat ran
+      // proves repeater ran
       expect(count).to.be.at.least(1);
 
-      // repeat updated
-      obj.interval = 100000;
+      // repeater updated
+      def.interval = 100000;
+      def.func = stubNew;
 
-      const ret = repeater.updateRepeat(obj, stubNew, stub, stub, stub);
-      expect(ret.repeatHandle).to.not.equal(undefined);
-      expect(ret.repeatInterval).to.equal(obj.interval);
-      expect(ret.repeatName).to.equal('Generator5');
-      expect(ret.repeat.name).to.equal('stubNew');
-      expect(repeatTracker.Generator5).to.equal(ret.repeatHandle);
+      const ret = repeater.update(def);
+      expect(ret.handle).to.not.equal(undefined);
+      expect(ret.interval).to.equal(def.interval);
+      expect(ret.name).to.equal('Generator5');
+      expect(ret.funcName).to.equal('stubNew');
+      expect(repeatTracker.Generator5).to.equal(ret.handle);
     }, 100);
     setTimeout(() => {
 
@@ -158,33 +162,35 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   it('should call the onProgress call back after every repeat', (done) => {
-    const obj = {
-      name: 'testRepeatProgress',
-      interval: 10,
-    };
-    let counter = 0;
     function stub() { }
 
     function onProgress() {
       counter++;
     }
 
-    repeater.startNewRepeat(obj, stub, stub, stub, onProgress);
+    const def = {
+      name: 'testRepeatProgress',
+      interval: 10,
+      func: stub,
+      onProgress,
+    };
+    let counter = 0;
+    repeater.create(def);
     setTimeout(() => {
       expect(counter).to.be.at.least(1);
       return done();
     }, 100);
   });
 
-  it('stopping a repeat not in the repeatTracker should throw an ' +
-    'error', (done) => {
+  it('stopping a repeat not in the repeatTracker should throw an error',
+  (done) => {
     const obj = {
       name: 'someRandomName',
       interval: 10,
     };
 
     try {
-      repeater.stopRepeat(obj);
+      repeater.stop(obj);
       done('Expecting ResourceNotFoundError');
     } catch (err) {
       if (err.name === 'ResourceNotFoundError') {
@@ -195,109 +201,105 @@ describe('test/repeater/repeater.js >', () => {
     }
   });
 
-  it('if a repeat already exists with , a new repeat with the same name ' +
-    'should not be created', (done) => {
-    const obj = {
-      name: 'someRandomName',
-      interval: 10,
-    };
+  describe('validateDefinition >', () => {
+    it('OK', (done) => {
+      repeater.create({ name: 'Gen', interval: 10, func: () => {} });
+      done();
+    });
 
-    function stub() { }
+    it('missing func', (done) => {
+      try {
+        repeater.create({ name: 'Gen', interval: 10 });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
 
-    try {
-      repeater.startNewRepeat(obj, stub);
-      repeater.startNewRepeat(obj, stub);
-      done('Expecting ValidationError');
-    } catch (err) {
-      if (err.name === 'ValidationError') {
-        return done();
+        return done(err);
       }
+    });
 
-      return done(err);
-    }
-  });
+    it('wrong typeof func', (done) => {
+      try {
+        repeater.create({ name: 'Gen', interval: 10, func: 'Hello!' });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
 
-  it('should not be able to repeat a task with an object not having name ' +
-    'attributes', (done) => {
-    const obj = {
-      interval: 10,
-    };
-
-    function stub() { }
-
-    try {
-      repeater.startNewRepeat(obj, stub);
-      done('Expecting ValidationError');
-    } catch (err) {
-      if (err.name === 'ValidationError') {
-        return done();
+        return done(err);
       }
+    });
 
-      return done(err);
-    }
-  });
+    it('missing name', (done) => {
+      try {
+        repeater.create({ interval: 10, func: () => {} });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
 
-  it('should not be able to repeat a task with an object not having interval ' +
-    'attributes', (done) => {
-    const obj = {
-      name: 10,
-    };
-
-    function stub() { }
-
-    try {
-      repeater.startNewRepeat(obj, stub);
-      done('Expecting ValidationError');
-    } catch (err) {
-      if (err.name === 'ValidationError') {
-        return done();
+        return done(err);
       }
+    });
 
-      return done(err);
-    }
-  });
+    it('wrong typeof name', (done) => {
+      try {
+        repeater.create({ name: 123, interval: 10, func: () => {} });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
 
-  it('should not be able to update a task with an object not having interval ' +
-    'or name attributes', (done) => {
-    const obj = {
-      interval: 10,
-      name: 'Gen',
-    };
-
-    const objNew = {
-    };
-
-    function stub() { }
-
-    try {
-      repeater.startNewRepeat(obj, stub);
-      repeater.updateRepeat(objNew, stub);
-      done('Expecting ValidationError');
-    } catch (err) {
-      if (err.name === 'ValidationError') {
-        return done();
+        return done(err);
       }
+    });
 
-      return done(err);
-    }
-  });
+    it('missing interval', (done) => {
+      try {
+        repeater.create({ name: 'Gen', func: () => {} });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
 
-  it('should not be able to create a task without the task ' +
-    'function', (done) => {
-    const obj = {
-      interval: 10,
-      name: 'Gen_NoTask',
-    };
-
-    try {
-      repeater.startNewRepeat(obj);
-      done('Expecting ValidationError');
-    } catch (err) {
-      if (err.name === 'ValidationError') {
-        return done();
+        return done(err);
       }
+    });
 
-      return done(err);
-    }
+    it('wrong typeof interval', (done) => {
+      try {
+        repeater.create({ name: 'Gen', interval: '10', func: () => {} });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          return done();
+        }
+
+        return done(err);
+      }
+    });
+
+    it('duplicate name', (done) => {
+      const def = { name: 'Gen', interval: 10, func: () => {} };
+
+      try {
+        repeater.create(def);
+        repeater.create(def);
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError' &&
+          err.message === 'Duplicate repeater name violation: Gen') {
+          return done();
+        }
+
+        return done(err);
+      }
+    });
   });
 });
