@@ -21,7 +21,7 @@ describe('test/utils/sampleUpsertUtils.js >', () => {
   const properRegistryObject = { url: dummyStr, token: dummyToken };
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
 
-  describe('doBulkUpsert tests', () => {
+  describe('doBulkUpsert >', () => {
 
     // clear stub
     after(mock.clearRoutes);

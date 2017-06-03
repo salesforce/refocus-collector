@@ -15,70 +15,79 @@ const repeater = require('../repeater/repeater');
 const logger = require('winston');
 
 /**
- * This handles the heartbeat response by doing the following,
- * 1. Updates the collector config if the config has changed.
- * 2. Starts, deletes and updates the generator repeaters if it has changed.
- * @param  {Object} err - Error from the heartbeat response
- * @param  {Object} res - Heartbeat response
+ * Handles the heartbeat response:
+ *  1. Update the collector config if the config has changed.
+ *  2. Start, delete and update the generator repeaters as needed.
+ *
+ * @param {Object} err - Error from the heartbeat response
+ * @param {Object} res - Heartbeat response
  * @returns {Object} - config object. An error object is returned if this
- * function is called with the error as the first argument.
+ *  function is called with the error as the first argument.
  */
 function handleHeartbeatResponse(err, res) {
   if (err) {
-    logger.log('error', 'the handleHeartbeatResponse function was called ' +
-      'with an error:', err);
+    logger.error('The handleHeartbeatResponse function was called with an ' +
+      'error:', err);
     return err;
   }
 
-  // update the collector config from heartbeat
+  // Update the collector config.
   if (res.collectorConfig) {
+    debug('Heartbeat response collectorConfig to update', res.collectorConfig);
+    debug('Collector config before updating', config.collectorConfig);
     Object.keys(res.collectorConfig).forEach((key) => {
-      config[key] = res.collectorConfig[key];
+      config.collectorConfig[key] = res.collectorConfig[key];
     });
-    debug('Collector config updated');
+    debug('Collector config after updating', config.collectorConfig);
   }
 
   if (res.generatorsAdded) {
     if (Array.isArray(res.generatorsAdded)) {
       // call repeat to setup a new repeat
       res.generatorsAdded.forEach((generator) => {
-        repeater.startNewGeneratorRepeat(generator);
+        repeater.createGeneratorRepeater(generator);
         config.generators[generator.name] = generator;
       });
 
       debug('Added generators to the config:', res.generatorsAdded);
     } else {
-      logger.log('error', 'generatorsAdded attribute should be an array');
+      logger.error('generatorsAdded attribute should be an array');
     }
   }
 
   if (res.generatorsDeleted) {
     if (Array.isArray(res.generatorsDeleted)) {
-      // call repeat to delete a repeat
-      res.generatorsDeleted.forEach((generator) => {
-        repeater.stopRepeat(generator);
-        delete config.generators[generator.name];
+      /*
+       * Stop the repeater for each of these generators, then delete from
+       * config.
+       */
+      res.generatorsDeleted.forEach((g) => {
+        repeater.stop(g.name);
+        delete config.generators[g.name];
       });
 
       debug('Deleted generators from the config: ', res.generatorsDeleted);
     } else {
-      logger.log('error', 'generatorsDeleted attribute should be an array');
+      logger.error('generatorsDeleted attribute must be an array');
     }
   }
 
   if (res.generatorsUpdated) {
     if (Array.isArray(res.generatorsDeleted)) {
-      // call repeat to update the repeat
-      res.generatorsUpdated.forEach((generator) => {
-        repeater.updateGeneratorRepeat(generator);
-        Object.keys(generator).forEach((key) => {
-          config.generators[generator.name][key] = generator[key];
+      /*
+       * Update the repeater for each of these generators, then update the
+       * config.
+       */
+      res.generatorsUpdated.forEach((g) => {
+        repeater.updateGeneratorRepeater(g);
+        Object.keys(g).forEach((key) => {
+          config.generators[g.name][key] = g[key];
         });
       });
 
       debug('Updated generators in the config: ', res.generatorsUpdated);
     } else {
-      logger.log('error', 'generatorsDeleted attribute should be an array');
+      logger.error('generatorsDeleted attribute should be an array');
     }
   }
 

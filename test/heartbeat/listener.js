@@ -24,7 +24,7 @@ const expect = require('chai').expect;
 describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
-      refocusHeartBeatTimeout: 50,
+      heartbeatInterval: 50,
     },
     generatorsAdded: [
       {
@@ -39,12 +39,8 @@ describe('test/heartbeat/listener.js >', () => {
         interval: 6000,
       },
     ],
-    generatorsUpdated: [
-
-    ],
-    generatorsDeleted: [
-
-    ],
+    generatorsUpdated: [],
+    generatorsDeleted: [],
   };
 
   it('should handle errors passed to the function', (done) => {
@@ -58,21 +54,21 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('collector config should be updated', (done) => {
     listener.handleHeartbeatResponse(null, hbResponse);
-    expect(config.refocusHeartBeatTimeout)
-      .to.equal(hbResponse.collectorConfig.refocusHeartBeatTimeout);
+    expect(config.collectorConfig.heartbeatInterval)
+      .to.equal(hbResponse.collectorConfig.heartbeatInterval);
     done();
   });
 
   it('added generators should be added to the config and the repeat tracker ' +
     'should be setup', (done) => {
     const res = {
-      refocusHeartBeatTimeout: 50,
+      heartbeatInterval: 50,
       generatorsAdded: [
         {
           name: 'SFDC_Core_Trust2',
           generatorTemplateName: 'refocus-trust1-collector',
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-          context: { baseUrl: 'https://example.api', },
+          context: { baseUrl: 'https://example.api' },
           agents: [{ name: 'agent1' }],
           interval: 6000,
         },
@@ -92,7 +88,7 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('updated generators should be updated in the config', (done) => {
     const res = {
-      refocusHeartBeatTimeout: 50,
+      heartbeatInterval: 50,
       generatorsAdded: [
         {
           name: 'SFDC_Core_Trust3',
@@ -124,7 +120,7 @@ describe('test/heartbeat/listener.js >', () => {
   it('deleted generators information should be deleted in the ' +
     ' config', (done) => {
     const res = {
-      refocusHeartBeatTimeout: 50,
+      heartbeatInterval: 50,
       generatorsAdded: [
         {
           name: 'SFDC_LIVE_AGENT',
@@ -161,7 +157,7 @@ describe('test/heartbeat/listener.js >', () => {
     'generators(Added|Deleted|Updated) as an array', (done) => {
     const res = {
       collectorConfig: {
-        refocusHeartBeatTimeout: 50,
+        heartbeatInterval: 50,
       },
       generatorsAdded: {
         name: 'SFDC_Core_Trust4',
@@ -178,7 +174,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
     };
     const ret = listener.handleHeartbeatResponse(null, res);
-    expect(ret.refocusHeartBeatTimeout).to.deep.equal(50);
+    expect(ret.collectorConfig.heartbeatInterval).to.equal(50);
     done();
   });
 });
