@@ -10,7 +10,7 @@
  * tests/heartbeat/heartbeat.js
  */
 'use strict';
-require('../../src/config/config').setRegsitry({ registry: {} });
+require('../../src/config/config').setRegistry({ registry: {} });
 const config = require('../../src/config/config').getConfig();
 const expect = require('chai').expect;
 const heartbeat = require('../../src/heartbeat/heartbeat');
