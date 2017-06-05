@@ -310,7 +310,7 @@ describe('test/utils/evalUtils >', (done) => {
         n: -5,
       };
       const str = `
-        return [ctx.abc, ctx.n, ctx.abc.slice(ctx.n)];
+        return [args.abc, args.n, args.abc.slice(args.n)];
       `;
       const res = eu.safeEval(str, ctx);
       expect(res).to.be.array;
