@@ -45,7 +45,7 @@ function safeEval(functionBody, args) {
      * TODO generate the fn only once upon receiving the generator, store
      *  the generated func as part of the generator config in the config
      */
-    const func = notevil.Function('ctx', functionBody);
+    const func = notevil.Function('args', functionBody);
     debug(`evalUtils.safeEval generated function: ${func}`);
     debug(`evalUtils.safeEval calling function with args: ${args}`);
     const retval = func(args);
