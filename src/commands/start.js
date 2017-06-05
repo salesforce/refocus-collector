@@ -15,7 +15,7 @@
 const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
 const constants = require('../constants');
-const conf = require('../config/config').getConfig();
+const config = require('../config/config');
 const repeater = require('../repeater/repeater');
 
 function temporarySendHeartbeatStub() {
@@ -30,6 +30,7 @@ function temporarySendHeartbeatStub() {
  */
 function execute() {
   debug('Entered start.execute');
+  const conf = config.getConfig();
 
   // TODO Replace the success/failure/progress listeners here with proper
   //      logging once we have heartbeat.

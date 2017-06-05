@@ -14,7 +14,7 @@
 
 module.exports = {
   // registry json file location
-  localRegistryLocation: './registry.json',
+  registryLocation: './registry.json',
 
   // bulk upsert path, use with refocus url
   bulkUpsertPath: '/v1/samples/upsert/bulk',
