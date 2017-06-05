@@ -16,36 +16,68 @@ const common = require('../utils/commonUtils');
 const errors = require('../errors/errors');
 
 /**
- * Read registry.json and initialize config object with registry.
+ * Validate the registry.
  *
- * @param {String} registryFileLoc - Location of registry.json
- * @returns {Object} - Config object
- * @throws {ValidationError} - If a registry entry is missing a "url" attribute
- * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
+ * @throws {ValidationError} - If registry entry missing "url" or "token"
+ *  attribute
  */
-function init(registryFileLoc) {
-  // Get file contents synchronously.
-  const fileContents = common.readFileSynchr(registryFileLoc);
-  const registryJson = JSON.parse(fileContents);
-
-  // Read from registry and load registryInfo in config object.
-  debug('Reading from file %s', registryFileLoc);
-  for (const controllerName in registryJson) {
-    if (!registryJson[controllerName].hasOwnProperty('url')) {
-      // Throw error if url is not present for a collector entry in registry.
-      debug('Error: url not found for collector entry: %s', controllerName);
-      throw new errors.ValidationError(
-        'Collector entries in regisry.json must have "url" attribute.'
-      );
-    }
+function validateRegistry(reg) {
+  if (!reg || Array.isArray(reg) || typeof reg !== 'object') {
+    throw new errors.ValidationError('Registry must be an object.');
   }
 
-  // Set config.registry.
-  const conf = { registry: registryJson };
+  for (const r in reg) {
+    if (!reg[r].hasOwnProperty('url') || !reg[r].hasOwnProperty('token')) {
+      const msg = `Registry entry "${r}" missing required "url" and/or ` +
+        '"token" attribute.';
+      debug(msg);
+      throw new errors.ValidationError(msg);
+    }
+
+    if ((typeof reg[r].url !== 'string' || !reg[r].url) ||
+    (typeof reg[r].token !== 'string' || !reg[r].token)) {
+      const msg = `Registry entry "${r}" url and token must have string ` +
+        'values (not null, not empty).';
+      debug(msg);
+      throw new errors.ValidationError(msg);
+    }
+  }
+} // validateRegistry
+
+/**
+ * Initialize the config object. If the "reg" argument is an object, it is
+ * assigned as the config registry. If the "reg" argument is a string, treat
+ * it is a file location and try to assign the file contents as the config
+ * registry.
+ *
+ * @param {String|Object} reg - Registry object or location of registry file
+ * @returns {Object} - Config object
+ * @throws {ValidationError} - If registry is invalid.
+ * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
+ */
+function init(reg) {
+  const conf = {
+    collectorConfig: {},
+    generators: {},
+    registry: {},
+  };
+  let r;
+  if (typeof reg === 'object') {
+    r = reg;
+  } else if (typeof reg === 'string') {
+    // Get file contents synchronously.
+    debug('Reading from file %s', reg);
+    const fileContents = common.readFileSynchr(reg);
+    r = JSON.parse(fileContents);
+  }
+
+  validateRegistry(r);
+  conf.registry = r;
   debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init
 
 module.exports = {
   init,
+  validateRegistry, // export for testing only
 };

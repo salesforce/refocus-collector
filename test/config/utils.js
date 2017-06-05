@@ -15,7 +15,7 @@ const configUtils = require('../../src/config/utils');
 const errors = require('../../src/errors/errors');
 const util = require('util');
 
-describe('test/config/utils.js - unit tests >', () => {
+describe('test/config/utils.js >', () => {
   it('config object is created after reading registry', (done) => {
     const obj = configUtils.init('./test/config/testRegistry.json');
     expect(obj.registry).to.not.equal(null);
@@ -33,13 +33,278 @@ describe('test/config/utils.js - unit tests >', () => {
     done();
   });
 
-  it('error if a collector in registry does not have "url" attribute',
-  (done) => {
-    const fileLoc = './test/config/testRegistryInvalid.json';
-    const fn = configUtils.init.bind(configUtils, fileLoc);
-    expect(fn).to.throw(new errors.ValidationError(
-      'Collector entries in regisry.json must have "url" attribute.'
-    ).toString());
-    done();
+  describe('validateRegistry >', () => {
+    it('OK', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('no arg', (done) => {
+      try {
+        configUtils.validateRegistry();
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('array arg', (done) => {
+      try {
+        configUtils.validateRegistry([1, 2, 3]);
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('string arg', (done) => {
+      try {
+        configUtils.validateRegistry('Hello, World!');
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('missing url', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { token: 'abcdefg' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('missing token', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('missing url AND token', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { x: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('case-sensitive attribute name', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { Token: 'abcdefg', URL: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is null', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: null },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is undefined', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: undefined },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is empty', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: '' },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is an array', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: [1, 2, 3] },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is an object', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: { a: 'b' } },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('token value is null', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { token: null, url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('token value is undefined', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { token: undefined, url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('token value is empty', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'https://www.google.com' },
+          b: { token: '', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('token value is an array', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: [1, 2, 3], url: 'https://www.google.com' },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('token value is an object', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: { a: 'b' }, url: 'https://www.google.com' },
+          b: { token: 'abcdefg', url: 'https://www.google.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
   });
 });

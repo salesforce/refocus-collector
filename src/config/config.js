@@ -16,8 +16,8 @@ const debug = require('debug')('refocus-collector:config');
 const init = require('./utils').init;
 
 /**
- * Config object created by loading local registry. This object
- * is also updated by the response from the hearbeat.
+ * Config object created by loading local registry. This object is also
+ * updated by the response from the hearbeat.
  * @type {Object}
  */
 let config;
@@ -30,17 +30,16 @@ function clearConfig() {
 } // clearConfig
 
 /**
- * Sets the registry attribute of the config object. If the argument passed
- * is an object, that object is assigned as the config.
- * If the argument is a string, it is assumed that it is a file location
- * and init is called to load the file
- * contents and assign it ot the config.
- * @param {String|Object} objOrString - An object or a string.
+ * Initialize the config object. If the "reg" argument is an object, it is
+ * assigned as the config registry. If the "reg" argument is a string, treat
+ * it is a file location and try to assign the file contents as the config
+ * registry.
+ *
+ * @param {String|Object} reg - Registry object or location of registry file
  */
-function setRegistry(objOrString) {
+function setRegistry(reg) {
   if (!config) {
-    config = typeof objOrString === 'object' ? objOrString : init(objOrString);
-    config.generators = {};
+    config = init(reg);
     debug('Initialized config: %o', config);
   }
 } // setRegistry

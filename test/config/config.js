@@ -19,11 +19,9 @@ const configUtils = require('../../src/config/utils');
 
 describe('test/config/config.js - unit tests >', () => {
   const confObj = {
-    registry: {
-      myTestCollector: {
-        url: 'www.example.com',
-        token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-      },
+    myTestCollector: {
+      url: 'www.example.com',
+      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
     },
   };
 
@@ -51,7 +49,7 @@ describe('test/config/config.js - unit tests >', () => {
   it('set Config by passing it an an object', (done) => {
     conf.setRegistry(confObj);
     const obj = conf.getConfig();
-    expect(obj).to.deep.equal(confObj);
+    expect(obj.registry).to.deep.equal(confObj);
     expect(obj.generators).to.not.equal(undefined);
     done();
   });
