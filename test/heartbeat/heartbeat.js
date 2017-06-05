@@ -42,13 +42,12 @@ describe('test/heartbeat/heartbeat.js >', () => {
       token: null,
     };
 
-    const request = sendHeartbeat();
-    expect(request).to.exist;
-    expect(request.method).to.equal('POST');
-    expect(request.url).to.equal(`${url}/v1/collectors/${collectorName}/heartbeat`);
-    expect(request.header.Authorization).to.be.null;
-    expect(request._data).to.deep.equal({ logLines: [] });
-    done();
+    try {
+      sendHeartbeat();
+    } catch (err) {
+      expect(err.name).to.equal('ValidationError');
+      done();
+    }
   });
 
   it('sendHeartbeat - missing url', (done) => {
