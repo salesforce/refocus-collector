@@ -41,6 +41,10 @@ function sendHeartbeat() {
       throw new errors.ValidationError(`No url in registry for ${collectorName}`);
     }
 
+    if (token == null) {
+      throw new errors.ValidationError(`No token in registry for ${collectorName}`);
+    }
+
     const body = {
       logLines: [],
     };
