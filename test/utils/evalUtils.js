@@ -410,15 +410,18 @@ describe('test/utils/evalUtils >', (done) => {
 
   describe('safeTransform >', (done) => {
     const validArgs = {
-      ctx: {},
+      ctx: { x: 123, y: 'diamond' },
       res: {},
       subject: { absolutePath: 'abc' },
     };
 
     it('ok', (done) => {
       try {
-        eu.safeTransform('return [{ name: "Foo" }, { name: "Bar" }]',
+        const retval =
+          eu.safeTransform('return [{ name: "Foo" }, { name: ctx.y }]',
           validArgs);
+        expect(retval[0].name).to.equal('Foo');
+        expect(retval[1].name).to.equal('diamond');
         done();
       } catch (err) {
         done(err);
@@ -538,6 +541,29 @@ describe('test/utils/evalUtils >', (done) => {
         } else {
           done('Expecting TransformError here');
         }
+      }
+    });
+
+    it('JSON.parse', (done) => {
+      const str = `return [{ name: 'x' + JSON.parse("{a:2111}").a }];`;
+      try {
+        const retval = eu.safeTransform(str, validArgs);
+        expect(retval[0].name).to.equal('x2111');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('JSON.stringify', (done) => {
+      const str = `return [{ name: 'a', ` +
+        `messageBody: JSON.stringify({ a: 2111 }) }];`;
+      try {
+        const retval = eu.safeTransform(str, validArgs);
+        expect(retval[0].messageBody).to.equal('{"a": 2111}');
+        done();
+      } catch (err) {
+        done(err);
       }
     });
   });
