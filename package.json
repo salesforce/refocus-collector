@@ -27,15 +27,16 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
+    "debug": "^2.6.8",
     "errors": "^0.3.0",
     "fs": "0.0.1-security",
+    "nock": "^9.0.13",
     "notevil": "^1.1.0",
     "path": "^0.12.7",
-    "debug": "^2.6.8",
-    "winston": "^2.3.1",
     "repeat": "0.0.6",
     "superagent": "^3.5.2",
-    "superagent-mocker": "^0.5.2"
+    "superagent-mocker": "^0.5.2",
+    "winston": "^2.3.1"
   },
   "devDependencies": {
     "babel-eslint": "^7.2.3",
