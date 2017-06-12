@@ -10,9 +10,11 @@
  * test/heartbeat/listener.js
  */
 const obj = {
-  collectorName1: {
-    url: 'www.xyz.com111',
-    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+  registry: {
+    collectorName1: {
+      url: 'http://www.xyz.com',
+      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+    },
   },
 };
 

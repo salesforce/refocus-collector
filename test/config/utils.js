@@ -19,7 +19,7 @@ describe('test/config/utils.js >', () => {
   it('config object is created after reading registry', (done) => {
     const obj = configUtils.init('./test/config/testRegistry.json');
     expect(obj.registry).to.not.equal(null);
-    expect(obj.registry.collectorName1.url).to.equal('www.xyz.com');
+    expect(obj.registry.collectorName1.url).to.equal('http://www.xyz.com');
     expect(obj.registry.collectorName1.token).to.exist;
     done();
   });

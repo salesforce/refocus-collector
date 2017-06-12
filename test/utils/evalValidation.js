@@ -10,7 +10,6 @@
  * tests/utils/evalValidation.js
  */
 'use strict';
-const expect = require('chai').expect;
 const val = require('../../src/utils/evalValidation');
 
 describe('test/utils/evalValidation >', (done) => {

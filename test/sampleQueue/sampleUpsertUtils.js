@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const sampleUpsertUtils = require('../../src/sampleQueue/sampleUpsertUtils');
 const request = require('superagent');
-const bulkUpsertPath = require('../../src/constants').bulkUpsertPath;
+const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
 
 describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
