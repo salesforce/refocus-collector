@@ -7,7 +7,7 @@
  */
 
 /**
- * src/functionUtils/handleCollectResponse.js
+ * src/utils/handleCollectResponse.js
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('./evalUtils');
