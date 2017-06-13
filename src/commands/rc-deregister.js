@@ -1,4 +1,4 @@
-const program = require('../../index').program;
+const program = require('./index').program;
 const args = program.args;
 
-console.log('Deregistervvvv =>', args[0]);
+console.log('Deregister =>', args[0]);

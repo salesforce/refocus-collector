@@ -8,7 +8,7 @@ Prerequisite: NPM and Node.js
     * ```git clone https://github.com/salesforce/refocus-collector.git```
     * ```cd refocus-collector```
     * ```npm install```
-    * ```sudo npm link```
+    * ```npm link```
     * try command ```rc```  or ```rc --help```
 
   Usage: ```rc-start [options] [command]```

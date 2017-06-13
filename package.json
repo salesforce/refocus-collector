@@ -23,7 +23,7 @@
     "refocus-collector"
   ],
   "bin": {
-    "rc": "./index.js"
+    "rc": "./src/commands/index.js"
   },
   "bugs": {
     "url": "https://github.com/salesforce/refocus-collector/issues"
