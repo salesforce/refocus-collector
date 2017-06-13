@@ -1,9 +1,20 @@
 # refocus-collector
 
-  Usage: rc-start [options] [command]
+### Installation
+
+Prerequisite: NPM and Node.js
+
+* Install via Git Clone
+    * ```git clone https://github.com/salesforce/refocus-collector.git```
+    * ```cd refocus-collector```
+    * ```npm install```
+    * ```sudo npm link```
+    * try command ```rc```  or ```rc --help```
+
+  Usage: ```rc-start [options] [command]```
 
 
-  Commands:
+### Commands
 
     register <name> <url> <token>  Register collector by name, refocus url and API token
     start <name>                   Start given collector
@@ -25,8 +36,3 @@
     $ rc stop test
     $ rc status test
     $ rc deregister test
-  ____       __                         ____      _ _           _
- |  _ \ ___ / _| ___   ___ _   _ ___   / ___|___ | | | ___  ___| |_ ___  _ __
- | |_) / _ \ |_ / _ \ / __| | | / __| | |   / _ \| | |/ _ \/ __| __/ _ \| '__|
- |  _ <  __/  _| (_) | (__| |_| \__ \ | |__| (_) | | |  __/ (__| || (_) | |
- |_| \_\___|_|  \___/ \___|\__,_|___/  \____\___/|_|_|\___|\___|\__\___/|_|

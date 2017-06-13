@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 /**
  * Copyright (c) 2017, salesforce.com, inc.
  * All rights reserved.
@@ -11,9 +13,8 @@
  *
  * Main module for the refocus-collector.
  *
- * For this initial version, just load the registry and execute the start
- * command. Next version, this module will set up all the command-line options
- * and execute commands.
+ * Load the registry, execute the start command,
+ * and set up all the command-line options.
  */
 const debug = require('debug')('refocus-collector');
 const logger = require('winston');
