@@ -29,9 +29,9 @@ program
   .command('start <name>', 'Start given collector')
   .command('stop <name>', 'Stop given collector')
   .command('status <name>', 'Show status of collector')
-  .command('deregister <name>', 'Deregister given collector')
+  .command('deregister <name>', 'Deregister given collector');
 
-program.on('--help', function() {
+program.on('--help', () => {
   console.log('  Examples:');
   console.log('');
   console.log('    $ rc --help');
@@ -47,5 +47,5 @@ program.on('--help', function() {
 program.parse(process.argv);
 
 module.exports = {
-  program
+  program,
 };
