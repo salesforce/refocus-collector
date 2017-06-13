@@ -29,6 +29,42 @@ describe('test/repeater/repeater.js >', () => {
     done();
   });
 
+  it('createGeneratorRepeat should set the' +
+    ' onProgress callback to handleCollectResponse', (done) => {
+    const def = {
+      name: 'Generator0.1',
+      interval: 6000,
+    };
+
+    const ret = repeater.createGeneratorRepeater(def);
+    expect(ret.handle).to.not.equal(undefined);
+    expect(ret.interval).to.equal(def.interval);
+    expect(ret.name).to.equal('Generator0.1');
+    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.onProgress.name).to.equal('handleCollectResponse');
+    expect(repeatTracker['Generator0.1']).to.equal(ret.handle);
+    done();
+  });
+
+  it('updateNewGeneratorRepeat should set the' +
+    ' onProgress callback to handleCollectResponse', (done) => {
+    const obj = {
+      name: 'Generator0.2',
+      interval: 6000,
+    };
+    repeater.createGeneratorRepeater(obj);
+    obj.name = 'Generator0.2';
+    obj.interval = 60;
+    const ret = repeater.updateGeneratorRepeater(obj);
+    expect(ret.handle).to.not.equal(undefined);
+    expect(ret.interval).to.equal(obj.interval);
+    expect(ret.name).to.equal('Generator0.2');
+    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.onProgress.name).to.equal('handleCollectResponse');
+    expect(repeatTracker['Generator0.2']).to.equal(ret.handle);
+    done();
+  });
+
   it('updateGeneratorRepeat should start a new generator repeat', (done) => {
     const def = {
       name: 'Generator1',
@@ -65,6 +101,7 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   it('create should work with all the params passed', (done) => {
+    let counter = 0;
     function stub() {
       counter++;
     }
@@ -74,7 +111,6 @@ describe('test/repeater/repeater.js >', () => {
       interval: 10,
       func: stub,
     };
-    let counter = 0;
 
     const ret = repeater.create(def);
     setTimeout(() => {
@@ -90,6 +126,7 @@ describe('test/repeater/repeater.js >', () => {
 
   it('calling stop should stop the repeat and delete it from the tracker',
   (done) => {
+    let currentCount = 0;
     function stub() {
       currentCount++;
     }
@@ -99,7 +136,6 @@ describe('test/repeater/repeater.js >', () => {
       interval: 100,
       func: stub,
     };
-    let currentCount = 0;
     let oldCount = 0;
 
     repeater.create(def);
@@ -122,6 +158,8 @@ describe('test/repeater/repeater.js >', () => {
 
   it('updating a repeat should update the repeat and the repeatTracker',
   (done) => {
+    let count = 0;
+    let newCount = 0;
     function stub() {
       count++;
     }
@@ -135,8 +173,7 @@ describe('test/repeater/repeater.js >', () => {
       interval: 1,
       func: stub,
     };
-    let count = 0;
-    let newCount = 0;
+
     repeater.create(def);
     setTimeout(() => {
       // proves repeater ran
@@ -164,6 +201,7 @@ describe('test/repeater/repeater.js >', () => {
   it('should call the onProgress call back after every repeat', (done) => {
     function stub() { }
 
+    let counter = 0;
     function onProgress() {
       counter++;
     }
@@ -174,7 +212,6 @@ describe('test/repeater/repeater.js >', () => {
       func: stub,
       onProgress,
     };
-    let counter = 0;
     repeater.create(def);
     setTimeout(() => {
       expect(counter).to.be.at.least(1);

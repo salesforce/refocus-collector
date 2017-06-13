@@ -12,13 +12,12 @@
 'use strict';
 const obj = {
   collectorName1: {
-    url: 'www.xyz.com111',
+    url: 'http://www.xyz.com',
     token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
   },
 };
 require('../../src/config/config').setRegistry(obj);
 const expect = require('chai').expect;
-const config = require('../../src/config/config').getConfig();
 const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 

@@ -17,7 +17,19 @@ module.exports = {
   registryLocation: './registry.json',
 
   // bulk upsert path, use with refocus url
-  bulkUpsertPath: '/v1/samples/upsert/bulk',
+  bulkUpsertEndpoint: '/v1/samples/upsert/bulk',
+
+  httpStatus: {
+    OK: 200,
+    CREATED: 201,
+    NO_CONTENT: 204,
+    REDIRECT: 301,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    NOT_ALLOWED: 405,
+  },
 
   // exported for the purpose of testing
   mockRegistryLocation: './test/config/testRegistry.json',

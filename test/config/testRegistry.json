@@ -1,10 +1,10 @@
 {
     "collectorName1" : {
-        "url" : "www.xyz.com",
+        "url" : "http://www.xyz.com",
         "token" : "ewuifiekhfewfhsfhshjfjhfgewuih"
     },
     "collectorName2" : {
-        "url" : "abc.def.com",
+        "url" : "http://abc.def.com",
         "token" : "gsfdgfdsgmns,dfgjkafmasdgkfjgknf"
     }
 }

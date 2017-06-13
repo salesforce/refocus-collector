@@ -13,6 +13,8 @@ const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors/errors');
+const handleCollectResponse =
+  require('../utils/handleCollectResponse').handleCollectResponse;
 
 // Tracks all the repeats defined in the collectors.
 const repeatTracker = {};
@@ -174,6 +176,7 @@ function update(def) {
  */
 function createGeneratorRepeater(def) {
   def.func = collectStub;
+  def.onProgress = handleCollectResponse;
   return create(def);
 } // createGeneratorRepeater
 
@@ -188,6 +191,7 @@ function createGeneratorRepeater(def) {
  */
 function updateGeneratorRepeater(def) {
   def.func = collectStub;
+  def.onProgress = handleCollectResponse;
   return update(def);
 } // updateGeneratorRepeater
 

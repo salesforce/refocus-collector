@@ -7,14 +7,16 @@
  */
 
 /**
- * utils/sampleUpsertUtils.js
+ * /src/sampleQueue/sampleUpsertUtils.js
  */
-const debug = require('debug')('refocus-collector:utils');
+const debug = require('debug')('refocus-collector:sampleQueue');
 const errors = require('../errors/errors');
 const request = require('superagent');
-const bulkUpsertPath = require('../constants').bulkUpsertPath;
+const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
+const logger = require('winston');
 
 module.exports = {
+
   /**
    * Send the upsert and handle any errors in the response.
    *
@@ -28,7 +30,6 @@ module.exports = {
     const { url, token } = registry;
     return new Promise((resolve, reject) => {
       if (!url) {
-
         // Throw error if url is not present in registry.
         debug('Error: refocus url not found. Supplied %s', url);
         reject(new errors.ValidationError(
@@ -37,7 +38,6 @@ module.exports = {
       }
 
       if (!token) {
-
         // Throw error if token is not present in registry.
         debug('Error: refocus url not found. Supplied %s', token);
         reject(new errors.ValidationError(
@@ -45,16 +45,15 @@ module.exports = {
         ));
       }
 
-      if (!arr || !Array.isArray(arr)) {
-
+      if (!Array.isArray(arr)) {
         // Throw error if no array is supplied
         debug('Error: array of samples to post not found. Supplied %s', arr);
-        reject(new errors.ValidationError(
-          'bulk upsert needs an array of samples to send. No samples array found.'
+        reject(new errors.ValidationError('bulk upsert needs an array of ' +
+          'samples to send. No samples array found.'
         ));
       }
 
-      const upsertUrl = url + bulkUpsertPath;
+      const upsertUrl = url + bulkUpsertEndpoint;
       debug('Bulk upserting to: %s', upsertUrl);
 
       request
@@ -64,10 +63,12 @@ module.exports = {
       .set('Accept', 'application/json')
       .end((err, res) => {
         if (err) {
-          reject(err);
+          logger.log('error', 'bulkUpsert returned an error: %o', err);
+          return reject(err);
         }
 
-        resolve(res);
+        debug('bulkUpsert returned an OK response: %o', res);
+        return resolve(res);
       });
     });
   },
