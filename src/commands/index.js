@@ -25,6 +25,7 @@ const figlet = require('figlet');
 
 program
   .version('0.0.1')
+  .option('-n, --name', 'The name of the refocus collector')
   .command('register <name> <url> <token>', 'Register collector by name, refocus url and API token')
   .command('start <name>', 'Start given collector')
   .command('stop <name>', 'Stop given collector')
