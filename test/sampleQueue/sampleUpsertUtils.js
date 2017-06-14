@@ -14,6 +14,7 @@ const sampleUpsertUtils = require('../../src/sampleQueue/sampleUpsertUtils');
 const request = require('superagent');
 const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
+const httpStatus = require('../../src/constants').httpStatus;
 
 describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
   const dummyStr = 'http://dummy.refocus.url';
@@ -31,7 +32,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(400);
+        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
         done();
       });
     });
@@ -41,7 +42,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(400);
+        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
         done();
       });
     });
@@ -51,7 +52,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(400);
+        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
         done();
       });
     });
@@ -61,7 +62,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(400);
+        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
         done();
       });
     });
@@ -75,7 +76,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
       sampleUpsertUtils.doBulkUpsert(properRegistryObject, [])
       .then((object) => {
-        expect(object.status).to.equal(200);
+        expect(object.status).to.equal(httpStatus.OK);
         done();
       })
       .catch(done);
@@ -95,7 +96,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
         // instead of an array
         expect(object.body['0']).to.deep.equal(sampleArr[0]);
         expect(object.body['1']).to.deep.equal(sampleArr[1]);
-        expect(object.status).to.equal(200);
+        expect(object.status).to.equal(httpStatus.OK);
         done();
       })
       .catch(done);
