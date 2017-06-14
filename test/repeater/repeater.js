@@ -219,6 +219,63 @@ describe('test/repeater/repeater.js >', () => {
     }, 100);
   });
 
+  it('onProgress should work when the task function resolves ' +
+    'a promise', (done) => {
+    const obj = { value: 'OK' };
+    function taskFunc() {
+      return Promise.resolve(obj);
+    }
+
+    function onProgress(ret) {
+      ret.then((c) => {
+        c.value = 'Good';
+      });
+    }
+
+    const def = {
+      name: 'testRepeatProgressWithPromiseResolve',
+      interval: 10,
+      func: taskFunc,
+      onProgress,
+    };
+
+    repeater.create(def);
+    setTimeout(() => {
+      expect(obj.value).to.equal('Good');
+      return done();
+    }, 100);
+  });
+
+  it('onProgress should work when the task function rejects ' +
+    'a promise', (done) => {
+    const obj = { value: 'OK' };
+    function taskFunc() {
+      return Promise.reject(obj);
+    }
+
+    function onProgress(ret) {
+      ret.then((c) => {
+        c.value = 'Good';
+      })
+      .catch((err) => {
+        err.value = 'Bad';
+      });
+    }
+
+    const def = {
+      name: 'testRepeatProgressWithPromiseReject',
+      interval: 10,
+      func: taskFunc,
+      onProgress,
+    };
+
+    repeater.create(def);
+    setTimeout(() => {
+      expect(obj.value).to.equal('Bad');
+      return done();
+    }, 100);
+  });
+
   it('stopping a repeat not in the repeatTracker should throw an error',
   (done) => {
     const obj = {
