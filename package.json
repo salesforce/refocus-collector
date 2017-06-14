@@ -2,7 +2,7 @@
   "name": "refocus-collector",
   "version": "1.0.0",
   "description": "Collector system to automate feeding data in to the Refocus platform.",
-  "main": "index.js",
+  "main": "./src/commands/index.js",
   "directories": {
     "test": "test"
   },
@@ -23,7 +23,7 @@
     "refocus-collector"
   ],
   "bin": {
-    "rc": "./src/commands/index.js"
+    "refocus-collector": "./src/commands/index.js"
   },
   "bugs": {
     "url": "https://github.com/salesforce/refocus-collector/issues"

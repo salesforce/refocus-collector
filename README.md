@@ -9,9 +9,9 @@ Prerequisite: NPM and Node.js
     * ```cd refocus-collector```
     * ```npm install```
     * ```npm link```
-    * try command ```rc```  or ```rc --help```
+    * try command ```refocus-collector```  or ```refocus-collector --help```
 
-  Usage: ```rc-start [options] [command]```
+  Usage: ```refocus-collector-start [options] [command]```
 
 
 ### Commands
@@ -30,9 +30,9 @@ Prerequisite: NPM and Node.js
 
   Examples:
 
-    $ rc --help
-    $ rc register test test@test.com eygduyguygijfdhkfjhkfdhg
-    $ rc start test
-    $ rc stop test
-    $ rc status test
-    $ rc deregister test
+    $ refocus-collector --help
+    $ refocus-collector register test test@test.com eygduyguygijfdhkfjhkfdhg
+    $ refocus-collector start test
+    $ refocus-collector stop test
+    $ refocus-collector status test
+    $ refocus-collector deregister test
