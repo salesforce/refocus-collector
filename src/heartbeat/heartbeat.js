@@ -14,6 +14,13 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const errors = require('../errors/errors');
 const request = require('superagent');
 const config = require('../config/config').getConfig();
+const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
+const generatorsDir = require('../constants').generatorsDir;
+const fs = require('fs');
+const Path = require('path');
+const Promise = require('bluebird');
+Promise.promisifyAll(fs);
+let lastHeartbeatTime;
 
 /**
  * Send a heartbeat to the Refocus server
@@ -29,7 +36,9 @@ function sendHeartbeat() {
   let url;
 
   try {
+    //TODO: use the registry for this collector once command line args are setup
     //collectorName = config.collectorName;
+
     //assume the registry only has one entry for this version
     collectorName = Object.keys(config.registry)[0];
     baseUrl = config.registry[collectorName].url;
@@ -49,20 +58,20 @@ function sendHeartbeat() {
       logLines: [],
     };
 
-    debug(`sendHeartbeat sending request. url: ${url} body: %o`, body);
+    return buildMockResponse(generatorsDir)
+    .then(res => handleHeartbeatResponse(null, res))
+    .catch(err => handleHeartbeatResponse(err, null));
 
-    return request.post(url)
-    .set('Authorization', token)
-    .send(body);
+    //TODO: send the real request and handle the response once the api can handle it
+    //debug(`sendHeartbeat sending request. url: ${url} body: %o`, body);
+    //
+    //const req = request.post(url)
+    //.set('Authorization', token)
+    //.send(body);
 
-    //don't actually send it in this version
-    //.end((err, res) => {
-    //  if (err) {
-    //    debug('sendHeartbeat failed');
-    //    throw err;
-    //  }
-    //debug('sendHeartbeat successful');
-    //});
+    //.end(handleHeartbeatResponse)
+
+    //return req;
   }
   catch (err) {
     if (config == null || config.registry == null) {
@@ -76,7 +85,84 @@ function sendHeartbeat() {
 
 }
 
+/**
+ * Read the generators from the specified directory and use them to create a
+ * mock response.
+ * @param {String} generatorsDir - path to the directory that contains the
+ * generator files
+ * @returns {Promise} - resolves to mock response object, rejects on any error
+ * parsing any of the files in generatorsDir
+ */
+function buildMockResponse(generatorsDir) {
+  debug(`buildMockResponse: ${generatorsDir}`);
+
+  const parsedGenerators = {};
+  const collectorConfig = {};
+  const generatorsAdded = [];
+  const generatorsUpdated = [];
+  const generatorsDeleted = [];
+
+  return fs.readdirAsync(generatorsDir)
+    .then((filenames) => {
+      const statPromises = [];
+      const filePromises = [];
+      filenames.forEach((filename) => {
+        const filePath = Path.join(generatorsDir, filename);
+        statPromises.push(fs.statAsync(filePath));
+        filePromises.push(fs.readFileAsync(filePath));
+      });
+
+      return Promise.join(Promise.all(statPromises), Promise.all(filePromises),
+        (statsList, fileList) => {
+          filenames.forEach((filename) => {
+            const stats = statsList.shift();
+            const fileContents = fileList.shift();
+            const lastModifiedTime = stats.mtime;
+
+            let newGenerator;
+            try { newGenerator = JSON.parse(fileContents); }
+            catch (err) {}
+
+            const isObject = typeof newGenerator === 'object';
+            const isArray = newGenerator instanceof Array;
+            if (!newGenerator || !isObject || isArray || !newGenerator.name) {
+              throw new errors.ValidationError(`Invalid Generator in ${filename}`);
+            }
+
+            parsedGenerators[newGenerator.name] = newGenerator;
+
+            // check if added or updated
+            const existingGenerator = config.generators[newGenerator.name];
+            if (!existingGenerator) {
+              generatorsAdded.push(newGenerator);
+            } else if (lastModifiedTime > lastHeartbeatTime) {
+              generatorsUpdated.push(newGenerator);
+            }
+          });
+
+          // look for deleted generators
+          Object.keys(config.generators).forEach((generatorName) => {
+            if (!parsedGenerators[generatorName]) {
+              generatorsDeleted.push(config.generators[generatorName]);
+            }
+          });
+
+          lastHeartbeatTime = Date.now();
+
+          const response = {
+            collectorConfig,
+            generatorsAdded,
+            generatorsDeleted,
+            generatorsUpdated,
+          };
+
+          debug(`buildMockResponse: returning ${response}`);
+          return response;
+        });
+    });
+}
+
 module.exports = {
   sendHeartbeat,
-  config,  // export for testing
+  buildMockResponse, // export for testing
 };
