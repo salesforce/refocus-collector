@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/utils/evalUtils.js
+ * test/utils/evalUtils.js
  */
 'use strict';
 const expect = require('chai').expect;
@@ -561,6 +561,17 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         const retval = eu.safeTransform(str, validArgs);
         expect(retval[0].messageBody).to.equal('{"a": 2111}');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('Math.ceil', (done) => {
+      const str = `return [{ name: 'x' + Math.ceil(9.56) }];`;
+      try {
+        const retval = eu.safeTransform(str, validArgs);
+        expect(retval[0].name).to.equal('x10');
         done();
       } catch (err) {
         done(err);
