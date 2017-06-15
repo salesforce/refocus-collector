@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/heartbeat/heartbeat.js
+ * test/heartbeat/heartbeat.js
  */
 'use strict';
 
