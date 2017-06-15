@@ -566,6 +566,17 @@ describe('test/utils/evalUtils >', (done) => {
         done(err);
       }
     });
+
+    it('Math.ceil', (done) => {
+      const str = `return [{ name: 'x' + Math.ceil(9.56) }];`;
+      try {
+        const retval = eu.safeTransform(str, validArgs);
+        expect(retval[0].name).to.equal('x10');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
   });
 
   describe('safeToUrl >', (done) => {
