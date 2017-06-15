@@ -7,7 +7,7 @@
  */
 
 /**
- * test/utils/handleCollectResponse.js
+ * test/remoteCollection/handleCollectResponse.js
  */
 const expect = require('chai').expect;
 const nock = require('nock');
@@ -17,11 +17,12 @@ const tu = require('../testUtils');
 const registry = tu.config.registry[Object.keys(tu.config.registry)[0]];
 const refocusUrl = registry.url;
 const handleCollectRes =
-  require('../../src/utils/handleCollectResponse').handleCollectResponse;
+  require('../../src/remoteCollection/handleCollectResponse')
+    .handleCollectResponse;
 
 const httpStatus = require('../../src/constants').httpStatus;
 
-describe('test/utils/handleCollectResponse.js >', () => {
+describe('test/remoteCollection/handleCollectResponse.js >', () => {
   const sampleArr = [{ name: 'S1|A1', value: 10 }, { name: 'S1|A1', value: 2 }];
 
   it('should return an ArgsError error if handleCollectResponse is called ' +

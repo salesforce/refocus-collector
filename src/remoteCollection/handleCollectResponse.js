@@ -7,10 +7,10 @@
  */
 
 /**
- * src/utils/handleCollectResponse.js
+ * src/remoteCollection/handleCollectResponse.js
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
-const evalUtils = require('./evalUtils');
+const evalUtils = require('../utils/evalUtils');
 const doBulkUpsert = require('../sampleQueue/sampleUpsertUtils').doBulkUpsert;
 const config = require('../config/config').getConfig();
 const errors = require('../errors/errors');
@@ -33,6 +33,7 @@ const logger = require('winston');
  */
 function handleCollectResponse(collectRes) {
   debug('Entered handleCollectResponse:', collectRes);
+
   try {
     if (!collectRes || typeof collectRes !== 'object' ||
       Array.isArray(collectRes)) {

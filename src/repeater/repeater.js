@@ -14,7 +14,7 @@ const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors/errors');
 const handleCollectResponse =
-  require('../utils/handleCollectResponse').handleCollectResponse;
+  require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 
 // Tracks all the repeats defined in the collectors.
 const repeatTracker = {};
