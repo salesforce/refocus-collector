@@ -26,6 +26,7 @@ const ERROR_MESSAGE = {
     NOT_STRING: 'The toUrl function must return a string',
   },
 };
+const SAMPLE_BODY_MAX_LEN = 4096;
 
 /*
  * This makes it possible for the transform function to refer to ctx and res
@@ -36,7 +37,9 @@ const transformFnPrefix = 'const JSON = args._JSON; ' +
   'const ctx = args.ctx; ' +
   'const res = args.res; ' +
   'const subject = args.subject; ' +
-  'const subjects = args.subjects; ';
+  'const subjects = args.subjects; ' +
+  'const SAMPLE_BODY_MAX_LEN = args._SAMPLE_BODY_MAX_LEN; ' +
+  'const Math = args._Math;';
 
 /*
  * This makes it possible for the toUrl function to refer to ctx and subject
@@ -205,6 +208,8 @@ function safeTransform(functionBody, args) {
   debug('Entered evalUtils.safeTransform');
   validateTransformArgs(args);
   addJson(args);
+  args._SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
+  args._Math = Math;
   const retval = safeEval(transformFnPrefix + functionBody, args);
   if (!Array.isArray(retval)) {
     throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NOT_ARRAY);

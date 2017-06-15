@@ -7,7 +7,7 @@
  */
 
 /**
- * tests/utils/evalUtils.js
+ * test/utils/evalUtils.js
  */
 'use strict';
 const expect = require('chai').expect;
