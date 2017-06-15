@@ -136,7 +136,7 @@ function buildMockResponse(generatorsDir) {
             const existingGenerator = config.generators[newGenerator.name];
             if (!existingGenerator) {
               generatorsAdded.push(newGenerator);
-            } else if (lastModifiedTime > lastHeartbeatTime) {
+            } else if (lastModifiedTime >= lastHeartbeatTime) {
               generatorsUpdated.push(newGenerator);
             }
           });
