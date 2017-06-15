@@ -35,11 +35,6 @@ const generator3 = {
   interval: 6000,
 };
 
-after(() => {
-  configModule.clearConfig();
-  mock.restore();
-});
-
 function mockOld(contents) {
   return mock.file({
     content: JSON.stringify(contents),
@@ -58,6 +53,11 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const url = 'https://www.example.com';
   const token = 'cCI6IkpXV5ciOiJIUzI1CJ9eyJhbGNiIsInR';
   const collectorName = 'exampleCollector';
+
+  after(() => {
+    configModule.clearConfig();
+    mock.restore();
+  });
 
   it('buildMockResponse - added', (done) => {
     config.generators = {};
