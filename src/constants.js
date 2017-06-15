@@ -21,4 +21,7 @@ module.exports = {
 
   // exported for the purpose of testing
   mockRegistryLocation: './test/config/testRegistry.json',
+
+  // generators directory location
+  generatorsDir: './generators',
 };
