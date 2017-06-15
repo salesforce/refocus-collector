@@ -17,9 +17,12 @@ const expectedResult = {
   },
 };
 const config = require('../../src/config/config');
-const constants = require('../../src/constants');
+// const constants = require('../../src/constants');
 const expect = require('chai').expect;
 const sinon = require('sinon');
+const path = require('path');
+
+const proxyquire = require('proxyquire').noCallThru();
 
 describe('test/commands/stop >', () => {
 
@@ -32,15 +35,18 @@ describe('test/commands/stop >', () => {
       expect(result).to.deep.equal(expectedResult);
   });
 
-   it('stub works with constants', () => {
-    const getRegistry = sinon.stub(constants, 'registryLocation').callsFake(() => expectedResult);
-      const result = getRegistry();
-
-      getRegistry.restore();
-      expect(result).to.deep.equal(expectedResult);
+  it.only('reads the name in a JSON file', function() {
+    var stubs = {};
+    stubs[path.normalize('../../src/constants.js')] = {
+      registryLocation: 'Expected name',
+      '@noCallThru': true
+    };
+    var phoniedGetName = proxyquire('./foo.js', stubs);
+    var registryLocation = phoniedGetName('../../src/constants.js');
+    expect(registryLocation).to.equal('Expected name');
   });
 
-  it.skip('logs the expected results', (done) => {
+  it('logs the expected results', (done) => {
     const { exec } = require('child_process');
     exec('refocus-collector stop --name=PRD_Collector_12345', (error, stdout, stderr) => {
       if (error) {
@@ -50,6 +56,7 @@ describe('test/commands/stop >', () => {
 
       console.log(`stdout: ${stdout}`);
       console.log(`stderr: ${stderr}`);
+
       done();
     });
   });
