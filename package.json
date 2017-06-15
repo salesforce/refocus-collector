@@ -40,6 +40,7 @@
     "notevil": "^1.1.0",
     "path": "^0.12.7",
     "repeat": "0.0.6",
+    "sinon": "^2.3.4",
     "superagent": "^3.5.2",
     "superagent-mocker": "^0.5.2",
     "winston": "^2.3.1"

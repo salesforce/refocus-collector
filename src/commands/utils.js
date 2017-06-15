@@ -1,9 +1,12 @@
 const conf = require('../config/config');
-const constants = require('../constants');
+const logger = require('winston');
 
+/**
+ *
+ */
 function setRegistryAndParseCommand(program, collectorObject) {
   try {
-     conf.setRegistry(collectorObject || constants.registryLocation);
+     conf.setRegistry(collectorObject);
      program.parse(process.argv);
    } catch (err) {
      logger.error(err.message);

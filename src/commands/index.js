@@ -19,7 +19,7 @@
 
 // for package commands
 const program = require('commander');
-
+const constants = require('../constants');
 
 // for the large refocus font in command line
 const figlet = require('figlet');
@@ -47,14 +47,7 @@ program.on('--help', () => {
 
 });
 
-const obj = {
-  collectorName1: {
-    url: 'http://www.xyz.com',
-    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-  },
-};
-
-setRegistryAndParseCommand(program, obj);
+setRegistryAndParseCommand(program, constants.registryLocation);
 
 module.exports = {
   program,
