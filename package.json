@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "commander": "^2.9.0",
     "debug": "^2.6.8",
     "errors": "^0.3.0",

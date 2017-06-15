@@ -9,7 +9,6 @@ const conf = require('../config/config');
 
 console.log('Start =>', args[0]);
 try {
-  conf.setRegistry(constants.registryLocation);
   cmdStart.execute();
 } catch (err) {
   logger.error(err.message);

@@ -20,8 +20,10 @@
 // for package commands
 const program = require('commander');
 
+
 // for the large refocus font in command line
 const figlet = require('figlet');
+const setRegistryAndParseCommand = require('./utils').setRegistryAndParseCommand;
 
 program
   .version('0.0.1')
@@ -45,7 +47,14 @@ program.on('--help', () => {
 
 });
 
-program.parse(process.argv);
+const obj = {
+  collectorName1: {
+    url: 'http://www.xyz.com',
+    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+  },
+};
+
+setRegistryAndParseCommand(program, obj);
 
 module.exports = {
   program,
