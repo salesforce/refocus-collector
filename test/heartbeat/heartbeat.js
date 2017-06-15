@@ -308,8 +308,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
       token: null,
     };
 
-    console.log('----- missing token -----');
-    console.log(config);
     try {
       heartbeat.sendHeartbeat();
     } catch (err) {
