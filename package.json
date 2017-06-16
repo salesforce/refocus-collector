@@ -1,18 +1,17 @@
 {
-  "name": "refocus-collector",
+  "name": "refocus-generator",
+  "description": "Sample Generators and Templates to help collect results of from target URLs and transform the results into samples to send to Refocus.",
   "version": "1.0.0",
-  "description": "Collector system to automate feeding data in to the Refocus platform.",
-  "main": "index.js",
   "directories": {
     "test": "test"
   },
   "scripts": {
-    "jscs": "./node_modules/jscs/bin/jscs *.js src test",
+    "jscs": "./node_modules/jscs/bin/jscs test",
     "test": "npm run jscs && ./node_modules/.bin/mocha -R dot --recursive ./test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/salesforce/refocus-collector.git"
+    "url": "git+https://github.com/salesforce/refocus-generators.git"
   },
   "author": "Salesforce CX Tools",
   "license": "BSD-3-Clause",
@@ -23,29 +22,12 @@
     "refocus-collector"
   ],
   "bugs": {
-    "url": "https://github.com/salesforce/refocus-collector/issues"
+    "url": "https://github.com/salesforce/refocus-generators/issues"
   },
-  "homepage": "https://github.com/salesforce/refocus-collector#readme",
+  "homepage": "https://github.com/salesforce/refocus-generators#readme",
   "dependencies": {
-    "bluebird": "^3.5.0",
-    "debug": "^2.6.8",
-    "errors": "^0.3.0",
-    "fs": "0.0.1-security",
-    "nock": "^9.0.13",
-    "notevil": "^1.1.0",
-    "path": "^0.12.7",
-    "repeat": "0.0.6",
-    "superagent": "^3.5.2",
-    "superagent-mocker": "^0.5.2",
-    "winston": "^2.3.1"
   },
   "devDependencies": {
-    "babel-eslint": "^7.2.3",
-    "chai": "^3.5.0",
-    "eslint": "^3.19.0",
-    "eslint-plugin-react": "^7.0.1",
-    "jscs": "^3.0.7",
-    "mocha": "^3.4.1",
-    "mock-fs": "^4.4.1"
+    "fs": "0.0.1-security"
   }
 }

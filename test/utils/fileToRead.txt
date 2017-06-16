@@ -1,1 +1,0 @@
-This is a text file meant to test the readFile function in commonUtils.

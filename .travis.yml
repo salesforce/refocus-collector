@@ -17,4 +17,4 @@ addons:
 services:
 
 script:
-  - npm test
+  - node test.js
