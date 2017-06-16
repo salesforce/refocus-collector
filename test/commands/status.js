@@ -22,7 +22,7 @@ const expect = require('chai').expect;
 const fs = require('fs');
 const jsonPath = './registry.json';
 
-describe('test/commands/stop >', () => {
+describe('test/commands/status >', () => {
   before(() => {
     fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', (err) => {
       if (err) {
@@ -37,13 +37,13 @@ describe('test/commands/stop >', () => {
 
   it('logs the expected result', (done) => {
     const { exec } = require('child_process');
-    exec('refocus-collector stop --name=PRD_Collector_12345', (error, stdout, stderr) => {
+    exec('refocus-collector status --name=PRD_Collector_12345', (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
         done(err);
       }
 
-      expect(stdout).to.contain('Stop => ');
+      expect(stdout).to.contain('Status => PRD_Collector_12345');
       done();
     });
   });

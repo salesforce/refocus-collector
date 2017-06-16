@@ -38,7 +38,6 @@ function clearConfig() {
  * @param {String|Object} reg - Registry object or location of registry file
  */
 function setRegistry(reg) {
-  console.log('in real one')
   if (!config) {
     config = init(reg);
     debug('Initialized config: %o', config);
