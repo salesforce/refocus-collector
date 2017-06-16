@@ -11,7 +11,7 @@ Prerequisite: NPM and Node.js
     * ```npm link```
     * try command ```refocus-collector```  or ```refocus-collector --help```
 
-  Usage: ```refocus-collector-start [command] [options]```
+  Usage: ```refocus-collector [command] [options]```
 
 
 ### Commands

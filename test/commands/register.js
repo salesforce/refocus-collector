@@ -10,24 +10,12 @@
  * test/commands/register.js
  */
 'use strict';
-const expectedResult = {
-  collectorName1: {
-    url: 'http://www.xyz.com',
-    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-  },
-};
+const utils = require('../testUtils');
 const expect = require('chai').expect;
-const fs = require('fs');
-const jsonPath = './registry.json';
 
 describe('test/commands/register >', () => {
-  before((done) => {
-    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', done);
-  });
-
-  after(() => {
-    fs.unlinkSync(jsonPath);
-  });
+  before(utils.makeRegistryFile);
+  after(utils.removeRegistryFile);
 
   it('logs the expected result', (done) => {
     const { exec } = require('child_process');

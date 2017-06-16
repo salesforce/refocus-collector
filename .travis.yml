@@ -17,4 +17,4 @@ addons:
 services:
 
 script:
-  - mocha test/commands/deregister.js
+  - npm test
