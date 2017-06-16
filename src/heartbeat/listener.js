@@ -7,12 +7,10 @@
  */
 
 /**
- * /heartbeat/listener.js
+ * src/heartbeat/listener.js
  */
-const debug = require('debug')('refocus-collector:heartbeat');
-const config = require('../config/config').getConfig();
-const repeater = require('../repeater/repeater');
 const logger = require('winston');
+const utils = require('./utils');
 
 /**
  * Handles the heartbeat response:
@@ -31,67 +29,10 @@ function handleHeartbeatResponse(err, res) {
     return err;
   }
 
-  // Update the collector config.
-  if (res.collectorConfig) {
-    debug('Heartbeat response collectorConfig to update', res.collectorConfig);
-    debug('Collector config before updating', config.collectorConfig);
-    Object.keys(res.collectorConfig).forEach((key) => {
-      config.collectorConfig[key] = res.collectorConfig[key];
-    });
-    debug('Collector config after updating', config.collectorConfig);
-  }
-
-  if (res.generatorsAdded) {
-    if (Array.isArray(res.generatorsAdded)) {
-      // call repeat to setup a new repeat
-      res.generatorsAdded.forEach((generator) => {
-        repeater.createGeneratorRepeater(generator);
-        config.generators[generator.name] = generator;
-      });
-
-      debug('Added generators to the config:', res.generatorsAdded);
-    } else {
-      logger.error('generatorsAdded attribute should be an array');
-    }
-  }
-
-  if (res.generatorsDeleted) {
-    if (Array.isArray(res.generatorsDeleted)) {
-      /*
-       * Stop the repeater for each of these generators, then delete from
-       * config.
-       */
-      res.generatorsDeleted.forEach((g) => {
-        repeater.stop(g.name);
-        delete config.generators[g.name];
-      });
-
-      debug('Deleted generators from the config: ', res.generatorsDeleted);
-    } else {
-      logger.error('generatorsDeleted attribute must be an array');
-    }
-  }
-
-  if (res.generatorsUpdated) {
-    if (Array.isArray(res.generatorsDeleted)) {
-      /*
-       * Update the repeater for each of these generators, then update the
-       * config.
-       */
-      res.generatorsUpdated.forEach((g) => {
-        repeater.updateGeneratorRepeater(g);
-        Object.keys(g).forEach((key) => {
-          config.generators[g.name][key] = g[key];
-        });
-      });
-
-      debug('Updated generators in the config: ', res.generatorsUpdated);
-    } else {
-      logger.error('generatorsDeleted attribute should be an array');
-    }
-  }
-
-  return config;
+  utils.updateCollectorConfig(res);
+  utils.addGenerator(res);
+  utils.deleteGenerator(res);
+  return utils.updateGenerator(res);
 } // handleHeartbeatResponse
 
 module.exports = {

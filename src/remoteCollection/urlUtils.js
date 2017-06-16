@@ -7,10 +7,10 @@
  */
 
 /**
- * src/utils/urlUtils.js
+ * src/remoteCollection/urlUtils.js
  */
 'use strict';
-const debug = require('debug')('refocus-collector:urlUtils');
+const debug = require('debug')('refocus-collector:remoteCollection');
 const errors = require('../errors/errors');
 
 /**
@@ -18,8 +18,8 @@ const errors = require('../errors/errors');
  * @param {String} url - the url template to be expanded
  * @param {Object} ctx - the context object with properties to be inserted
  * @returns {String} - the expanded url
- * @throws {ValidationError} - if the url template is invalid or ctx is missing a
- * property referenced by the url
+ * @throws {ValidationError} - if the url template is invalid or ctx is missing
+ * a property referenced by the url
  */
 function expand(url, ctx) {
   debug(`expand(${url}, ${ctx})`);
@@ -28,7 +28,7 @@ function expand(url, ctx) {
   matches.forEach((match) => {
     const key = match.match(/{{(.+)}}/)[1]; // extract "..." from "{{...}}"
     const value = ctx[key];
-    if (value == null) {
+    if (value === null || value === undefined) {
       throw new errors.ValidationError(
         `Can't expand url: No property '${key}' in context`);
     }
