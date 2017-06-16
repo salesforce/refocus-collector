@@ -28,6 +28,8 @@ const setRegistryAndParseCommand = require('./utils').setRegistryAndParseCommand
 program
   .version('0.0.1')
   .option('-n, --name', 'The name of the refocus collector')
+  .option('-u, --url', 'The url of the refocus instance')
+  .option('-t, --token', 'The token of the refocus instance')
   .command('register <name> <url> <token>', 'Register collector by name, refocus url and API token')
   .command('start <name>', 'Start given collector')
   .command('stop <name>', 'Stop given collector')
@@ -47,7 +49,6 @@ program.on('--help', () => {
 
 });
 
-console.log(constants.registryLocation);
 setRegistryAndParseCommand(program, constants.registryLocation);
 
 module.exports = {
