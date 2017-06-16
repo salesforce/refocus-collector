@@ -14,7 +14,6 @@
  */
 const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
-const constants = require('../constants');
 const config = require('../config/config');
 const repeater = require('../repeater/repeater');
 
