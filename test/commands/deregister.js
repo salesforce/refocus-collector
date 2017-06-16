@@ -21,12 +21,8 @@ const fs = require('fs');
 const jsonPath = './registry.json';
 
 describe('test/commands/deregister >', () => {
-  before(() => {
-    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', (err) => {
-      if (err) {
-        console.log(err);
-      }
-    });
+  before((done) => {
+    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', done);
   });
 
   after(() => {

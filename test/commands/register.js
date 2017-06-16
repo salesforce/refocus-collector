@@ -22,11 +22,7 @@ const jsonPath = './registry.json';
 
 describe('test/commands/register >', () => {
   before(() => {
-    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', (err) => {
-      if (err) {
-        console.log(err);
-      }
-    });
+    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', done)
   });
 
   after(() => {
