@@ -26,52 +26,60 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   const sampleArr = [{ name: 'S1|A1', value: 10 }, { name: 'S1|A1', value: 2 }];
 
   it('should return an ArgsError error if handleCollectResponse is called ' +
-    'without an argument', (done) => {
-    const ret = handleCollectRes();
-    expect(ret.name).to.equal('ArgsError');
-    done();
+    'with a promise that resolves to null', (done) => {
+    handleCollectRes(Promise.resolve(null))
+    .then(() => done('Expecting Bad Request Error'))
+    .catch((err) => {
+      expect(err.message).to.contain('The argument to handleCollectResponse ' +
+        'cannot be null or an Array');
+      expect(err.name).to.equal('ArgsError');
+      done();
+    });
   });
 
-  it('should return an ArgsError if handleCollectResponse is called ' +
-    'with null', (done) => {
-    const ret = handleCollectRes(null);
-    expect(ret.name).to.equal('ArgsError');
-    done();
-  });
-
-  it('should return a ValidationError error if the object passed as an ' +
-    'does not have an "res" attribute', (done) => {
-    const obj = { ctx: {}, results: {} };
-    const ret = handleCollectRes(obj);
-    expect(ret.name).to.equal('ValidationError');
-    done();
-  });
-
-  it('object passed as an argument should not be an array', (done) => {
-    const obj = { ctx: {}, results: {} };
-    const ret = handleCollectRes(obj);
-    expect(ret.name).to.equal('ValidationError');
-    done();
+  it('Promise passed should not resolve to an array', (done) => {
+    const obj = ['ctx', 'results'];
+    handleCollectRes(Promise.resolve(obj))
+    .then(() => done('Expecting a ValidationError'))
+    .catch((err) => {
+      expect(err.message).to.contain('The argument to handleCollectResponse ' +
+        'cannot be null or an Array');
+      expect(err.name).to.equal('ArgsError');
+      done();
+    });
   });
 
   it('should return an ArgsError when obj does not have subject ' +
     'attribute', (done) => {
     const obj = { ctx: {}, res: {},
-      transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+      generatorTemplate: {
+        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+      },
     };
-    const ret = handleCollectRes(obj);
-    expect(ret.name).to.equal('ArgsError');
-    done();
+    handleCollectRes(Promise.resolve(obj))
+    .then(() => done('Expecting a ValidationError'))
+    .catch((err) => {
+      expect(err.message).to.contain('Must include EITHER a "subject" ' +
+        'attribute OR a "subjects" attribute.');
+      expect(err.name).to.equal('ArgsError');
+      return done();
+    });
   });
 
   it('should return an ArgsError error when obj does not have ctx ' +
     'attribute', (done) => {
     const obj = { res: {}, subject: { absolutePath: 'abc' },
-      transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+      generatorTemplate: {
+        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+      },
     };
-    const ret = handleCollectRes(obj);
-    expect(ret.name).to.equal('ArgsError');
-    done();
+    handleCollectRes(Promise.resolve(obj))
+    .then(() => done('Expecting a ValidationError'))
+    .catch((err) => {
+      expect(err.message).to.contain('Missing "ctx" attribute');
+      expect(err.name).to.equal('ArgsError');
+      return done();
+    });
   });
 
   it('should call doBulkUpsert to push samples to refocus', (done) => {
@@ -84,10 +92,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       ctx: {},
       res: {},
       subject: { absolutePath: 'abc' },
-      transform:
+      generatorTemplate: { transform:
         'return [{ name: "S1|A1", value: 10 }, { name: "S1|A1", value: 2 }]',
+      },
     };
-    handleCollectRes(collectRes)
+    handleCollectRes(Promise.resolve(collectRes))
     .then((res) => {
       expect(res.status).to.equal(httpStatus.CREATED);
       expect(res.body.status).to.equal('OK');
@@ -109,11 +118,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       ctx: {},
       res: {},
       subject: { absolutePath: 'abc' },
-      transform:
-        'return [{ name: "S1|A1" }, { name: "S1|A1" }]',
+      generatorTemplate: { transform:
+        'return [{ name: "S1|A1" }, { name: "S1|A1" }]', },
     };
 
-    handleCollectRes(collectRes)
+    handleCollectRes(Promise.resolve(collectRes))
     .then(() => done('Expecting Bad Request Error'))
     .catch((err) => {
       expect(err.status).to.equal(httpStatus.BAD_REQUEST);
