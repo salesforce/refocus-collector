@@ -21,8 +21,8 @@ const fs = require('fs');
 const jsonPath = './registry.json';
 
 describe('test/commands/register >', () => {
-  before(() => {
-    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', done)
+  before((done) => {
+    fs.writeFile(jsonPath, JSON.stringify(expectedResult), 'utf8', done);
   });
 
   after(() => {
