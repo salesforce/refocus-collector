@@ -7,7 +7,7 @@
  */
 
 /**
- * test/commands/start.js
+ * test/commands/deregister.js
  */
 'use strict';
 const expectedResult = {
@@ -21,6 +21,7 @@ const constants = require('../../src/constants');
 const expect = require('chai').expect;
 const fs = require('fs');
 const jsonPath = './registry.json';
+const sinon = require('sinon');
 
 describe('test/commands/deregister >', () => {
   before(() => {

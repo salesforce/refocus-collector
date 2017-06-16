@@ -7,7 +7,7 @@
  */
 
 /**
- * test/commands/start.js
+ * test/commands/status.js
  */
 'use strict';
 const expectedResult = {

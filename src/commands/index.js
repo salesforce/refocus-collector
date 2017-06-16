@@ -46,9 +46,9 @@ program.on('--help', () => {
   console.log(figlet.textSync('Refocus Collector'));
 
 });
+
 console.log(constants.registryLocation);
 setRegistryAndParseCommand(program, constants.registryLocation);
-
 
 module.exports = {
   program,
