@@ -22,7 +22,7 @@ describe('test/commands/deregister >', () => {
     exec('refocus-collector deregister --name=PRD_Collector_12345', (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
-        done(err);
+        done(error);
       }
 
       expect(stdout).to.contain('Deregister => PRD_Collector_12345');

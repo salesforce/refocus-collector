@@ -22,7 +22,7 @@ describe('test/commands/stop >', () => {
     exec('refocus-collector stop --name=PRD_Collector_12345', (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
-        done(err);
+        done(error);
       }
 
       expect(stdout).to.contain('Stop => ');
