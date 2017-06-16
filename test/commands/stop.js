@@ -16,8 +16,6 @@ const expectedResult = {
     token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
   },
 };
-const config = require('../../src/config/config');
-const constants = require('../../src/constants');
 const expect = require('chai').expect;
 const fs = require('fs');
 const jsonPath = './registry.json';

@@ -45,7 +45,6 @@
     "eslint": "^3.19.0",
     "eslint-plugin-react": "^7.0.1",
     "jscs": "^3.0.7",
-    "mocha": "^3.4.1",
-    "mock-fs": "^4.4.1"
+    "mocha": "^3.4.1"
   }
 }

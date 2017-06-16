@@ -13,12 +13,8 @@
  */
 const program = require('./index').program;
 const args = program.args;
-
-const debug = require('debug')('refocus-collector');
-const logger = require('winston');
-const constants = require('../constants');
 const cmdStart = require('./start');
-const conf = require('../config/config');
+const logger = require('winston');
 
 try {
   console.log('Start =>', args[0]);

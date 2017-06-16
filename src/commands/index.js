@@ -13,8 +13,7 @@
  *
  * Main module for the refocus-collector.
  *
- * Load the registry, execute the start command,
- * and set up all the command-line options.
+ * Load the registry and set up all the command-line options.
  */
 
 // for package commands
