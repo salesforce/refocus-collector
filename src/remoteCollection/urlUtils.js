@@ -25,6 +25,10 @@ function expand(url, ctx) {
   debug(`expand(${url}, ${ctx})`);
   const matches = url.match(/{{[^\s{}]+?}}/g); // match {{...}}
   let expandedUrl = url;
+  if (!Array.isArray(matches)) {
+    return expandedUrl;
+  }
+
   matches.forEach((match) => {
     const key = match.match(/{{(.+)}}/)[1]; // extract "..." from "{{...}}"
     const value = ctx[key];
