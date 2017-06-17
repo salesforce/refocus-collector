@@ -15,16 +15,10 @@ const logger = require('winston');
 const errors = require('../errors/errors');
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
+const collect = require('../remoteCollection/collect').collect;
 
 // Tracks all the repeats defined in the collectors.
 const repeatTracker = {};
-
-/**
- * Stub for the function that pings the target data source and gets the sample
- * data back. This function will be exported from another module once that is
- * ready.
- */
-function collectStub() { }
 
 /**
  * The default function that is called every time a task is repeated.
@@ -56,9 +50,9 @@ function onFailure(err) {
 } // onFailure
 
 /**
- * Given an object with a name attribute or name string, it stops the repeat
- * task identified by the name and deletes it from the repeatTracker.
- * @param {Object} obj - An object with a name attribute.
+ * Stops the repeat task identified by the name and deletes it from the
+ * repeatTracker.
+ * @param {String} name - Name of the repeat
  * @throws {ValidationError} If "obj" does not have a name attribute.
  * @throws {ResourceNotFoundError} If the repeat identified by obj.name is not
  * found in the tracker.
@@ -168,14 +162,28 @@ function update(def) {
 /**
  * Convenience function to create a new generator repeater.
  *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
+ * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
  * @returns {Promise} - A read-only Promise instance.
  */
-function createGeneratorRepeater(def) {
-  def.func = collectStub;
+function createGeneratorRepeater(generator) {
+  /**
+   * Wrapping the collect function to pass a function defination to the repeat
+   * task
+   * @returns {Promise} which resolves to the response of the collect function
+   */
+  function collectWrapper() {
+    return collect(generator);
+  }
+
+  const def = {
+    name: generator.name,
+    interval: generator.interval,
+    func: collectWrapper,
+  };
+
+  def.func = collectWrapper;
   def.onProgress = handleCollectResponse;
   return create(def);
 } // createGeneratorRepeater
@@ -183,14 +191,28 @@ function createGeneratorRepeater(def) {
 /**
  * Convenience function to update a generator repeater.
  *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
+ * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
  * @returns {Promise} - A read-only Promise instance.
  */
-function updateGeneratorRepeater(def) {
-  def.func = collectStub;
+function updateGeneratorRepeater(generator) {
+  /**
+   * Wrapping the collect function to pass a function defination to the repeat
+   * task
+   * @returns {Promise} which resolves to the response of the collect function
+   */
+  function collectWrapper() {
+    return collect(generator);
+  }
+
+  const def = {
+    name: generator.name,
+    interval: generator.interval,
+    func: collectWrapper,
+  };
+
+  def.func = collectWrapper;
   def.onProgress = handleCollectResponse;
   return update(def);
 } // updateGeneratorRepeater
