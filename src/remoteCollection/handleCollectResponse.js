@@ -69,6 +69,10 @@ function handleCollectResponse(collectResponse) {
         err.name, err.message);
       return Promise.reject(err);
     }
+  }).catch((err) => {
+    logger.error('handleCollectResponse threw an error: ',
+        err.name, err.message);
+    return Promise.reject(err);
   });
 } // handleCollectResponse
 
