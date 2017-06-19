@@ -17,6 +17,24 @@ const errors = require('../errors/errors');
 const sampleQueue = [];
 
 /**
+ * @param {Object} sample - The sample to validate
+ * @throws {ValidationError} if the object does not look like a sample
+ */
+function validateSample(sample) {
+  if (
+    typeof sample === 'object' && !Array.isArray(sample) &&
+    sample.hasOwnProperty('name') && typeof sample.name === 'string' &&
+    sample.name.length >= 3 && sample.name.indexOf('|') > 0
+  ) {
+    return;
+  }
+
+  throw new errors.ValidationError(
+    `Invalid sample: ${JSON.stringify(sample)}`
+  );
+}
+
+/**
  * Enqueue samples in sample queue.
  * @param  {Array} samples - Array of samples
  * @throws {ValidationError} - If Invalid sample
@@ -25,15 +43,7 @@ function enqueue(samples) {
   try {
     debug(`Starting to push ${samples.length} samples in sampleQueue.`);
     samples.forEach((sample) => {
-      /* Throw error if sample is not an object or sample does not have a
-      name property */
-      if (typeof sample !== 'object' || Array.isArray(sample) ||
-        !sample.hasOwnProperty('name') || typeof sample.name !== 'string') {
-        throw new errors.ValidationError(
-          `Invalid sample: ${JSON.stringify(sample)}`
-        );
-      }
-
+      validateSample(sample);
       sampleQueue.push(sample);
     });
     logger.info(`Enqueue successful for : ${samples.length} samples`);
@@ -110,4 +120,5 @@ module.exports = {
   flush,
   sampleQueue, // for testing purposes
   bulkUpsertAndLog, // for testing purposes
+  validateSample, // for testing purposes
 };
