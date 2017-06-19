@@ -62,7 +62,18 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       done();
     });
 
-    it('enqueue, failed', (done) => {
+    it('enqueue, failed, sample not an object', (done) => {
+      sampleQueueOps.enqueue([['randomText']]);
+      expect(winston.error.calledOnce).to.be.true;
+      expect(winston.error.args[0][0]).contains(
+        'Enqueue failed. Error: ValidationError: Invalid sample: ' +
+        '["randomText"]'
+      );
+
+      done();
+    });
+
+    it('enqueue, failed, sample does not have name property', (done) => {
       sampleQueueOps.enqueue([{ abc: 'randomText' }]);
       expect(winston.error.calledOnce).to.be.true;
       expect(winston.error.args[0][0]).contains(

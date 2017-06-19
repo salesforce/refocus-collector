@@ -25,7 +25,10 @@ function enqueue(samples) {
   try {
     debug(`Starting to push ${samples.length} samples in sampleQueue.`);
     samples.forEach((sample) => {
-      if (typeof sample !== 'object' || typeof sample.name !== 'string') {
+      /* Throw error if sample is not an object or sample does not have a
+      name property */
+      if (typeof sample !== 'object' || Array.isArray(sample) ||
+        !sample.hasOwnProperty('name') || typeof sample.name !== 'string') {
         throw new errors.ValidationError(
           `Invalid sample: ${JSON.stringify(sample)}`
         );
@@ -106,5 +109,5 @@ module.exports = {
   enqueue,
   flush,
   sampleQueue, // for testing purposes
-  bulkUpsertAndLog,
+  bulkUpsertAndLog, // for testing purposes
 };
