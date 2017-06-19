@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const expand = require('../../src/remoteCollection/urlUtils').expand;
 
-describe('test/utils/urlUtils.js >', () => {
+describe('test/remoteCollection/urlUtils.js >', () => {
   it('No expansion needed', (done) => {
     const url = 'http://www.xyz.com';
     const expandedUrl = 'http://www.xyz.com';
