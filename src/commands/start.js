@@ -16,6 +16,7 @@ const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
 const config = require('../config/config');
 const repeater = require('../repeater/repeater');
+const flush = require('../sampleQueue/sampleQueueOps').flush;
 
 function temporarySendHeartbeatStub() {
   console.log('send heartbeat');
@@ -42,6 +43,14 @@ function execute() {
     onProgress: debug,
   };
   repeater.create(def);
+
+  // flush function does not return anything, hnece no event functions
+  const sampleQueueFlushDef = {
+    name: 'SampleQueueFlush',
+    interval: conf.collectorConfig.sampleUpsertQueueTime,
+    func: flush,
+  };
+  repeater.create(sampleQueueFlushDef);
   logger.info({ activity: 'cmdStart' });
   debug('Exiting start.execute');
 } // execute
