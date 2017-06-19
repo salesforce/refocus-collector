@@ -21,10 +21,9 @@ const handleCollectRes =
     .handleCollectResponse;
 
 const httpStatus = require('../../src/constants').httpStatus;
+const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
-  const sampleArr = [{ name: 'S1|A1', value: 10 }, { name: 'S1|A1', value: 2 }];
-
   it('should return an ArgsError error if handleCollectResponse is called ' +
     'with a promise that resolves to null', (done) => {
     handleCollectRes(Promise.resolve(null))
@@ -83,7 +82,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   });
 
   it('should call doBulkUpsert to push samples to refocus', (done) => {
-    // use nock to mock the response
+    // use nock to mock the response when flushing
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+    ];
     nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
@@ -93,40 +95,18 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       res: {},
       subject: { absolutePath: 'abc' },
       generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A1", value: 2 }]',
+        'return [{ name: "S1|A1", value: 10 }, { name: "S2|A2", value: 2 }]',
       },
     };
     handleCollectRes(Promise.resolve(collectRes))
-    .then((res) => {
-      expect(res.status).to.equal(httpStatus.CREATED);
-      expect(res.body.status).to.equal('OK');
-      expect(res.body.jobId).not.equal(undefined);
+    .then(() => {
+      expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
+      expect(sampleQueueOps.sampleQueue[0])
+      .to.eql({ name: 'S1|A1', value: 10 });
+      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S2|A2', value: 2 });
+      sampleQueueOps.flush();
       done();
     })
     .catch(done);
-  });
-
-  it('should also handle bad response from the refocus instance', (done) => {
-    // use nock to mock the response
-    const samplePayLoad = [{ name: 'S1|A1' }, { name: 'S1|A1' }];
-
-    nock(refocusUrl)
-      .post(bulkEndPoint, samplePayLoad)
-      .reply(httpStatus.BAD_REQUEST, {});
-
-    const collectRes = {
-      ctx: {},
-      res: {},
-      subject: { absolutePath: 'abc' },
-      generatorTemplate: { transform:
-        'return [{ name: "S1|A1" }, { name: "S1|A1" }]', },
-    };
-
-    handleCollectRes(Promise.resolve(collectRes))
-    .then(() => done('Expecting Bad Request Error'))
-    .catch((err) => {
-      expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-      done();
-    });
   });
 });

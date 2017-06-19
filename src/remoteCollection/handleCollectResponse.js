@@ -15,6 +15,7 @@ const doBulkUpsert = require('../sampleQueue/sampleUpsertUtils').doBulkUpsert;
 const config = require('../config/config').getConfig();
 const errors = require('../errors/errors');
 const logger = require('winston');
+const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
 
 /**
  * Handles the response from the remote data source by calling the transform
@@ -51,9 +52,7 @@ function handleCollectResponse(collectResponse) {
         evalUtils.safeTransform(collectRes.generatorTemplate.transform,
           collectRes);
 
-      // for now, get only the values mapped to the first attribute of registry
-      const registry = config.registry[Object.keys(config.registry)[0]];
-      return doBulkUpsert(registry, transformedSamples);
+      enqueue(transformedSamples);
     } catch (err) {
       logger.log('error', 'handleCollectResponse threw an error: ',
         err.name, err.message);

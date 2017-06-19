@@ -59,6 +59,7 @@ function init(reg) {
   const conf = {
     collectorConfig: {
       heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
+      maxSamplesPerBulkRequest: 100, // TODO remove me once it's coming from refocus
     },
     generators: {},
     registry: {},
