@@ -50,7 +50,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
   it('should return an ArgsError when obj does not have subject ' +
     'attribute', (done) => {
-    const obj = { ctx: {}, res: { text: '{ "a": "atext" }' },
+    const obj = { ctx: {}, res: {},
       generatorTemplate: {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
       },
@@ -68,7 +68,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   it('should return an ArgsError error when obj does not have ctx ' +
     'attribute', (done) => {
     const obj = {
-      res: { text: '{ "a": "atext" }' },
+      res: {},
       subject: { absolutePath: 'abc' },
       generatorTemplate: {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
@@ -80,26 +80,6 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(err.message).to.contain('Missing "ctx" attribute');
       expect(err.name).to.equal('ArgsError');
       return done();
-    });
-  });
-
-  it('should return a ValidationError error if handleCollectResponse is' +
-    'called with an object with no text attribute of res', (done) => {
-    const collectRes = {
-      ctx: {},
-      res: {},
-      subject: { absolutePath: 'abc' },
-      generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A1", value: 2 }]',
-      },
-    };
-    handleCollectRes(Promise.resolve(collectRes))
-    .then(() => done('Expecting Validation Error'))
-    .catch((err) => {
-      expect(err.message).to.contain('The res attribute of object passed to ' +
-        'handleCollectResponse should have a text attribute');
-      expect(err.name).to.equal('ValidationError');
-      done();
     });
   });
 

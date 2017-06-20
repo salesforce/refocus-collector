@@ -48,16 +48,13 @@ function handleCollectResponse(collectResponse) {
           'handleCollectResponse should have a res attribute');
       }
 
-      if (!collectRes.res.text) {
-        throw new errors.ValidationError('The res attribute of object passed ' +
-          'to handleCollectResponse should have a text attribute');
-      }
-
-      try {
-        JSON.parse(collectRes.res.text);
-      } catch (err) {
-        throw new errors.ValidationError('Could not JSON parse res.text of ' +
-          'object passed to handleCollectResponse');
+      if (collectRes.res.text) {
+        try {
+          JSON.parse(collectRes.res.text);
+        } catch (err) {
+          throw new errors.ValidationError('Could not JSON parse res.text of ' +
+            'object passed to handleCollectResponse');
+        }
       }
 
       const transformedSamples =

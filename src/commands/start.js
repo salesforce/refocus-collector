@@ -44,7 +44,7 @@ function execute() {
   };
   repeater.create(def);
 
-  // flush function does not return anything, hnece no event functions
+  // flush function does not return anything, hence no event functions
   const sampleQueueFlushDef = {
     name: 'SampleQueueFlush',
     interval: conf.collectorConfig.sampleUpsertQueueTime,
