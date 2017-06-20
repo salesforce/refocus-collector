@@ -61,7 +61,7 @@ function init(reg) {
       heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
       maxSamplesPerBulkRequest: 100, // TODO remove me once it's coming from refocus
       // TODO remove me once it's coming from refocus
-      sampleUpsertQueueTime: 60000,
+      sampleUpsertQueueTime: 5000, // in milliseconds
     },
     generators: {},
     registry: {},
