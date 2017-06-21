@@ -48,6 +48,17 @@ function handleCollectResponse(collectResponse) {
           'handleCollectResponse should have a res attribute');
       }
 
+      /* We need to check that text attribute is JSON before passing to
+      transform function because transform function cannot throw errors. */
+      if (collectRes.res.text) {
+        try {
+          JSON.parse(collectRes.res.text);
+        } catch (err) {
+          throw new errors.ValidationError('Could not JSON parse res.text of ' +
+            'object passed to handleCollectResponse');
+        }
+      }
+
       const transformedSamples =
         evalUtils.safeTransform(collectRes.generatorTemplate.transform,
           collectRes);
