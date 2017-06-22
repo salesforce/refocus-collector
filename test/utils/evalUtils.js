@@ -406,6 +406,47 @@ describe('test/utils/evalUtils >', (done) => {
         }
       }
     });
+
+    it('no setTimeout', (done) => {
+      const str = `return setTimeout(() => return 'Hi!', 1);`;
+      try {
+        const retval = eu.safeEval(str);
+        done('Expecting FunctionBodyError here');
+      } catch (err) {
+        if (err.name === 'FunctionBodyError') {
+          done();
+        } else {
+          done('Expecting FunctionBodyError here');
+        }
+      }
+    });
+
+    it('no setInterval', (done) => {
+      const str = `return setInterval(() => return 'Hi!', 1);`;
+      try {
+        const retval = eu.safeEval(str);
+        done('Expecting FunctionBodyError here');
+      } catch (err) {
+        if (err.name === 'FunctionBodyError') {
+          done();
+        } else {
+          done('Expecting FunctionBodyError here');
+        }
+      }
+    });
+
+    it('allows "RegExp"', (done) => {
+      const str = `var myRe = /d(b+)d/g; ` +
+        `return myRe.exec('cdbbdbsbz');`;
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval[0]).to.equal('dbbd');
+        expect(retval[1]).to.equal('bb');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
   });
 
   describe('safeTransform >', (done) => {
