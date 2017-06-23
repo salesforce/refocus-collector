@@ -21,8 +21,9 @@ const handleCollectRes =
     .handleCollectResponse;
 const collect = require('../../src/remoteCollection/collect').collect;
 const httpStatus = require('../../src/constants').httpStatus;
+const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
 
-describe('test/remoteCollection/handleCollectResponse.js >', () => {
+describe('test/remoteCollection/collect.js >', () => {
   const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
         { name: 'UnionCity|Delay', value: 2 },
   ];
@@ -165,10 +166,13 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
     handleCollectRes(collect(generator))
-    .then((collectRes) => {
-      expect(collectRes.status).to.equal(httpStatus.CREATED);
-      expect(collectRes.body.status).to.equal('OK');
-      expect(collectRes.body.jobId).not.equal(undefined);
+    .then(() => {
+      expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
+      expect(sampleQueueOps.sampleQueue[0])
+        .to.eql({ name: 'Fremont|Delay', value: 10 });
+      expect(sampleQueueOps.sampleQueue[1])
+        .to.eql({ name: 'UnionCity|Delay', value: 2 });
+      sampleQueueOps.flush();
       done();
     })
     .catch(done);

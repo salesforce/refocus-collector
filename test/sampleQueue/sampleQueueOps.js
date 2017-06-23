@@ -204,11 +204,12 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       }, 1500);
     });
 
-    it('bulkUpsertAndLog, error', (done) => {
+    it.skip('bulkUpsertAndLog, error', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
+
       sampleQueueOps.bulkUpsertAndLog(samples);
 
       setTimeout(() => {
