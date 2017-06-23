@@ -34,6 +34,29 @@ function updateCollectorConfig(res) {
 } // updateCollectorConfig
 
 /**
+ * Assign any default values from the template into the generator context if
+ * no value was already provided in the generator context.
+ *
+ * @param {Object} ctx - The context from the generator
+ * @param {Object} def - The contextDefinition from the generator template
+ * @returns {Object} the context object with default values populated
+ */
+function assignContextDefaults(ctx, def) {
+  if (!ctx) {
+    ctx = {};
+  }
+
+  Object.keys(def).forEach((key) => {
+    if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
+      ctx[key] = def[key].default;
+    }
+  });
+
+  debug('assignContextDefaults returning', ctx);
+  return ctx;
+} // assignContextDefaults
+
+/**
  * Function to setup a generator repeater and add the generator to the
  * collector config
  * @param {Object} res - Heartbeat Response
@@ -108,6 +131,7 @@ function updateGenerator(res) {
 
 module.exports = {
   addGenerator,
+  assignContextDefaults, // exporting for testing purposes only
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,
