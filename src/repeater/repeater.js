@@ -169,7 +169,7 @@ function update(def) {
  */
 function createGeneratorRepeater(generator) {
   /**
-   * Wrapping the collect function to pass a function defination to the repeat
+   * Wrapping the collect function to pass a function definition to the repeat
    * task
    * @returns {Promise} which resolves to the response of the collect function
    */
@@ -181,10 +181,9 @@ function createGeneratorRepeater(generator) {
     name: generator.name,
     interval: generator.interval,
     func: collectWrapper,
+    onProgress: handleCollectResponse,
   };
 
-  def.func = collectWrapper;
-  def.onProgress = handleCollectResponse;
   return create(def);
 } // createGeneratorRepeater
 
@@ -198,7 +197,7 @@ function createGeneratorRepeater(generator) {
  */
 function updateGeneratorRepeater(generator) {
   /**
-   * Wrapping the collect function to pass a function defination to the repeat
+   * Wrapping the collect function to pass a function definition to the repeat
    * task
    * @returns {Promise} which resolves to the response of the collect function
    */
@@ -210,10 +209,9 @@ function updateGeneratorRepeater(generator) {
     name: generator.name,
     interval: generator.interval,
     func: collectWrapper,
+    onProgress: handleCollectResponse,
   };
 
-  def.func = collectWrapper;
-  def.onProgress = handleCollectResponse;
   return update(def);
 } // updateGeneratorRepeater
 

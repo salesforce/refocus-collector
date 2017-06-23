@@ -54,10 +54,10 @@ function doCollection(remoteUrl, generator) {
     .set('Accept', 'application/json')
     .end((err, res) => {
       if (err) {
-        logger.log('error', 'bulkUpsert returned an error: %o', err);
+        logger.log('error', 'An error was returned as a response: %o', err);
         generator.res = err;
       } else {
-        debug('bulkUpsert returned an OK response: %o', res);
+        debug('Remote data source returned an OK response: %o', res);
         generator.res = res;
       }
 
@@ -71,7 +71,8 @@ function doCollection(remoteUrl, generator) {
  * calls the "prepareUrl" function to prepare the remote url and then calls the
  * "doCollection" function to get the data.
  * @param  {Object} generator - The generator object
- * @returns {Promise} - which resolves to a response from the remote datasource
+ * @returns {Promise} - which resolves to a generator object with a "res"
+ * attribute carrying the response from the remote data source
  */
 function collect(generator) {
   const remoteUrl = prepareUrl(generator);
