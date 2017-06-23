@@ -70,8 +70,7 @@ function handleCollectResponse(collectResponse) {
       }
 
       logger.info(
-        `Generator: ${collectRes.name}, generated ` +
-        `${transformedSamples.length} samples.`
+        `Generator=${collectRes.name},numSamples=${transformedSamples.length}`
       );
 
       enqueue(transformedSamples);
