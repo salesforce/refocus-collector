@@ -12,7 +12,19 @@
 const expect = require('chai').expect;
 const expand = require('../../src/remoteCollection/urlUtils').expand;
 
-describe('test/utils/urlUtils.js >', () => {
+describe('test/remoteCollection/urlUtils.js >', () => {
+  it('No expansion needed', (done) => {
+    const url = 'http://www.xyz.com';
+    const expandedUrl = 'http://www.xyz.com';
+    const ctx = {
+      key: '12345',
+      ok: 'true',
+    };
+
+    expect(expand(url, ctx)).to.equal(expandedUrl);
+    done();
+  });
+
   it('expand - 1 variable', (done) => {
     const url = 'http://www.xyz.com?id={{key}}';
     const expandedUrl = 'http://www.xyz.com?id=12345';

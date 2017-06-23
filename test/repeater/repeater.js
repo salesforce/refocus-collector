@@ -18,13 +18,23 @@ describe('test/repeater/repeater.js >', () => {
   it('createGeneratorRepeater should start a new generator repeat', (done) => {
     const def = {
       name: 'Generator0',
-      interval: 6000,
+      interval: 600,
+      ctx: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'http://example.com',
+        },
+      },
+      subject: { name: 'OneSubject' },
     };
     const ret = repeater.createGeneratorRepeater(def);
     expect(ret.handle).to.not.equal(undefined);
     expect(ret.interval).to.equal(def.interval);
     expect(ret.name).to.equal('Generator0');
-    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.funcName).to.equal('collectWrapper');
     expect(repeatTracker.Generator0).to.equal(ret.handle);
     done();
   });
@@ -34,16 +44,55 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator0.1',
       interval: 6000,
+      ctx: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'http://example.com',
+        },
+      },
+      subject: { name: 'OneSubject' },
     };
 
     const ret = repeater.createGeneratorRepeater(def);
     expect(ret.handle).to.not.equal(undefined);
     expect(ret.interval).to.equal(def.interval);
     expect(ret.name).to.equal('Generator0.1');
-    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.funcName).to.equal('collectWrapper');
     expect(ret.onProgress.name).to.equal('handleCollectResponse');
     expect(repeatTracker['Generator0.1']).to.equal(ret.handle);
     done();
+  });
+
+  it('handleCollectResponse onProgress callback should be ' +
+    'called when a generator repeated is created', (done) => {
+    const def = {
+      name: 'Generator0.11',
+      interval: 10,
+      ctx: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'http://example.com',
+        },
+      },
+      subject: { name: 'OneSubject' },
+    };
+
+    const ret = repeater.createGeneratorRepeater(def);
+
+    setTimeout(() => {
+      expect(ret.handle).to.not.equal(undefined);
+      expect(ret.interval).to.equal(def.interval);
+      expect(ret.name).to.equal('Generator0.11');
+      expect(ret.funcName).to.equal('collectWrapper');
+      expect(repeatTracker['Generator0.11']).to.equal(ret.handle);
+      return done();
+    }, 20);
   });
 
   it('updateNewGeneratorRepeat should set the' +
@@ -51,6 +100,16 @@ describe('test/repeater/repeater.js >', () => {
     const obj = {
       name: 'Generator0.2',
       interval: 6000,
+      ctx: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'http://example.com',
+        },
+      },
+      subject: { name: 'OneSubject' },
     };
     repeater.createGeneratorRepeater(obj);
     obj.name = 'Generator0.2';
@@ -59,7 +118,7 @@ describe('test/repeater/repeater.js >', () => {
     expect(ret.handle).to.not.equal(undefined);
     expect(ret.interval).to.equal(obj.interval);
     expect(ret.name).to.equal('Generator0.2');
-    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.funcName).to.equal('collectWrapper');
     expect(ret.onProgress.name).to.equal('handleCollectResponse');
     expect(repeatTracker['Generator0.2']).to.equal(ret.handle);
     done();
@@ -69,6 +128,16 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator1',
       interval: 6000,
+      ctx: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'http://example.com',
+        },
+      },
+      subject: { name: 'OneSubject' },
     };
     repeater.createGeneratorRepeater(def);
     def.name = 'Generator1';
@@ -77,7 +146,7 @@ describe('test/repeater/repeater.js >', () => {
     expect(ret.handle).to.not.equal(undefined);
     expect(ret.interval).to.equal(def.interval);
     expect(ret.name).to.equal('Generator1');
-    expect(ret.funcName).to.equal('collectStub');
+    expect(ret.funcName).to.equal('collectWrapper');
     expect(repeatTracker.Generator1).to.equal(ret.handle);
     done();
   });

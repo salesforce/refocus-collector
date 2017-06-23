@@ -29,6 +29,7 @@ module.exports = {
     FORBIDDEN: 403,
     NOT_FOUND: 404,
     NOT_ALLOWED: 405,
+    SERVICE_UNAVAILABLE: 503,
   },
 
   // exported for the purpose of testing

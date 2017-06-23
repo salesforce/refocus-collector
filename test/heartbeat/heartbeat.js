@@ -282,26 +282,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
     });
   });
 
-  //it('sendHeartbeat', (done) => {
-  //  config.generators = {};
-  //  config.registry[collectorName] = {
-  //    url: url,
-  //    token: token,
-  //  };
-  //
-  //  mock({
-  //    './generators': {},
-  //  });
-  //
-  //  const request = sendHeartbeat();
-  //  expect(request).to.exist;
-  //  expect(request.method).to.equal('POST');
-  //  expect(request.url).to.equal(`${url}/v1/collectors/${collectorName}/heartbeat`);
-  //  expect(request.header.Authorization).to.equal(token);
-  //  expect(request._data).to.deep.equal({ logLines: [] });
-  //  done();
-  //});
-
   it('sendHeartbeat - missing token', (done) => {
     config.registry[collectorName] = {
       url: url,
