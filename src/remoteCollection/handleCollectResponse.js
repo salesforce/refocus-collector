@@ -69,9 +69,10 @@ function handleCollectResponse(collectResponse) {
           'handleCollectResponse should have a "name" attribute');
       }
 
-      logger.info(
-        `Generator=${collectRes.name},numSamples=${transformedSamples.length}`
-      );
+      logger.info(`{
+        generator: ${collectRes.name},
+        numSamples: ${transformedSamples.length},
+      }`);
 
       enqueue(transformedSamples);
     } catch (err) {

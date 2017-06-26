@@ -150,9 +150,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     .then(() => {
       // check the logs
       expect(winston.info.calledTwice).to.be.true;
-      expect(winston.info.args[0][0]).to.be.equal(
-        'Generator=mockGenerator,numSamples=2'
-      );
+      expect(winston.info.args[0][0]).contains('generator: mockGenerator');
+      expect(winston.info.args[0][0]).contains('numSamples: 2');
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
       expect(sampleQueueOps.sampleQueue[0])
       .to.eql({ name: 'S1|A1', value: 10 });
