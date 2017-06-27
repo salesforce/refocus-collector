@@ -227,6 +227,52 @@ describe('test/config/utils.js >', () => {
       }
     });
 
+    it('url value is in invalid format: 2 dots(.) in url', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'http://.com.com' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is in invalid format without top level ' +
+      'domain ', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: 'invalid url' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
+    it('url value is in invalid format with empty string', (done) => {
+      try {
+        configUtils.validateRegistry({
+          a: { token: 'abcdefg', url: '' },
+        });
+        done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError') {
+          done();
+        } else {
+          done('Expecting ValidationError here');
+        }
+      }
+    });
+
     it('token value is null', (done) => {
       try {
         configUtils.validateRegistry({
