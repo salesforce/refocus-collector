@@ -11,6 +11,8 @@
  */
 const expect = require('chai').expect;
 const nock = require('nock');
+const sinon = require('sinon');
+const winston = require('winston');
 const mockRest = require('../mockedResponse');
 const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
 const tu = require('../testUtils');
@@ -103,6 +105,26 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 
+  it('should return an Validation error when obj does not have name ' +
+    'attribute', (done) => {
+    const obj = {
+      res: {},
+      ctx: {},
+      subject: { absolutePath: 'abc' },
+      generatorTemplate: {
+        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+      },
+    };
+    handleCollectRes(Promise.resolve(obj))
+    .then(() => done('Expecting a ValidationError'))
+    .catch((err) => {
+      expect(err.message).to.contain('should have a "name" attribute');
+      expect(err.name).to.equal('ValidationError');
+      return done();
+    })
+    .catch(done);
+  });
+
   it('should call doBulkUpsert to push samples to refocus', (done) => {
     // use nock to mock the response when flushing
     const sampleArr = [
@@ -113,6 +135,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
     const collectRes = {
+      name: 'mockGenerator',
       ctx: {},
       res: { text: '{ "a": "atext" }' },
       subject: { absolutePath: 'abc' },
@@ -120,15 +143,28 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         'return [{ name: "S1|A1", value: 10 }, { name: "S2|A2", value: 2 }]',
       },
     };
+
+    // stub winston info to test the logs
+    const winstonInfoStub = sinon.stub(winston, 'info');
     handleCollectRes(Promise.resolve(collectRes))
     .then(() => {
+      // check the logs
+      expect(winston.info.calledTwice).to.be.true;
+      expect(winston.info.args[0][0]).contains('generator: mockGenerator');
+      expect(winston.info.args[0][0]).contains('numSamples: 2');
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
       expect(sampleQueueOps.sampleQueue[0])
       .to.eql({ name: 'S1|A1', value: 10 });
       expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S2|A2', value: 2 });
       sampleQueueOps.flush();
+
+      // restore winston stub
+      winstonInfoStub.restore();
       done();
     })
-    .catch(done);
+    .catch((err) => {
+      winstonInfoStub.restore();
+      done(err);
+    });
   });
 });

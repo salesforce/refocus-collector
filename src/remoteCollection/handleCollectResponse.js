@@ -63,6 +63,17 @@ function handleCollectResponse(collectResponse) {
         evalUtils.safeTransform(collectRes.generatorTemplate.transform,
           collectRes);
 
+      // collectRes (which is sample generator) should have a name.
+      if (!collectRes.name) {
+        throw new errors.ValidationError('The object passed to ' +
+          'handleCollectResponse should have a "name" attribute');
+      }
+
+      logger.info(`{
+        generator: ${collectRes.name},
+        numSamples: ${transformedSamples.length},
+      }`);
+
       enqueue(transformedSamples);
     } catch (err) {
       logger.log('error', 'handleCollectResponse threw an error: ',
