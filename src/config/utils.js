@@ -14,6 +14,7 @@
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
 const errors = require('../errors/errors');
+const validator = require('validator');
 
 /**
  * Validate the registry.
@@ -34,10 +35,15 @@ function validateRegistry(reg) {
       throw new errors.ValidationError(msg);
     }
 
-    if ((typeof reg[r].url !== 'string' || !reg[r].url) ||
-    (typeof reg[r].token !== 'string' || !reg[r].token)) {
-      const msg = `Registry entry "${r}" url and token must have string ` +
-        'values (not null, not empty).';
+    if ((typeof reg[r].token !== 'string' || !reg[r].token)) {
+      const msg = `Registry entry "${r}" token must be a non empty string `;
+      debug(msg);
+      throw new errors.ValidationError(msg);
+    }
+
+    if (typeof reg[r].url !== 'string' || !validator.isURL(reg[r].url)) {
+      const msg = `Registry entry "${r}" url must be a string and must be a ` +
+      'valid url';
       debug(msg);
       throw new errors.ValidationError(msg);
     }
