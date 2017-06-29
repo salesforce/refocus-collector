@@ -6,7 +6,18 @@
   "directories": {
     "test": "test"
   },
+  "watch": {
+    "start": {
+      "patterns": [
+        "src"
+      ],
+      "extensions": "yaml",
+      "quiet": true
+    }
+  },
   "scripts": {
+    "start" : "node index.js",
+    "watch": "npm-watch",
     "jscs": "./node_modules/jscs/bin/jscs src test",
     "test": "npm run jscs && ./node_modules/.bin/mocha -R dot --recursive ./test"
   },
@@ -28,9 +39,12 @@
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
     "bluebird": "^3.5.0",
+    "compression": "^1.6.2",
     "debug": "^2.6.8",
     "errors": "^0.3.0",
+    "express": "^4.15.3",
     "fs": "0.0.1-security",
+    "js-yaml": "^3.8.4",
     "nock": "^9.0.13",
     "notevil": "^1.1.0",
     "path": "^0.12.7",
@@ -38,6 +52,8 @@
     "superagent": "^3.5.2",
     "superagent-mocker": "^0.5.2",
     "validator": "^7.1.0",
+    "swagger-node-codegen": "0.0.10",
+    "swagger-tools": "^0.10.1",
     "winston": "^2.3.1"
   },
   "devDependencies": {
@@ -48,6 +64,7 @@
     "jscs": "^3.0.7",
     "mocha": "^3.4.1",
     "mock-fs": "^4.4.1",
-    "sinon": "^2.3.4"
+    "sinon": "^2.3.4",
+    "npm-watch": "^0.2.0"
   }
 }
