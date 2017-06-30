@@ -37,4 +37,10 @@ module.exports = {
 
   // generators directory location
   generatorsDir: './generators',
+
+  // for docs
+  port: 3000,
+  swagger: {
+    doc: './src/swagger.yaml',
+  },
 };

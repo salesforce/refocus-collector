@@ -1,0 +1,816 @@
+# =============================================================================
+# Copyright (c) 2017, salesforce.com, inc.
+# All rights reserved.
+# Licensed under the BSD 3-Clause license.
+# For full license text, see LICENSE.txt file in the repo root or
+# https://opensource.org/licenses/BSD-3-Clause
+# =============================================================================
+
+# =============================================================================
+# src/swagger.yaml
+# =============================================================================
+swagger: "2.0"
+
+# =============================================================================
+info:
+  version: 1.0.0
+  title: Collector API
+  # description: >-
+  #   A short description of the application. GFM syntax can be used for rich text
+  #   representation.
+  # termsOfService: The Terms of Service for the API.
+  # contact:
+  #   name: The identifying name of the contact person/organization.
+  #   url: https://github.com/salesforce/refocus-collector
+  #   email: focusapi@salesforce.com
+  # license:
+  #   name: The license name used for the API.
+  #   url: https://github.com/salesforce/refocus-collector/blob/master/LICENSE.txt
+
+# =============================================================================
+host: localhost:10010
+
+# =============================================================================
+basePath: /v1
+
+# =============================================================================
+# externalDocs:
+#   description: >-
+#     Focus API Documentation
+#   url: https://github.com/salesforce/refocus-collector
+
+# =============================================================================
+schemes:
+  - https
+  - http
+
+# =============================================================================
+securityDefinitions:
+  jwt:
+    type: apiKey
+    name: Authorization
+    in: header
+# =============================================================================
+consumes:
+  - application/json
+
+# =============================================================================
+produces:
+  - application/json
+
+# =============================================================================
+
+paths:
+
+  /collectors:
+    post:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Create a new collector
+      description: >-
+        Create a new collector. This request may only be issued by the refocus-collector register command.
+        The new record is automatically write-protected for just the user who created it. The default status: STOPPED.
+        isRegistered is true. System fills in the timeStamp fields.
+      operationId: postCollector
+      parameters:
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: object
+            description: A collector of observation which can be measured.
+            properties:
+              name:
+                type: "string"
+                description: "Should be unique."
+              status:
+                type: "string"
+                description: "The collector status."
+                enum:
+                - "STOPPED"
+                - "RUNNING"
+                - "PAUSED"
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+            required:
+              - name
+      responses:
+        201:
+          description: >-
+            Collector is created.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: >-
+            Fields in request body is not in the list of writable fields, or if a collector with the name has been registered,
+            even if that collector is currently de-registered.
+        403:
+          description: If the caller is not a refocus collector, ie. a user or another entity.
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: List all the Refocus Collectors.
+      description: >-
+        These fields are filterable: name, helpEmail, helpUrl by using asterisk (*) wildcards.
+        These fields are sortable: name, status, isRegistered, timestamp fields, createdBy,
+        lastUpdatedBy, helpEmail, and helpUrl. You can return a list of fields to include in the response.
+        Returning fields=[] means all the fields will be returned.
+      operationId: "findCollectors"
+      parameters:
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+        - name: sort
+          in: query
+          description: >
+            Specify the sort order using a field name, e.g. '...?sort=name'. Prepend the
+            field name with a minus sign to specify descending order, e.g.
+            '...?sort=-name'.
+          required: false
+          type: array
+          collectionFormat: csv
+          items:
+            type: string
+            enum:
+              - name
+              - status
+              - isRegistered
+              - lastHeartBeatSentAt
+              - lastModifiedAt
+              - createdBy
+              - lastUpdatedBy
+              - helpEmail
+              - helpUrl
+              - -name
+              - -status
+              - -isRegistered
+              - -lastHeartBeatSentAt
+              - -lastModifiedAt
+              - -createdBy
+              - -lastUpdatedBy
+              - -helpEmail
+              - -helpUrl
+      responses:
+        200:
+          description: >-
+            Success, returns all refocus collectors.
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/CollectorResponse"
+
+  /collectors/{key}:
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: >-
+        Returns metadata for a single collector.
+      description: >-
+        Retrieve the specified collector metadata. by the collector's id or name.
+        You may also optionally specify a list of fields to include in the response.
+      operationId: "getCollector"
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+        -
+          $ref: "#/parameters/CollectorFieldsParam"
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Collector not found"
+    patch:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Update the specified collector.
+      description: >-
+        Update the specified collector's config data. If a field is not included
+        in the querybody, that field will not be updated.
+      operationId: updateCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: Allowable fields when PATCH collector.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+      responses:
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+    put:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: Update the specified collector.
+      description: >-
+        Update the specified collector's config data. If a field is not included
+        in the querybody, that field will be set to null.
+      operationId: updateCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to update.
+          required: true
+          type: string
+        -
+          name: queryBody
+          in: body
+          description: Request body.
+          required: true
+          schema:
+            type: object
+            description: Allowable fields when PUT collector.
+            properties:
+              description:
+                type: string
+                maxLength: 4096
+                description: >
+                  Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+              helpEmail:
+                type: string
+                description: >
+                  The email address where a user can go to get more help about the collector.
+                maxLength: 254
+              helpUrl:
+                type: string
+                maxLength: 2082
+                description: >
+                  The url where a user can go to get more help about the collector.
+      responses:
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+
+  /collectors/{key}/deregister:
+    post:
+      security:
+        - jwt: []
+      summary: De-registers a collector.
+      tags: [ collectors ]
+      description: >-
+        De-registers a collector. This request may only be issued by the refocus-collector
+        deregister command. Only valid if the collector is registered and its status is STOPPED.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: Collector is already de-registered, or its status is RUNNING or PAUSED.
+        403:
+          description: >-
+            The user sending the request is not authorized.
+        404:
+          description: Collector not found
+
+  /collectors/{key}/kill:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to STOPPED.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to STOPPED. Invalid if the collector's status is STOPPED.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: Collector's status is STOPPED.
+        403:
+          description: >-
+            The user sending the request is not authorized. Only the writers of
+            the collector or refocus admin can issue the kill command.
+        404:
+          description: Collector not found
+
+  /collectors/{key}/pause:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to PAUSED.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to PAUSED. Invalid if the collector's status is not RUNNING.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: Collector's status is not RUNNING.
+        403:
+          description: >-
+            The user sending the request is not authorized. Only the writers of
+            the collector or refocus admin can issue the kill command.
+        404:
+          description: Collector not found
+
+  /collectors/{key}/resume:
+    post:
+      security:
+        - jwt: []
+      summary: Change collector status to RUNNING.
+      tags: [ collectors ]
+      description: >-
+        Change collector status to RUNNING. Invalid if the collector's status is not PAUSED.
+      operationId: deregisterCollector
+      parameters:
+        -
+          name: key
+          in: path
+          description: The id or name of the collector to retrieve.
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success, returns the specified collector's metadata.
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        400:
+          description: Collector's status is not PAUSED.
+        403:
+          description: >-
+            The user sending the request is not authorized. Only the writers of
+            the collector or refocus admin can issue the kill command.
+        404:
+          description: Collector not found
+
+  /collectors/{key}/writers:
+    get:
+      security:
+        - jwt: []
+      summary: Returns a list of users.
+      tags: [ collectors ]
+      description: >-
+        Returns a list of users who may edit this Collector metadata. DOES NOT use wildcards.
+      operationId: getCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+      responses:
+        200:
+          description: >-
+            Success, returns The users having write permission to the collector metadata..
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/UsersResponse"
+              description: >-
+                The users having write permission to the collector metadata.
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+    post:
+      security:
+        - jwt: []
+      summary: Add users to the list of authorized writers.
+      tags: [ collectors ]
+      description: >-
+         Add one or more users to an collector's list of authorized writers.
+      operationId: postCollectorWriters
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector for which the authorized list of users
+            are to be obtained.
+          required: true
+          type: string
+        -
+          name: queryBody
+          description: Request body.
+          in: body
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+            description: >
+              User name or id
+      responses:
+        201:
+          description: >-
+            One or more of the valid users were added to the list of authorized writers.
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CollectorWriterResponse"
+              description: >-
+                The users who have write permission to the collector metadata.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+            $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+  /collectors/{key}/writers/{userNameOrId}:
+    get:
+      security:
+        - jwt: []
+      tags: [ collectors ]
+      summary: "Get the writer of collector by user name or id."
+      description: >-
+        Determine whether a user is an authorized writer for a Collector.
+        If user is unauthorized, there is no writer by this name for this collector.
+      operationId: getCollectorWriter
+      parameters:
+      - name: key
+        in: path
+        description: "ID of collector to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      - name: "userNameOrId"
+        in: "path"
+        description: "ID of collector to return"
+        required: true
+        type: "integer"
+        format: "int64"
+      responses:
+        200:
+          description: "Return authorized user"
+          schema:
+            $ref: "#/definitions/CollectorResponse"
+        404:
+          description: "userNameOrId does not identify a User"
+    delete:
+      security:
+        - jwt: []
+      summary: Remove a user from a collector’s list of authorized writers
+      tags: [ collectors ]
+      description: >-
+        Remove a user from a collector’s list of authorized writers.
+      operationId: deletecollectorWriter
+      parameters:
+        -
+          name: key
+          in: path
+          description: >-
+            The id or name of the collector
+          required: true
+          type: string
+        -
+          name: userNameOrId
+          in: path
+          description: >-
+            The username or the Id of the user
+          required: true
+          type: string
+      responses:
+        204:
+          description: >-
+            The user’s write permission has been revoked for the collector.
+        400:
+          $ref: "#/responses/400"
+        403:
+          $ref: "#/responses/403"
+        404:
+          $ref: "#/responses/404"
+        default:
+          $ref: "#/responses/genericError"
+
+# =============================================================================
+definitions:
+
+  BadRequest:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+  ErrorResponse:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+  ResourceNotFoundError:
+    properties:
+      errors:
+        type: array
+        items:
+          type: object
+    required:
+      - errors
+
+  CollectorResponse:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      id:
+        type: string
+        readOnly: true
+        description: >
+          The collector id.
+      name:
+        type: "string"
+        description: "Should be unique."
+      currentGenerators:
+        readOnly: true
+        type: "array"
+        items:
+          type: "object"
+        description: "Generators assigned to this collector."
+      isRegistered:
+        type: "string"
+        description: "Boolean. If false, means de-registered. Changed by the DEREGISTER command"
+        enum:
+        - true
+        - false
+      status:
+        type: "string"
+        description: "The collector status."
+        enum:
+        - "STOPPED"
+        - "RUNNING"
+        - "PAUSED"
+      lastHeartBeatSentAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the last heartbeat was sent.
+      lastModifiedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent modification.
+      createdBy:
+        readOnly: true
+        type: string
+        description: >
+          Id of the User who created this Collector.
+      lastUpdatedBy:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp of the collector's most recent update.
+      description:
+        type: string
+        maxLength: 4096
+        description: >
+          Describes this Collector; helps a user determine which Collectors they should assign to run their collection.
+      helpEmail:
+        type: string
+        description: >
+          The email address where a user can go to get more help about the collector.
+        maxLength: 254
+      helpUrl:
+        type: string
+        maxLength: 2082
+        description: >
+          The url where a user can go to get more help about the collector.
+
+  CollectorWriterResponse:
+    type: object
+    description: >
+      Users having write permission to the collector
+    properties:
+      collectorId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a collector
+      userId:
+        type: string
+        readOnly: true
+        description: >
+          Id of a user having write permission to the collector
+      createdAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was created
+      updatedAt:
+        readOnly: true
+        type: string
+        description: >
+          Timestamp at which the the write permission was modified
+
+  HATEOAS:
+    type: object
+    description: >
+      Hypertext As The Engine Of Application State.
+    properties:
+      href:
+        type: string
+        maxLength: 2082
+        readOnly: true
+        description: >
+          URL of the related HATEOAS link you can use for subsequent calls.
+      rel:
+        type: string
+        maxLength: 255
+        readOnly: true
+        description: >
+          Link relation that describes how this link relates to the previous call.
+      method:
+        type: string
+        readOnly: true
+        maxLength: 255
+        description: >
+          The HTTP method required for the related call.
+    required:
+      - href
+      - rel
+      - method
+
+  UsersResponse:
+    type: object
+    description: >
+      A person or API client who interacts with the Refocus system.
+    properties:
+      email:
+        type: string
+        readOnly: true
+        maxLength: 254
+        description: >
+          The user's email address.
+      id:
+        type: string
+        readOnly: true
+      imageUrl:
+        type: string
+        readOnly: true
+        maxLength: 2082
+        description: >
+          Optional thumbnail image.
+      name:
+        type: string
+        readOnly: true
+        maxLength: 256
+        description: >
+          First and last name.
+      password:
+        type: string
+        readOnly: true
+      createdBy:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      createdAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      updatedAt:
+        type: string
+        readOnly: true
+        description: >
+          TODO
+      # TODO profile!
+      apiLinks:
+        readOnly: true
+        type: array
+        items:
+          $ref: "#/definitions/HATEOAS"
+        description: >
+          Hypertext As The Engine Of Application State.
+
+# =============================================================================
+parameters:
+
+  CollectorFieldsParam:
+    name: fields
+    in: query
+    description: >
+      Comma-delimited list of field names to include in the response.
+    required: false
+    type: array
+    collectionFormat: csv
+    items:
+      type: string
+      enum:
+        - name
+        - id
+        - status
+        - isRegistered
+        - currentGenerators
+        - lastHeartBeatSentAt
+        - lastModifiedAt
+        - createdBy
+        - lastUpdatedBy
+        - description
+        - helpEmail
+        - helpUrl
+
+# =============================================================================
+responses:
+
+  400:
+    description: Bad Request
+    schema:
+      $ref: '#/definitions/BadRequest'
+
+  403:
+    description: Forbidden
+    schema:
+      $ref: '#/definitions/ErrorResponse'
+
+  404:
+    description: Resource Not Found
+    schema:
+      $ref: '#/definitions/ResourceNotFoundError'
+
+  genericError:
+    description: Error
+    schema:
+      $ref: '#/definitions/ErrorResponse'
