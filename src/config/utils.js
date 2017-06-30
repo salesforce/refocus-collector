@@ -14,6 +14,7 @@
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
 const errors = require('../errors/errors');
+const fs = require('fs');
 
 /**
  * Validate the registry.
@@ -66,20 +67,40 @@ function init(reg) {
     generators: {},
     registry: {},
   };
+  
   let r;
   if (typeof reg === 'object') {
     r = reg;
   } else if (typeof reg === 'string') {
     // Get file contents synchronously.
     debug('Reading from file %s', reg);
-    const fileContents = common.readFileSynchr(reg);
-    r = JSON.parse(fileContents);
-  }
+    let fileContents;
+    
+    try {
+      fileContents = common.readFileSynchr(reg);
+    } catch (err) {
+      debug('File %s not found', reg);
+      debug('Creating %s', reg);
 
-  validateRegistry(r);
-  conf.registry = r;
-  debug('Initialized config: %s', JSON.stringify(conf));
-  return conf;
+      const jsonData = JSON.stringify('{}');
+
+      fs.writeFile(reg, '{}', 'utf8', function(err) {
+        if(err) {
+          return debug(err);
+        }
+
+        debug('File %s is created successfully', reg);
+      });
+    }
+
+    if (fileContents) {
+      r = JSON.parse(fileContents);
+      validateRegistry(r);
+      conf.registry = r;
+      debug('Initialized config: %s', JSON.stringify(conf));
+      return conf;
+    }
+  }
 } // init
 
 module.exports = {
