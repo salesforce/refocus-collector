@@ -67,7 +67,7 @@ function init(reg) {
     generators: {},
     registry: {},
   };
-  
+
   let r;
   if (typeof reg === 'object') {
     r = reg;
@@ -82,10 +82,8 @@ function init(reg) {
       debug('File %s not found', reg);
       debug('Creating %s', reg);
 
-      const jsonData = JSON.stringify('{}');
-
       fs.writeFile(reg, '{}', 'utf8', function(err) {
-        if(err) {
+        if (err) {
           return debug(err);
         }
 
@@ -97,10 +95,11 @@ function init(reg) {
       r = JSON.parse(fileContents);
       validateRegistry(r);
       conf.registry = r;
-      debug('Initialized config: %s', JSON.stringify(conf));
-      return conf;
     }
   }
+
+  debug('Initialized config: %s', JSON.stringify(conf));
+  return conf;
 } // init
 
 module.exports = {
