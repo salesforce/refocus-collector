@@ -18,8 +18,7 @@ const conf = require('./src/constants');
 const ENCODING = 'utf8';
 const swaggerTools = require('swagger-tools');
 
-const generator = require('swagger-node-codegen');
-const path = require('path');
+// Set up the server
 const express = require('express');
 const compress = require('compression');
 
@@ -27,7 +26,7 @@ const app = express();
 app.use(compress());
 const httpServer = require('http').Server(app);
 
-// set up httpServer params
+// Set up httpServer params
 const listening = 'Listening on port';
 const PORT = process.env.PORT || conf.port;
 app.set('port', PORT);
