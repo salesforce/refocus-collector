@@ -25,11 +25,15 @@
   "bugs": {
     "url": "https://github.com/salesforce/refocus-collector/issues"
   },
+  "bin": {
+    "refocus-collector": "src/commands/index.js"
+  },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
     "bluebird": "^3.5.0",
     "debug": "^2.6.8",
     "errors": "^0.3.0",
+    "figlet":"^1.2.0",
     "fs": "0.0.1-security",
     "nock": "^9.0.13",
     "notevil": "^1.1.0",
