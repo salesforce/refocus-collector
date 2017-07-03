@@ -11,11 +11,75 @@
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
-const doBulkUpsert = require('../sampleQueue/sampleUpsertUtils').doBulkUpsert;
-const config = require('../config/config').getConfig();
 const errors = require('../errors/errors');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+
+/**
+ * Validate the sample for these conditions:
+ * 1) Number of samples > no. of subjects * no. of aspects.
+ * 2) Sample aspect is in aspect array given in generator.
+ * 3) Sample subject is in subjects provided in generator.
+ * 4) No duplicates samples.
+ * @param  {Array} sampleArr - Sample array
+ * @param  {Object} generator - Generator object
+ */
+function validateSamples(sampleArr, generator) {
+  const subjectArr = []; // array of subject absolute paths
+  const aspectArr = []; // array of aspect names
+
+  // create subject array
+  if (generator.bulk) {
+    // Generator should have subjects if bulk
+    generator.subjects.forEach((s) => {
+      subjectArr.push(s.absolutePath.toLowerCase());
+    });
+  } else {
+    subjectArr.push(generator.subject.absolutePath.toLowerCase());
+  }
+
+  // create aspect array, generator will have aspects attribute always
+  generator.aspects.forEach((a) => {
+    aspectArr.push(a.name.toLowerCase());
+  });
+
+  // no of samples should not exceed the (no. of subjects * the no. of aspects)
+  if (sampleArr.length > subjectArr.length * aspectArr.length) {
+    throw new errors.ValidationError('Number of samples more than expected. ' +
+      `Samples count: ${sampleArr.length}, Subjects count: ` +
+      `${subjectArr.length}, Aspects count: ${aspectArr.length}`);
+  }
+
+  const uniqueSamples = new Set();
+  sampleArr.forEach((samp) => {
+    // sample name attribute check already in evalUtils
+    const sampName = samp.name;
+    const sampNameLowerCase = sampName.toLowerCase();
+
+    // check for duplicate samples
+    if (uniqueSamples.has(sampNameLowerCase)) {
+      throw new errors.ValidationError(
+        `Duplicate sample found: ${sampNameLowerCase}`
+      );
+    }
+
+    uniqueSamples.add(sampNameLowerCase);
+
+    // Check that samples corresponds to only the subjects and aspects passed in
+    const subAspArr = sampNameLowerCase.split('|');
+    if (subAspArr.length === 2) {
+      const subjName = subAspArr[0];
+      const aspName = subAspArr[1];
+      if ((!subjectArr.includes(subjName)) || (!aspectArr.includes(aspName))) {
+        throw new errors.ValidationError(
+          `Unknown subject or aspect for sample: ${sampName}`
+        );
+      }
+    } else {
+      throw new errors.ValidationError(`Invalid sample name: ${sampName}`);
+    }
+  });
+}
 
 /**
  * Handles the response from the remote data source by calling the transform
@@ -51,6 +115,8 @@ function handleCollectResponse(collectResponse) {
         evalUtils.safeTransform(collectRes.generatorTemplate.transform,
           collectRes);
 
+      validateSamples(transformedSamples, collectRes);
+
       // collectRes (which is sample generator) should have a name.
       if (!collectRes.name) {
         throw new errors.ValidationError('The object passed to ' +
@@ -77,4 +143,5 @@ function handleCollectResponse(collectResponse) {
 
 module.exports = {
   handleCollectResponse,
+  validateSamples, // for testing purposes only
 };

@@ -21,6 +21,9 @@ const refocusUrl = registry.url;
 const handleCollectRes =
   require('../../src/remoteCollection/handleCollectResponse')
     .handleCollectResponse;
+const validateSamples =
+  require('../../src/remoteCollection/handleCollectResponse')
+    .validateSamples;
 
 const httpStatus = require('../../src/constants').httpStatus;
 const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
@@ -88,13 +91,14 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
   it('ValidationError when obj does not have name attribute', (done) => {
     const obj = {
-      aspects: [{ name: 'A', timeout: '1m' }],
       res: {},
-      context: {},
-      subject: { absolutePath: 'abc' },
+      ctx: {},
+      subject: { absolutePath: 'S1' },
       generatorTemplate: {
-        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        transform:
+         'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
       },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
     handleCollectRes(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
@@ -109,7 +113,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   it('calls doBulkUpsert to push samples to refocus', (done) => {
     // use nock to mock the response when flushing
     const sampleArr = [
-      { name: 'S1|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
     ];
     nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
@@ -119,10 +123,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       context: {},
       res: { text: '{ "a": "atext" }' },
-      subject: { absolutePath: 'abc' },
+      subject: { absolutePath: 'S1' },
       generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S2|A2", value: 2 }]',
+        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
       },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
 
     // stub winston info to test the logs
@@ -136,7 +141,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
       expect(sampleQueueOps.sampleQueue[0])
       .to.eql({ name: 'S1|A1', value: 10 });
-      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S2|A2', value: 2 });
+      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S1|A2', value: 2 });
       sampleQueueOps.flush();
 
       // restore winston stub
@@ -149,3 +154,128 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 });
+
+describe('test/remoteCollection/handleCollectResponse.js >' +
+  ' validateSamples', () => {
+  it('More samples than expected', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      bulk: true,
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done('Expecting ValidationError');
+    } catch (err) {
+      expect(err.message).to.be.equal('Number of samples more than expected.' +
+        ' Samples count: 6, Subjects count: 2, Aspects count: 2');
+      done();
+    }
+  });
+
+  it('Unknown aspect in samples', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S2|A3', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      bulk: true,
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done('Expecting ValidationError');
+    } catch (err) {
+      expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
+        ' S2|A3');
+      done();
+    }
+  });
+
+  it('Unknown subject in samples', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S3|A2', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      bulk: true,
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done('Expecting ValidationError');
+    } catch (err) {
+      expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
+        ' S3|A2');
+      done();
+    }
+  });
+
+  it('Duplicate samples in sample array', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      bulk: true,
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done('Expecting ValidationError');
+    } catch (err) {
+      expect(err.message).to.be.equal('Duplicate sample found: s1|a2');
+      done();
+    }
+  });
+
+  it('Invalid sample name without |', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      { name: 'S2|A1', value: 10 }, { name: 'S1A2', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      bulk: true,
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done('Expecting ValidationError');
+    } catch (err) {
+      expect(err.message).to.be.equal('Invalid sample name: S1A2');
+      done();
+    }
+  });
+
+  it('OK', (done) => {
+    const sampleArr = [
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+    ];
+    const gen = {
+      name: 'mockGenerator',
+      subject: { absolutePath: 'S1' },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+    try {
+      validateSamples(sampleArr, gen);
+      done();
+    } catch (err) {
+      done(err);
+    }
+  });
+});
+
