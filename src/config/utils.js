@@ -81,14 +81,13 @@ function init(reg) {
     // Get file contents synchronously.
     debug('Reading from file %s', reg);
     let fileContents;
-    
     try {
       fileContents = common.readFileSynchr(reg);
     } catch (err) {
       debug('File %s not found', reg);
       debug('Creating %s', reg);
 
-      fs.writeFile(reg, '{}', 'utf8', function(err) {
+      fs.writeFile(reg, '{}', 'utf8', (err) => {
         if (err) {
           return debug(err);
         }
