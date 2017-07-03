@@ -36,5 +36,6 @@ module.exports = {
   mockRegistryLocation: './test/config/testRegistry.json',
 
   // generators directory location
+  // TODO - remove once we're getting generators from Refocus
   generatorsDir: './generators',
 };

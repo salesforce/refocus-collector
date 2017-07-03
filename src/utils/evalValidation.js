@@ -28,6 +28,29 @@ function isObject(name, val) {
 module.exports = {
   isObject,
 
+  aspects: (aspects) => {
+    debug('Entered evalValidation.aspects:', aspects);
+    if (!aspects) {
+      throw new errors.ArgsError('Must include an "aspects" attribute.');
+    }
+
+    if (!Array.isArray(aspects) || aspects.length < 1) {
+      throw new errors.ArgsError('"aspects" attribute must be an array of ' +
+        'one or more aspects.');
+    }
+
+    aspects.forEach((a, n) => {
+      isObject(`aspects[${n}]`, a);
+      if (typeof a.name !== 'string' || !a.name.length ||
+      typeof a.timeout !== 'string' || !a.timeout.length) {
+        throw new errors.ArgsError('Every element in the "aspects" array ' +
+          'must be a valid aspect.');
+      }
+    });
+
+    return true;
+  }, // aspects
+
   /**
    * Validates the subject/subjects args.
    *

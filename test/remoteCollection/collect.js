@@ -133,12 +133,13 @@ describe('test/remoteCollection/collect.js >', () => {
     .catch(done);
   });
 
-  it('handleCollectResponse should be work with a good response ' +
-    'from collect  ', (done) => {
+  it('handleCollectResponse should work with a good response from collect',
+  (done) => {
     const remoteUrl = 'http://bart.gov.api/';
     const generator = {
       name: 'Generator0',
       interval: 600,
+      aspects: [{ name: 'Delay', timeout: '1m' }],
       ctx: {},
       generatorTemplate: {
         connection: {

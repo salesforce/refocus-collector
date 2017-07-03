@@ -34,7 +34,6 @@ const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
  */
 function handleCollectResponse(collectResponse) {
   debug('Entered handleCollectResponse: >>');
-
   return collectResponse.then((collectRes) => {
     try {
       if (!collectRes || typeof collectRes !== 'object' ||
@@ -46,17 +45,6 @@ function handleCollectResponse(collectResponse) {
       if (!collectRes.res) {
         throw new errors.ValidationError('The object passed to ' +
           'handleCollectResponse should have a res attribute');
-      }
-
-      /* We need to check that text attribute is JSON before passing to
-      transform function because transform function cannot throw errors. */
-      if (collectRes.res.text) {
-        try {
-          JSON.parse(collectRes.res.text);
-        } catch (err) {
-          throw new errors.ValidationError('Could not JSON parse res.text of ' +
-            'object passed to handleCollectResponse');
-        }
       }
 
       const transformedSamples =
@@ -76,7 +64,7 @@ function handleCollectResponse(collectResponse) {
 
       enqueue(transformedSamples);
     } catch (err) {
-      logger.log('error', 'handleCollectResponse threw an error: ',
+      logger.error('handleCollectResponse threw an error: ',
         err.name, err.message);
       return Promise.reject(err);
     }

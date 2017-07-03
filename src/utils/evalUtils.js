@@ -34,6 +34,7 @@ const SAMPLE_BODY_MAX_LEN = 4096;
  */
 const transformFnPrefix = 'const ctx = args.ctx; ' +
   'const res = args.res; ' +
+  'const aspects = args.apsects; ' +
   'const subject = args.subject; ' +
   'const subjects = args.subjects; ' +
   'const SAMPLE_BODY_MAX_LEN = args._SAMPLE_BODY_MAX_LEN; ';
@@ -44,6 +45,7 @@ const transformFnPrefix = 'const ctx = args.ctx; ' +
  * args.
  */
 const toUrlFnPrefix = 'const ctx = args.ctx; ' +
+  'const aspects = args.apsects; ' +
   'const subject = args.subject; ' +
   'const subjects = args.subjects; ';
 
@@ -108,6 +110,7 @@ function validateTransformArgs(args) {
 
   return evalValidation.isObject('ctx', args.ctx) &&
     evalValidation.isObject('res', args.res) &&
+    evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subject, args.subjects);
 } // validateTransformArgs
 
@@ -129,6 +132,7 @@ function validateToUrlArgs(args) {
   }
 
   return evalValidation.isObject('ctx', args.ctx) &&
+    evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subject, args.subjects);
 } // validateToUrlArgs
 
@@ -142,6 +146,9 @@ function validateToUrlArgs(args) {
  *  {Object} ctx - The sample generator context.
  *  {Object} res - The response object returned by calling the remote data
  *    source.
+ *  {Array} aspects - Array of one or more aspects.
+ *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
+ *    is null or undefined.
  *  {Object} subject - If not bulk, this is the subject; if bulk, this is null
  *    or undefined.
  *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
@@ -183,6 +190,7 @@ function safeTransform(functionBody, args) {
  *  sample generator template.
  * @param {Object} args - An object containing the following attributes:
  *  {Object} ctx - The sample generator context.
+ *  {Array} aspects - Array of one or more aspects.
  *  {Object} subject - If not bulk, this is the subject; if bulk, this is null
  *    or undefined.
  *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
