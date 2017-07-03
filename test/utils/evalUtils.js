@@ -530,6 +530,30 @@ describe('test/utils/evalUtils >', (done) => {
         done(err);
       }
     });
+
+    it('define function inside ok', (done) => {
+      const str = 'function double(n) { return n*2; } ' +
+        'return double(10);';
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(20);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('define fat arrow function inside ok', (done) => {
+      const str = 'const double = (n) => n*2; ' +
+        'return double(10);';
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(20);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
   }); // safeEval
 
   describe('safeTransform >', (done) => {
