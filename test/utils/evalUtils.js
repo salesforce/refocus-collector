@@ -435,7 +435,7 @@ describe('test/utils/evalUtils >', (done) => {
       }
     });
 
-    it('allows "RegExp"', (done) => {
+    it('RegExp ok', (done) => {
       const str = `var myRe = /d(b+)d/g; ` +
         `return myRe.exec('cdbbdbsbz');`;
       try {
@@ -447,7 +447,90 @@ describe('test/utils/evalUtils >', (done) => {
         done(err);
       }
     });
-  });
+
+    it('JSON.parse ok', (done) => {
+      const str = `return JSON.parse('{ "a": 100 }');`;
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.have.property('a', 100);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('JSON.stringify ok', (done) => {
+      const str = `return JSON.stringify({ a: 100 });`;
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal('{"a":100}');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('Math ok', (done) => {
+      const str = `return Math.ceil(9.56);`;
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(10);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('try catch ok - return from try', (done) => {
+      const str = 'try { return 10; } ' +
+        'catch (err) { return -10; } ' +
+        'return 0; ';
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(10);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('try catch ok - return from catch', (done) => {
+      const str = 'try { throw new Error("uh oh"); } ' +
+        'catch (err) { return -10; } ' +
+        'return 0; ';
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(-10);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('try catch ok - throws', (done) => {
+      const str = 'try { throw new Error("uh oh"); } ' +
+        'catch (err) { throw err; } ' +
+        'return 0; ';
+      try {
+        const retval = eu.safeEval(str);
+        done('Expecting error');
+      } catch (err) {
+        expect(err.name).to.equal('FunctionBodyError');
+        done();
+      }
+    });
+
+    it('String.length ok', (done) => {
+      const str = `return 'abcde'.length;`;
+      try {
+        const retval = eu.safeEval(str);
+        expect(retval).to.equal(5);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+  }); // safeEval
 
   describe('safeTransform >', (done) => {
     const validArgs = {
@@ -582,40 +665,6 @@ describe('test/utils/evalUtils >', (done) => {
         } else {
           done('Expecting TransformError here');
         }
-      }
-    });
-
-    it('JSON.parse', (done) => {
-      const str = `return [{ name: 'x' + JSON.parse("{a:2111}").a }];`;
-      try {
-        const retval = eu.safeTransform(str, validArgs);
-        expect(retval[0].name).to.equal('x2111');
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
-
-    it('JSON.stringify', (done) => {
-      const str = `return [{ name: 'a', ` +
-        `messageBody: JSON.stringify({ a: 2111 }) }];`;
-      try {
-        const retval = eu.safeTransform(str, validArgs);
-        expect(retval[0].messageBody).to.equal('{"a": 2111}');
-        done();
-      } catch (err) {
-        done(err);
-      }
-    });
-
-    it('Math.ceil', (done) => {
-      const str = `return [{ name: 'x' + Math.ceil(9.56) }];`;
-      try {
-        const retval = eu.safeTransform(str, validArgs);
-        expect(retval[0].name).to.equal('x10');
-        done();
-      } catch (err) {
-        done(err);
       }
     });
   });

@@ -32,7 +32,6 @@
     "errors": "^0.3.0",
     "fs": "0.0.1-security",
     "nock": "^9.0.13",
-    "notevil": "^1.1.0",
     "path": "^0.12.7",
     "repeat": "0.0.6",
     "superagent": "^3.5.2",
