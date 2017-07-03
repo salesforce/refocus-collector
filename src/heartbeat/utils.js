@@ -46,6 +46,10 @@ function assignContextDefaults(ctx, def) {
     ctx = {};
   }
 
+  if (!def) {
+    def = {};
+  }
+
   Object.keys(def).forEach((key) => {
     if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
       ctx[key] = def[key].default;
@@ -66,9 +70,14 @@ function addGenerator(res) {
   if (res.generatorsAdded) {
     if (Array.isArray(res.generatorsAdded)) {
       // create a new repeater for the generators and add them to the config.
-      res.generatorsAdded.forEach((generator) => {
-        repeater.createGeneratorRepeater(generator);
-        config.generators[generator.name] = generator;
+      res.generatorsAdded.forEach((g) => {
+        if (g.generatorTemplate.contextDefinition) {
+          g.ctx = assignContextDefaults(g.ctx,
+            g.generatorTemplate.contextDefinition);
+        }
+
+        repeater.createGeneratorRepeater(g);
+        config.generators[g.name] = g;
       });
 
       debug('Added generators to the config:', res.generatorsAdded);
@@ -114,6 +123,11 @@ function updateGenerator(res) {
     if (Array.isArray(res.generatorsDeleted)) {
       // Update the repeater for the generators and update the generator config.
       res.generatorsUpdated.forEach((g) => {
+        if (g.generatorTemplate.contextDefinition) {
+          generator.ctx = assignContextDefaults(g.ctx,
+            g.generatorTemplate.contextDefinition);
+        }
+
         repeater.updateGeneratorRepeater(g);
         Object.keys(g).forEach((key) => {
           config.generators[g.name][key] = g[key];

@@ -23,16 +23,22 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const generator1 = {
   name: 'generator1',
   interval: 6000,
+  aspects: [{ name: 'A1', timeout: '1m' }],
+  generatorTemplate: {},
 };
 
 const generator2 = {
   name: 'generator2',
   interval: 6000,
+  aspects: [{ name: 'A2', timeout: '1m' }],
+  generatorTemplate: {},
 };
 
 const generator3 = {
   name: 'generator3',
   interval: 6000,
+  aspects: [{ name: 'A3', timeout: '1m' }],
+  generatorTemplate: {},
 };
 
 function mockOld(contents) {
