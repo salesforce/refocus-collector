@@ -44,3 +44,6 @@ dump.rdb
 
 # Remove codecoverage directory
 .coverage
+
+# Ignore registry.json
+registry.json
