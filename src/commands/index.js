@@ -22,14 +22,16 @@ const constants = require('../constants');
 
 // for the large refocus font in command line
 const figlet = require('figlet');
-const setRegistryAndParseCommand = require('./utils').setRegistryAndParseCommand;
+const setRegistryAndParseCommand = require('./utils')
+  .setRegistryAndParseCommand;
 
 program
   .version('0.0.1')
   .option('-n, --name', 'The name of the refocus collector')
   .option('-u, --url', 'The url of the refocus instance')
   .option('-t, --token', 'The token of the refocus instance')
-  .command('register <name> <url> <token>', 'Register collector by name, refocus url and API token')
+  .command('register <name> <url> <token>',
+    'Register collector by name, refocus url and API token')
   .command('start <name>', 'Start given collector')
   .command('stop <name>', 'Stop given collector')
   .command('status <name>', 'Show status of collector')
@@ -38,12 +40,13 @@ program
 program.on('--help', () => {
   console.log('  Examples:');
   console.log('');
-  console.log('    $ rc --help');
-  console.log('    $ rc register test test@test.com eygduyguygijfdhkfjhkfdhg');
-  console.log('    $ rc start test');
-  console.log('    $ rc stop test');
-  console.log('    $ rc status test');
-  console.log('    $ rc deregister test');
+  console.log('    $ refocus-collector --help');
+  console.log('    $ refocus-collector register --name=test' +
+    '--url=test@test.com --token=eygduyguygijfdhkfjhkfdhg');
+  console.log('    $ refocus-collector start --name=test');
+  console.log('    $ refocus-collector stop --name=test');
+  console.log('    $ refocus-collector status --name=test');
+  console.log('    $ refocus-collector deregister --name=test');
   console.log(figlet.textSync('Refocus Collector'));
 
 });

@@ -24,15 +24,6 @@ describe('test/config/utils.js >', () => {
     done();
   });
 
-  it('error if registry file not present', (done) => {
-    const fileLoc = './test/config/NotExist.txt';
-    const fn = configUtils.init.bind(configUtils, fileLoc);
-    expect(fn).to.throw(new errors.ResourceNotFoundError(
-      util.format('File: %s not found', fileLoc)
-    ).toString());
-    done();
-  });
-
   describe('validateRegistry >', () => {
     it('OK', (done) => {
       try {
