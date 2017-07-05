@@ -31,10 +31,11 @@ describe('test/heartbeat/listener.js >', () => {
     generatorsAdded: [
       {
         name: 'SFDC_Core_Trust1',
+        aspects: [{ name: 'A1', timeout: '1m' }],
         generatorTemplateName: 'refocus-trust1-collector',
         subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
         context: { baseUrl: 'https://example.api', },
-        agents: [{ name: 'agent1' }],
+        collectors: [{ name: 'agent1' }],
         generatorTemplate: {
           name: 'refocus-trust1-collector',
         },
@@ -71,7 +72,7 @@ describe('test/heartbeat/listener.js >', () => {
           generatorTemplateName: 'refocus-trust1-collector',
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api' },
-          agents: [{ name: 'agent1' }],
+          collectors: [{ name: 'agent1' }],
           interval: 6000,
         },
       ],
@@ -97,7 +98,7 @@ describe('test/heartbeat/listener.js >', () => {
           generatorTemplateName: 'refocus-trust1-collector',
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
-          agents: [{ name: 'agent1' }],
+          collectors: [{ name: 'agent1' }],
           interval: 6000,
         },
       ],

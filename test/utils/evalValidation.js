@@ -337,5 +337,149 @@ describe('test/utils/evalValidation >', (done) => {
         done(err);
       }
     });
-  });
+  }); // subjects
+
+  describe('aspects >', (done) => {
+    it('empty', (done) => {
+      try {
+        val.aspects();
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('null', (done) => {
+      try {
+        val.aspects(null);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('undefined', (done) => {
+      try {
+        val.aspects(undefined);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is boolean true', (done) => {
+      try {
+        val.aspects(true);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is string', (done) => {
+      try {
+        val.aspects('abcd efgh');
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is number', (done) => {
+      try {
+        val.aspects(103);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is object (not array)', (done) => {
+      try {
+        val.aspects({ name: 'A1', timeout: '1m' });
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is empty array', (done) => {
+      try {
+        val.aspects([]);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is array with non-aspect element', (done) => {
+      try {
+        val.aspects([{ absolutePath: 'q' }]);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is array with non-object element', (done) => {
+      try {
+        val.aspects([{ name: 'q', timeout: '1m' }, 99]);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('aspects is array with only aspect elements', (done) => {
+      try {
+        val.aspects([
+          { name: 'a1', timeout: '1m' },
+          { name: 'a2', timeout: '1m' },
+        ]);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+  }); // aspects
 });

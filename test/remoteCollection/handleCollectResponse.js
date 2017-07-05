@@ -26,8 +26,8 @@ const httpStatus = require('../../src/constants').httpStatus;
 const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
-  it('should return an ArgsError error if handleCollectResponse is called ' +
-    'with a promise that resolves to null', (done) => {
+  it('ArgsError if handleCollectResponse is called with a promise which ' +
+    'resolves to null', (done) => {
     handleCollectRes(Promise.resolve(null))
     .then(() => done('Expecting Bad Request Error'))
     .catch((err) => {
@@ -50,9 +50,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 
-  it('should return an ArgsError when obj does not have subject ' +
-    'attribute', (done) => {
-    const obj = { ctx: {}, res: {},
+  it('ArgsError when obj does not have subject attribute', (done) => {
+    const obj = {
+      aspects: [{ name: 'A', timeout: '1h' }],
+      ctx: {},
+      res: {},
       generatorTemplate: {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
       },
@@ -63,12 +65,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(err.message).to.contain('Must include EITHER a "subject" ' +
         'attribute OR a "subjects" attribute.');
       expect(err.name).to.equal('ArgsError');
-      return done();
     });
+    done();
   });
 
-  it('should return an ArgsError error when obj does not have ctx ' +
-    'attribute', (done) => {
+  it('ArgsError when obj does not have ctx attribute', (done) => {
     const obj = {
       res: {},
       subject: { absolutePath: 'abc' },
@@ -85,29 +86,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 
-  it('should return a ValidationError error if res.text JSON parse fails',
-  (done) => {
-    const collectRes = {
-      ctx: {},
-      res: { text: 'randomText' },
-      subject: { absolutePath: 'abc' },
-      generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A1", value: 2 }]',
-      },
-    };
-    handleCollectRes(Promise.resolve(collectRes))
-    .then(() => done('Expecting Validation Error'))
-    .catch((err) => {
-      expect(err.message).to.contain('Could not JSON parse res.text of object' +
-      ' passed to handleCollectResponse');
-      expect(err.name).to.equal('ValidationError');
-      done();
-    });
-  });
-
-  it('should return an Validation error when obj does not have name ' +
-    'attribute', (done) => {
+  it('ValidationError when obj does not have name attribute', (done) => {
     const obj = {
+      aspects: [{ name: 'A', timeout: '1m' }],
       res: {},
       ctx: {},
       subject: { absolutePath: 'abc' },
@@ -125,7 +106,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     .catch(done);
   });
 
-  it('should call doBulkUpsert to push samples to refocus', (done) => {
+  it('calls doBulkUpsert to push samples to refocus', (done) => {
     // use nock to mock the response when flushing
     const sampleArr = [
       { name: 'S1|A1', value: 10 }, { name: 'S2|A2', value: 2 },
@@ -133,9 +114,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
-
     const collectRes = {
       name: 'mockGenerator',
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       ctx: {},
       res: { text: '{ "a": "atext" }' },
       subject: { absolutePath: 'abc' },

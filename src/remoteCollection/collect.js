@@ -28,11 +28,12 @@ function prepareUrl(generator) {
       generator.ctx);
   }
 
-  const functionArgs = { ctx: generator.ctx,
+  const functionArgs = {
+    aspects: generator.aspects,
+    ctx: generator.ctx,
     subject: generator.subject,
     subjects: generator.subjects,
   };
-
   return evalUtils.safeToUrl(generator.generatorTemplate.toUrl, functionArgs);
 } // prepareUrl
 

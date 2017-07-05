@@ -18,6 +18,7 @@ describe('test/utils/evalUtils >', (done) => {
     it('object with required set of attributes', (done) => {
       try {
         eu.validateTransformArgs({
+          aspects: [{ name: 'A', timeout: '1m' }],
           ctx: {},
           res: {},
           subject: { absolutePath: 'abc' },
@@ -164,6 +165,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateToUrlArgs({
           ctx: {},
+          aspects: [{ name: 'A', timeout: '1m' }],
           subject: { absolutePath: 'abc' },
         });
         done();
@@ -558,6 +560,7 @@ describe('test/utils/evalUtils >', (done) => {
 
   describe('safeTransform >', (done) => {
     const validArgs = {
+      aspects: [{ name: 'A', timeout: '1m' }],
       ctx: { x: 123, y: 'diamond' },
       res: {},
       subject: { absolutePath: 'abc' },
@@ -695,6 +698,7 @@ describe('test/utils/evalUtils >', (done) => {
 
   describe('safeToUrl >', (done) => {
     const validArgs = {
+      aspects: [{ name: 'A1', timeout: '1m' }],
       ctx: {},
       subject: { absolutePath: 'abc' },
     };
