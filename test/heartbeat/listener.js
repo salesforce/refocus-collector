@@ -70,6 +70,7 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust2',
           generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {},
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api' },
           collectors: [{ name: 'agent1' }],
@@ -96,6 +97,7 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust3',
           generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {},
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
@@ -109,6 +111,7 @@ describe('test/heartbeat/listener.js >', () => {
         name: 'SFDC_Core_Trust3',
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
+        generatorTemplate: {},
       },
     ];
     hbResponse.generatorsAdded = [];
@@ -127,15 +130,19 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsAdded: [
         {
           name: 'SFDC_LIVE_AGENT',
+          aspects: [{ name: 'A', timeout: '1m' }],
           interval: 6000,
           generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {},
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
         },
         {
           name: 'SFDC_Core_Trust4',
+          aspects: [{ name: 'A', timeout: '1m' }],
           interval: 1000,
           context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+          generatorTemplate: {},
         },
       ],
     };
@@ -164,6 +171,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
       generatorsAdded: {
         name: 'SFDC_Core_Trust4',
+        aspects: [{ name: 'A', timeout: '1m' }],
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
       },
@@ -172,6 +180,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
       generatorsUpdated: {
         name: 'SFDC_Core_Trust4',
+        aspects: [{ name: 'A', timeout: '1m' }],
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
       },
