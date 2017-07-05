@@ -83,9 +83,7 @@ function init(reg) {
     let fileContents;
     try {
       fileContents = common.readFileSynchr(reg);
-      console.log(fileContents, reg, 'read data error');
     } catch (err) {
-      console.log(err, 'main error');
       debug('File %s not found', reg);
       debug('Creating %s', reg);
 
