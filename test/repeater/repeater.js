@@ -19,7 +19,7 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator0',
       interval: 600,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -44,7 +44,7 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator0.1',
       interval: 6000,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -71,7 +71,7 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator0.11',
       interval: 10,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -100,7 +100,7 @@ describe('test/repeater/repeater.js >', () => {
     const obj = {
       name: 'Generator0.2',
       interval: 6000,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -128,7 +128,7 @@ describe('test/repeater/repeater.js >', () => {
     const def = {
       name: 'Generator1',
       interval: 6000,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {

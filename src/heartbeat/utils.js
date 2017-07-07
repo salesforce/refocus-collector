@@ -72,7 +72,7 @@ function addGenerator(res) {
       // create a new repeater for the generators and add them to the config.
       res.generatorsAdded.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          g.ctx = assignContextDefaults(g.ctx,
+          g.context = assignContextDefaults(g.context,
             g.generatorTemplate.contextDefinition);
         }
 
@@ -124,7 +124,7 @@ function updateGenerator(res) {
       // Update the repeater for the generators and update the generator config.
       res.generatorsUpdated.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          generator.ctx = assignContextDefaults(g.ctx,
+          g.context = assignContextDefaults(g.context,
             g.generatorTemplate.contextDefinition);
         }
 

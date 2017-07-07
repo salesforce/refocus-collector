@@ -23,9 +23,10 @@ const urlUtils = require('./urlUtils');
  * @returns {String} - Url to the remote datasource
  */
 function prepareUrl(generator) {
+  debug('prepareUrl', generator);
   if (generator.generatorTemplate.connection.url) {
     return urlUtils.expand(generator.generatorTemplate.connection.url,
-      generator.ctx);
+      generator.context);
   }
 
   const functionArgs = {
@@ -47,11 +48,16 @@ function prepareUrl(generator) {
  */
 function doCollection(remoteUrl, generator) {
   const connection = generator.generatorTemplate.connection;
+  const headers = {};
+  if (connection.headers && connection.headers.Authorization) {
+    headers.Authorization = connection.headers.Authorization;
+  }
+
   return new Promise((resolve) => {
     // for now assuming that all the calls to the remote data source is a "GET"
     request
     .get(remoteUrl)
-    .set('Authorization', connection.headers.Authorization)
+    .set(headers)
     .set('Accept', 'application/json')
     .end((err, res) => {
       if (err) {

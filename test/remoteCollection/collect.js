@@ -34,7 +34,7 @@ describe('test/remoteCollection/collect.js >', () => {
     const generator = {
       name: 'Generator0',
       interval: 600,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -68,7 +68,7 @@ describe('test/remoteCollection/collect.js >', () => {
 
       expect(collectRes.generatorTemplate).to.deep
         .equal(generator.generatorTemplate);
-      expect(collectRes.ctx).to.deep.equal(generator.ctx);
+      expect(collectRes.context).to.deep.equal(generator.context);
       expect(collectRes.subject).to.deep.equal(generator.subject);
 
       done();
@@ -82,7 +82,7 @@ describe('test/remoteCollection/collect.js >', () => {
     const generator = {
       name: 'Generator0',
       interval: 600,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -114,7 +114,7 @@ describe('test/remoteCollection/collect.js >', () => {
     const generator = {
       name: 'Generator0',
       interval: 600,
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {
@@ -140,7 +140,7 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       interval: 600,
       aspects: [{ name: 'Delay', timeout: '1m' }],
-      ctx: {},
+      context: {},
       generatorTemplate: {
         connection: {
           headers: {

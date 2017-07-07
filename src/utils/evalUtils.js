@@ -11,6 +11,7 @@
  */
 'use strict';
 const debug = require('debug')('refocus-collector:evalUtils');
+const logger = require('winston');
 const errors = require('../errors/errors');
 const evalValidation = require('./evalValidation');
 const ERROR_MESSAGE = {
@@ -32,7 +33,7 @@ const SAMPLE_BODY_MAX_LEN = 4096;
  * and subject and subjects directly, without having to refer to them as
  * attribtues of args.
  */
-const transformFnPrefix = 'const ctx = args.ctx; ' +
+const transformFnPrefix = 'const ctx = args.context; ' +
   'const res = args.res; ' +
   'const aspects = args.apsects; ' +
   'const subject = args.subject; ' +
@@ -44,7 +45,7 @@ const transformFnPrefix = 'const ctx = args.ctx; ' +
  * and subjects directly, without having to refer to them as attribtues of
  * args.
  */
-const toUrlFnPrefix = 'const ctx = args.ctx; ' +
+const toUrlFnPrefix = 'const ctx = args.context; ' +
   'const aspects = args.apsects; ' +
   'const subject = args.subject; ' +
   'const subjects = args.subjects; ';
@@ -75,6 +76,7 @@ function safeEval(functionBody, args) {
     'const eval = undefined; ' +
     'const JSON = args._JSON; ' +
     functionBody;
+  debug('safeEval functionBody', functionBody);
   try {
     /*
      * TODO generate the fn only once upon receiving the generator, store
@@ -87,6 +89,7 @@ function safeEval(functionBody, args) {
     debug(`evalUtils.safeEval returning: ${retval}`);
     return retval;
   } catch (err) {
+    logger.error('safeEval error', err);
     throw new errors.FunctionBodyError(`${err.name}: ${err.message}`);
   }
 }
@@ -108,7 +111,7 @@ function validateTransformArgs(args) {
     throw new errors.ArgsError('args must be an object.');
   }
 
-  return evalValidation.isObject('ctx', args.ctx) &&
+  return evalValidation.isObject('ctx', args.context) &&
     evalValidation.isObject('res', args.res) &&
     evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subject, args.subjects);
@@ -131,7 +134,7 @@ function validateToUrlArgs(args) {
     throw new errors.ArgsError('args must be an object.');
   }
 
-  return evalValidation.isObject('ctx', args.ctx) &&
+  return evalValidation.isObject('ctx', args.context) &&
     evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subject, args.subjects);
 } // validateToUrlArgs
