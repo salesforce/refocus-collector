@@ -143,7 +143,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush();
       sinon.assert.calledOnce(doBulkUpsert);
       expect(doBulkUpsert.args[0][0].url).to.be.equal(
         'http://www.xyz.com'
@@ -166,7 +166,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush();
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);
@@ -189,7 +189,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       registry[Object.keys(registry)[0]];
 
     // Flapping test, needs much more setTimeout delay to pass, hence skipping.
-    it.skip('bulkUpsertAndLog, ok', (done) => {
+    it.only('bulkUpsertAndLog, ok', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
@@ -208,7 +208,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       }, 1900);
     });
 
-    it.skip('bulkUpsertAndLog, error', (done) => {
+    it.only('bulkUpsertAndLog, error', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)

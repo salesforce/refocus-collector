@@ -11,7 +11,9 @@
  */
 const debug = require('debug')('refocus-collector:sampleQueue');
 const logger = require('winston');
-const config = require('../config/config').getConfig();
+const registry = require('../config/config').getConfig().registry;
+const firstKeyPairInRegistry = {};
+firstKeyPairInRegistry[Object.keys(registry)[0]] = registry[Object.keys(registry)[0]];
 const sampleUpsertUtils = require('./sampleUpsertUtils');
 const errors = require('../errors/errors');
 const sampleQueue = [];
@@ -66,7 +68,7 @@ function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
     Object.keys(firstKeyPairInRegistry).length === 0) {
     throw new errors.ValidationError(
       `firstKeyPairInRegistry empty or not found.` +
-      ` Config: ${JSON.stringify(firstKeyPairInRegistry)}`
+      ` Registry: ${JSON.stringify(firstKeyPairInRegistry)}`
     );
   }
 
@@ -111,10 +113,6 @@ function flush(maxSamplesPerBulkRequest) {
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
 
-  const firstKeyPairInRegistry = {};
-  firstKeyPairInRegistry[Object.keys(config.registry)[0]] =
-      config.registry[Object.keys(config.registry)[0]];
-  }
   bulkUpsertAndLog(samples, firstKeyPairInRegistry);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
