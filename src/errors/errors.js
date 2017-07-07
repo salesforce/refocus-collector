@@ -41,7 +41,7 @@ errors.create({
 
 errors.create({
   name: 'TransformError',
-  defaultExplanation: 'The sample generator template provided a "tranform" ' +
+  defaultExplanation: 'The sample generator template provided a "transform" ' +
    'body which does not return an array of samples.',
   defaultResponse: 'Fix the sample generator template. The "transform" ' +
     'function must return an array of zero or more samples.',
@@ -61,9 +61,9 @@ errors.create({
 
 errors.create({
   name: 'ArgsError',
-  defaultExplanation: 'Invalid args supplied to the "tranform" or "toUrl" ' +
+  defaultExplanation: 'Invalid args supplied to the "transform" or "toUrl" ' +
     'function.',
-  defaultResponse: 'Tranform args must contain a "ctx" attribute of type ' +
+  defaultResponse: 'Transform args must contain a "ctx" attribute of type ' +
     'object, a "res" attribute of type object, and either a "subject" ' +
     'attribute (object) or a "subjects" attribute (array). ToUrl args must ' +
     'contain a "ctx" attribute of type object, and either a "subject" ' +

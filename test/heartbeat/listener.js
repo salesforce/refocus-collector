@@ -17,12 +17,12 @@ const obj = {
     },
   },
 };
-
 require('../../src/config/config').setRegistry(obj);
 const config = require('../../src/config/config').getConfig();
 const listener = require('../../src/heartbeat/listener');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
+
 describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
@@ -38,6 +38,9 @@ describe('test/heartbeat/listener.js >', () => {
         collectors: [{ name: 'agent1' }],
         generatorTemplate: {
           name: 'refocus-trust1-collector',
+          connection: {
+            url: 'http://www.google.com',
+          },
         },
         interval: 6000,
       },
@@ -50,14 +53,13 @@ describe('test/heartbeat/listener.js >', () => {
     const err = { status: 404,
       description: 'heartbeat not received', };
     const ret = listener.handleHeartbeatResponse(err, hbResponse);
-
     expect(ret).to.deep.equal(err);
     done();
   });
 
   it('collector config should be updated', (done) => {
-    listener.handleHeartbeatResponse(null, hbResponse);
-    expect(config.collectorConfig.heartbeatInterval)
+    const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+    expect(updatedConfig.collectorConfig.heartbeatInterval)
       .to.equal(hbResponse.collectorConfig.heartbeatInterval);
     done();
   });
@@ -78,15 +80,10 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-
-    listener.handleHeartbeatResponse(null, res);
-
-    expect(config.generators.SFDC_Core_Trust1)
+    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    expect(updatedConfig.generators.SFDC_Core_Trust1)
       .to.deep.equal(hbResponse.generatorsAdded[0]);
-
-    expect(repeatTracker.SFDC_Core_Trust1)
-      .not.equal(null);
-
+    expect(repeatTracker.SFDC_Core_Trust1).not.equal(null);
     done();
   });
 
@@ -115,16 +112,15 @@ describe('test/heartbeat/listener.js >', () => {
       },
     ];
     hbResponse.generatorsAdded = [];
-    listener.handleHeartbeatResponse(null, hbResponse);
-    expect(config.generators.SFDC_Core_Trust3.context)
+    const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+    expect(updatedConfig.generators.SFDC_Core_Trust3.context)
       .to.deep.equal({ baseUrl: 'https://example.api', });
-
     expect(repeatTracker.SFDC_Core_Trust3).not.equal(null);
     done();
   });
 
-  it('deleted generators information should be deleted in the ' +
-    ' config', (done) => {
+  it('deleted generators information should be deleted in the config',
+  (done) => {
     const res = {
       heartbeatInterval: 50,
       generatorsAdded: [
@@ -146,20 +142,20 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-
-    listener.handleHeartbeatResponse(null, res);
-    expect(config.generators.SFDC_LIVE_AGENT).to.not.equal(undefined);
-    expect(config.generators.SFDC_Core_Trust1).to.not.equal(undefined);
+    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    expect(updatedConfig.generators.SFDC_LIVE_AGENT).to.not.equal(undefined);
+    expect(updatedConfig.generators.SFDC_Core_Trust1).to.not.equal(undefined);
     const resDel = {
-      generatorsDeleted: [{ name: 'SFDC_LIVE_AGENT', },
+      generatorsDeleted: [
+        { name: 'SFDC_LIVE_AGENT', },
       ],
     };
-
-    listener.handleHeartbeatResponse(null, resDel);
+    const updatedConfigAgain = listener.handleHeartbeatResponse(null, resDel);
     expect(Object.keys(repeatTracker)).to.contain('SFDC_Core_Trust4');
-    expect(config.generators.SFDC_Core_Trust4).to.not.equal(undefined);
+    expect(updatedConfigAgain.generators.SFDC_Core_Trust4)
+      .to.not.equal(undefined);
     expect(repeatTracker.SFDC_LIVE_AGENT).equal(undefined);
-    expect(config.generators.SFDC_LIVE_AGENT).to.equal(undefined);
+    expect(updatedConfigAgain.generators.SFDC_LIVE_AGENT).to.equal(undefined);
     done();
   });
 

@@ -9,6 +9,7 @@
 /**
  * src/heartbeat/listener.js
  */
+const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 
@@ -23,6 +24,7 @@ const utils = require('./utils');
  *  function is called with the error as the first argument.
  */
 function handleHeartbeatResponse(err, res) {
+  debug('entered handleHeartbeatResponse');
   if (err) {
     logger.error('The handleHeartbeatResponse function was called with an ' +
       'error:', err);
@@ -32,7 +34,9 @@ function handleHeartbeatResponse(err, res) {
   utils.updateCollectorConfig(res);
   utils.addGenerator(res);
   utils.deleteGenerator(res);
-  return utils.updateGenerator(res);
+  const cc = utils.updateGenerator(res);
+  debug('exiting handleHeartbeatResponse', cc);
+  return cc;
 } // handleHeartbeatResponse
 
 module.exports = {
