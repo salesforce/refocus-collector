@@ -135,7 +135,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
 
   describe('flush >', () => {
     beforeEach(() => {
-      sampleQueueOps.flush();
+      sampleQueueOps.flush(100);
     });
     it('flush, number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
@@ -143,7 +143,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush();
+      sampleQueueOps.flush(100);
       sinon.assert.calledOnce(doBulkUpsert);
       expect(doBulkUpsert.args[0][0].url).to.be.equal(
         'http://www.xyz.com'
@@ -166,7 +166,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush();
+      sampleQueueOps.flush(100);
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);

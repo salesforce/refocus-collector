@@ -107,12 +107,11 @@ function flush(maxSamplesPerBulkRequest) {
   while ((startIdx + max) < totSamplesCnt) {
     const endIdx = startIdx + max;
     samples = sampleQueue.slice(startIdx, endIdx);
-    bulkUpsertAndLog(samples);
+    bulkUpsertAndLog(samples, firstKeyPairInRegistry);
     startIdx = endIdx;
   }
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
-
   bulkUpsertAndLog(samples, firstKeyPairInRegistry);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
