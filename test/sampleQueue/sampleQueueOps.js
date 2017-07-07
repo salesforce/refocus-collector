@@ -184,6 +184,10 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       nock.cleanAll();
     });
 
+    const firstKeyPairInRegistry = {};
+    firstKeyPairInRegistry[Object.keys(registry)[0]] =
+      registry[Object.keys(registry)[0]];
+
     // Flapping test, needs much more setTimeout delay to pass, hence skipping.
     it.skip('bulkUpsertAndLog, ok', (done) => {
       // mock the bulk upsert request.
@@ -191,7 +195,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
-      sampleQueueOps.bulkUpsertAndLog(samples);
+      sampleQueueOps.bulkUpsertAndLog(samples, firstKeyPairInRegistry);
 
       // Since logs are created after the bulkUpsert async call returns, hence
       // setTimeout to wait for promise to complete.
@@ -201,7 +205,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
           'sampleQueue flush successful for : 10 samples'
         );
         done();
-      }, 1500);
+      }, 1900);
     });
 
     it.skip('bulkUpsertAndLog, error', (done) => {
@@ -210,7 +214,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
 
-      sampleQueueOps.bulkUpsertAndLog(samples);
+      sampleQueueOps.bulkUpsertAndLog(samples, firstKeyPairInRegistry);
 
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
@@ -221,7 +225,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         );
 
         done();
-      }, 1700);
+      }, 1980);
     });
   });
 });

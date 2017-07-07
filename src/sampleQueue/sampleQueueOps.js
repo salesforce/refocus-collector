@@ -55,22 +55,25 @@ function enqueue(samples) {
 /**
  * Bulk upsert samples and log the success or failure
  * @param  {Array} samples - Array of samples
- * @throws {ValidationError} - If config or registry is not found
+ * @param  {Object} firstKeyPairInRegistry - The first pair of
+ *  key and value in registry. Change when Refocus registry name is
+ *  decided.
+ * @throws {ValidationError} - If firstKeyPairInRegistry is not found
  */
-function bulkUpsertAndLog(samples) {
+function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
   debug('Entered: bulkUpsertAndLog');
-  if (!config || !config.registry ||
-   Object.keys(config.registry).length === 0) {
+  if (!firstKeyPairInRegistry ||
+    Object.keys(firstKeyPairInRegistry).length === 0) {
     throw new errors.ValidationError(
-      `Registry empty or not found. Config: ${JSON.stringify(config)}`
+      `firstKeyPairInRegistry empty or not found.` +
+      ` Config: ${JSON.stringify(firstKeyPairInRegistry)}`
     );
   }
 
-  // TODO: change when Refocus registry name is decided.
-  // For now, get only the values mapped to the first attribute of registry
   debug(`Starting bulk upsert of ${samples.length} samples.`);
+
   sampleUpsertUtils.doBulkUpsert(
-    config.registry[Object.keys(config.registry)[0]], samples
+    firstKeyPairInRegistry[Object.keys(firstKeyPairInRegistry)[0]], samples
   )
   .then(() => {
     logger.info({
@@ -107,7 +110,12 @@ function flush(maxSamplesPerBulkRequest) {
   }
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
-  bulkUpsertAndLog(samples);
+
+  const firstKeyPairInRegistry = {};
+  firstKeyPairInRegistry[Object.keys(config.registry)[0]] =
+      config.registry[Object.keys(config.registry)[0]];
+  }
+  bulkUpsertAndLog(samples, firstKeyPairInRegistry);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
   return totSamplesCnt;
