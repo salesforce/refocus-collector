@@ -694,6 +694,45 @@ describe('test/utils/evalUtils >', (done) => {
         }
       }
     });
+
+    it('invalid if function body is an array', (done) => {
+      try {
+        eu.safeTransform(['return [{ name: "Foo" }, 2]'], validArgs);
+        done('Expecting FunctionBodyError here');
+      } catch (err) {
+        if (err.name === 'FunctionBodyError') {
+          done();
+        } else {
+          done('Expecting FunctionBodyError here');
+        }
+      }
+    });
+
+    it('invalid if function body is an object', (done) => {
+      try {
+        eu.safeTransform({ a: 'return [{ name: "Foo" }, 2]' }, validArgs);
+        done('Expecting FunctionBodyError here');
+      } catch (err) {
+        if (err.name === 'FunctionBodyError') {
+          done();
+        } else {
+          done('Expecting FunctionBodyError here');
+        }
+      }
+    });
+
+    it('invalid if function body is a number', (done) => {
+      try {
+        eu.safeTransform(123, validArgs);
+        done('Expecting FunctionBodyError here');
+      } catch (err) {
+        if (err.name === 'FunctionBodyError') {
+          done();
+        } else {
+          done('Expecting FunctionBodyError here');
+        }
+      }
+    });
   });
 
   describe('safeToUrl >', (done) => {
