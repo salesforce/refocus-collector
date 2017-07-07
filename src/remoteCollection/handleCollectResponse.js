@@ -23,6 +23,7 @@ const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
  * configured refocus instance immediately. In the later versions,
  * instead of calling the sample bulk upsert API immediately, we can start
  * storing the sample in an in-memory sample queue.
+ *
  * @param  {Promise} collectResponse - Response from the "collect" function.
  * This resolves to the generator object along with the "res" attribute
  * which maps to the response from the remote data source
@@ -47,9 +48,11 @@ function handleCollectResponse(collectResponse) {
           'handleCollectResponse should have a res attribute');
       }
 
+      const t = Array.isArray(collectRes.generatorTemplate.transform) ?
+        collectRes.generatorTemplate.transform.join('\n') :
+        collectRes.generatorTemplate.transform;
       const transformedSamples =
-        evalUtils.safeTransform(collectRes.generatorTemplate.transform,
-          collectRes);
+        evalUtils.safeTransform(t, collectRes);
 
       // collectRes (which is sample generator) should have a name.
       if (!collectRes.name) {
@@ -61,14 +64,15 @@ function handleCollectResponse(collectResponse) {
         generator: ${collectRes.name},
         numSamples: ${transformedSamples.length},
       }`);
-
       enqueue(transformedSamples);
     } catch (err) {
+      debug(err);
       logger.error('handleCollectResponse threw an error: ',
         err.name, err.message);
       return Promise.reject(err);
     }
   }).catch((err) => {
+    debug(err);
     logger.error('handleCollectResponse threw an error: ',
         err.name, err.message);
     return Promise.reject(err);
