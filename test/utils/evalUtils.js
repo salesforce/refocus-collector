@@ -695,7 +695,7 @@ describe('test/utils/evalUtils >', (done) => {
       }
     });
 
-    it.only('invalid if function body is an array', (done) => {
+    it('invalid if function body is an array', (done) => {
       try {
         eu.safeTransform(['return [{ name: "Foo" }, 2]'], validArgs);
         done('Expecting FunctionBodyError here');
