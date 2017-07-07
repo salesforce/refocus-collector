@@ -73,11 +73,14 @@ function bulkUpsertAndLog(samples) {
     config.registry[Object.keys(config.registry)[0]], samples
   )
   .then(() => {
-    logger.info(`sampleQueue flush successful for : ${samples.length} samples`);
+    logger.info({
+      activity: 'bulkUpsertSamples',
+      sampleCount: samples.length,
+    });
   })
   .catch((err) => {
     logger.error(
-      `sampleQueue flush failed for : ${samples.length} samples.` +
+      `doBulkUpsert failed for ${samples.length} samples.` +
       `Error: ${JSON.stringify(err)}`);
   });
 }
@@ -85,34 +88,29 @@ function bulkUpsertAndLog(samples) {
 /**
  * Flush the queue. If maxSamplesPerBulkRequest is set, bulk upsert the samples
  * in batches of maxSamplesPerBulkRequest count.
+ *
+ * @param {Number} maxSamplesPerBulkRequest - the maximum batch size; unlimited
+ *  batch size if arg is not defined or not a number
+ * @returns {Number} - number of samples flushed
  */
-function flush() {
-  debug('Entered: flush');
-  let maxSamplesCnt;
-  if (config.collectorConfig.hasOwnProperty('maxSamplesPerBulkRequest')) {
-    maxSamplesCnt = config.collectorConfig.maxSamplesPerBulkRequest;
-  }
-
+function flush(maxSamplesPerBulkRequest) {
+  debug('Entered: flush', maxSamplesPerBulkRequest);
+  const max = new Number(maxSamplesPerBulkRequest) || Number.MAX_SAFE_INTEGER;
   const totSamplesCnt = sampleQueue.length;
   let samples = sampleQueue;
-
-  // If maxSamplesPerBulkRequest set, bulk upsert in batches.
-  if (maxSamplesCnt) {
-    let startIdx = 0;
-    while ((startIdx + maxSamplesCnt) < totSamplesCnt) {
-      const endIdx = startIdx + maxSamplesCnt;
-      samples = sampleQueue.slice(startIdx, endIdx);
-
-      bulkUpsertAndLog(samples);
-      startIdx = endIdx;
-    }
-
-    samples = sampleQueue.slice(startIdx, totSamplesCnt);
+  let startIdx = 0;
+  while ((startIdx + max) < totSamplesCnt) {
+    const endIdx = startIdx + max;
+    samples = sampleQueue.slice(startIdx, endIdx);
+    bulkUpsertAndLog(samples);
+    startIdx = endIdx;
   }
 
+  samples = sampleQueue.slice(startIdx, totSamplesCnt);
   bulkUpsertAndLog(samples);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
+  return totSamplesCnt;
 }
 
 module.exports = {
