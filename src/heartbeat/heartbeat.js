@@ -11,6 +11,7 @@
  */
 'use strict';
 const debug = require('debug')('refocus-collector:heartbeat');
+const logger = require('winston');
 const errors = require('../errors/errors');
 const request = require('superagent');
 const config = require('../config/config').getConfig();
@@ -121,8 +122,11 @@ function buildMockResponse(generatorsDir) {
             const lastModifiedTime = stats.mtime;
 
             let newGenerator;
-            try { newGenerator = JSON.parse(fileContents); }
-            catch (err) {}
+            try {
+              newGenerator = JSON.parse(fileContents);
+            } catch (err) {
+              logger.error(err);
+            }
 
             const isObject = typeof newGenerator === 'object';
             const isArray = newGenerator instanceof Array;
