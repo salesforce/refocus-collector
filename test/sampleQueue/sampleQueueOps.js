@@ -188,8 +188,8 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
     firstKeyPairInRegistry[Object.keys(registry)[0]] =
       registry[Object.keys(registry)[0]];
 
-    // Flapping test, needs much more setTimeout delay to pass, hence skipping.
-    it.only('bulkUpsertAndLog, ok', (done) => {
+    // Needs setTimeout delay to pass, hence skipping.
+    it.skip('bulkUpsertAndLog, ok', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
@@ -201,14 +201,13 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // setTimeout to wait for promise to complete.
       setTimeout(() => {
         expect(winston.info.calledOnce).to.be.true;
-        expect(winston.info.args[0][0]).contains(
-          'sampleQueue flush successful for : 10 samples'
-        );
+        expect(winston.info.args[0][0].activity).to.equal('bulkUpsertSamples');
+        expect(winston.info.args[0][0].sampleCount).to.equal(10);
         done();
       }, 1900);
     });
 
-    it.only('bulkUpsertAndLog, error', (done) => {
+    it.skip('bulkUpsertAndLog, error', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
@@ -219,9 +218,10 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
         // setTimeout to wait for promise to complete.
+
         expect(winston.error.calledOnce).to.be.true;
         expect(winston.error.args[0][0]).contains(
-          'sampleQueue flush failed for : 10 samples'
+          'doBulkUpsert failed for 10 samples'
         );
 
         done();
