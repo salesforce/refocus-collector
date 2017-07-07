@@ -560,19 +560,19 @@ describe('test/utils/evalUtils >', (done) => {
 
   describe('safeTransform >', (done) => {
     const validArgs = {
-      aspects: [{ name: 'A', timeout: '1m' }],
-      context: { x: 123, y: 'diamond' },
+      context: { x: 123, y: 'abc|A2' },
       res: {},
       subject: { absolutePath: 'abc' },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
 
     it('ok', (done) => {
       try {
         const retval =
-          eu.safeTransform('return [{ name: "Foo" }, { name: ctx.y }]',
+          eu.safeTransform('return [{ name: "abc|A1" }, { name: ctx.y }]',
           validArgs);
-        expect(retval[0].name).to.equal('Foo');
-        expect(retval[1].name).to.equal('diamond');
+        expect(retval[0].name).to.equal('abc|A1');
+        expect(retval[1].name).to.equal('abc|A2');
         done();
       } catch (err) {
         done(err);
@@ -783,6 +783,123 @@ describe('test/utils/evalUtils >', (done) => {
         } else {
           done('Expecting ToUrlError here');
         }
+      }
+    });
+  });
+  describe('validateSamples >', () => {
+    it('More samples than expected', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Number of samples more than expected.' +
+          ' Samples count: 6, Subjects count: 2, Aspects count: 2');
+        done();
+      }
+    });
+
+    it('Unknown aspect in samples', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S2|A3', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
+          ' S2|A3');
+        done();
+      }
+    });
+
+    it('Unknown subject in samples', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S3|A2', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
+          ' S3|A2');
+        done();
+      }
+    });
+
+    it('Duplicate samples in sample array', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Duplicate sample found: s1|a2');
+        done();
+      }
+    });
+
+    it('Invalid sample name without |', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 }, { name: 'S1A2', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Invalid sample name: S1A2');
+        done();
+      }
+    });
+
+    it('OK', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subject: { absolutePath: 'S1' },
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done();
+      } catch (err) {
+        done(err);
       }
     });
   });

@@ -140,6 +140,74 @@ function validateToUrlArgs(args) {
 } // validateToUrlArgs
 
 /**
+ * Validate the sample for these conditions:
+ * 1) Number of samples > no. of subjects * no. of aspects.
+ * 2) Sample aspect is in aspect array given in generator.
+ * 3) Sample subject is in subjects provided in generator.
+ * 4) No duplicates samples.
+ * @param  {Array} sampleArr - Sample array
+ * @param  {Object} generator - Generator object
+ */
+function validateSamples(sampleArr, generator) {
+  const subjectArr = []; // array of subject absolute paths
+  const aspectArr = []; // array of aspect names
+
+  // create subject array
+  if (generator.subjects) {
+    generator.subjects.forEach((s) => {
+      subjectArr.push(s.absolutePath.toLowerCase());
+    });
+  } else if (generator.subject) {
+    subjectArr.push(generator.subject.absolutePath.toLowerCase());
+  } else {
+    throw new errors.ValidationError(
+      'Generator should have subject/subjects attribute.'
+    );
+  }
+
+  // create aspect array, generator will have aspects attribute always
+  generator.aspects.forEach((a) => {
+    aspectArr.push(a.name.toLowerCase());
+  });
+
+  // no of samples should not exceed the (no. of subjects * the no. of aspects)
+  if (sampleArr.length > subjectArr.length * aspectArr.length) {
+    throw new errors.ValidationError('Number of samples more than expected. ' +
+      `Samples count: ${sampleArr.length}, Subjects count: ` +
+      `${subjectArr.length}, Aspects count: ${aspectArr.length}`);
+  }
+
+  const uniqueSamples = new Set();
+  sampleArr.forEach((samp) => {
+    const sampName = samp.name;
+    const sampNameLowerCase = sampName.toLowerCase();
+
+    // check for duplicate samples
+    if (uniqueSamples.has(sampNameLowerCase)) {
+      throw new errors.ValidationError(
+        `Duplicate sample found: ${sampNameLowerCase}`
+      );
+    }
+
+    uniqueSamples.add(sampNameLowerCase);
+
+    // Check that samples corresponds to only the subjects and aspects passed in
+    const subAspArr = sampNameLowerCase.split('|');
+    if (subAspArr.length === 2) {
+      const subjName = subAspArr[0];
+      const aspName = subAspArr[1];
+      if ((!subjectArr.includes(subjName)) || (!aspectArr.includes(aspName))) {
+        throw new errors.ValidationError(
+          `Unknown subject or aspect for sample: ${sampName}`
+        );
+      }
+    } else {
+      throw new errors.ValidationError(`Invalid sample name: ${sampName}`);
+    }
+  });
+} // validateSamples
+
+/**
  * Safely executes the transform function with the arguments provided.
  *
  * @param {String} functionBody - The transform function body as provided by
@@ -156,6 +224,7 @@ function validateToUrlArgs(args) {
  *    or undefined.
  *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
  *    is null or undefined.
+ *  {Array} aspects - An array of aspects.
  * @returns {Array} - Array of zero or more samples.
  * @throws {TransformError} - if transform function does not return an array
  *  of zero or more samples
@@ -182,6 +251,7 @@ function safeTransform(functionBody, args) {
     }
   });
 
+  validateSamples(retval, args);
   debug('evalUtils.safeTransform returning: ${retval}');
   return retval;
 }
@@ -222,4 +292,5 @@ module.exports = {
   safeTransform,
   validateTransformArgs, // exporting for testability
   validateToUrlArgs, // exporting for testability
+  validateSamples, // exporting for testability
 };
