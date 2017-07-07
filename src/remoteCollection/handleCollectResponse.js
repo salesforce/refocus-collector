@@ -51,8 +51,7 @@ function handleCollectResponse(collectResponse) {
       const t = Array.isArray(collectRes.generatorTemplate.transform) ?
         collectRes.generatorTemplate.transform.join('\n') :
         collectRes.generatorTemplate.transform;
-      const transformedSamples =
-        evalUtils.safeTransform(t, collectRes);
+      const transformedSamples = evalUtils.safeTransform(t, collectRes);
 
       // collectRes (which is sample generator) should have a name.
       if (!collectRes.name) {
