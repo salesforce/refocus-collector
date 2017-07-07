@@ -48,7 +48,7 @@ function execute() {
   const sampleQueueFlushDef = {
     name: 'SampleQueueFlush',
     interval: conf.collectorConfig.sampleUpsertQueueTime,
-    func: flush,
+    func: () => flush(conf.collectorConfig.maxSamplesPerBulkRequest),
   };
   repeater.create(sampleQueueFlushDef);
   logger.info({ activity: 'cmdStart' });
