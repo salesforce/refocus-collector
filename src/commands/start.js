@@ -44,11 +44,16 @@ function execute() {
   };
   repeater.create(def);
 
+  const firstKeyPairInRegistry = {};
+  firstKeyPairInRegistry[Object.keys(conf.registry)[0]] =
+    conf.registry[Object.keys(conf.registry)[0]];
+
   // flush function does not return anything, hence no event functions
   const sampleQueueFlushDef = {
     name: 'SampleQueueFlush',
     interval: conf.collectorConfig.sampleUpsertQueueTime,
-    func: () => flush(conf.collectorConfig.maxSamplesPerBulkRequest),
+    func: () => flush(conf.collectorConfig.maxSamplesPerBulkRequest,
+      firstKeyPairInRegistry),
   };
   repeater.create(sampleQueueFlushDef);
   logger.info({ activity: 'cmdStart' });

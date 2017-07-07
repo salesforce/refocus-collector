@@ -11,9 +11,6 @@
  */
 const debug = require('debug')('refocus-collector:sampleQueue');
 const logger = require('winston');
-const registry = require('../config/config').getConfig().registry;
-const firstKeyPairInRegistry = {};
-firstKeyPairInRegistry[Object.keys(registry)[0]] = registry[Object.keys(registry)[0]];
 const sampleUpsertUtils = require('./sampleUpsertUtils');
 const errors = require('../errors/errors');
 const sampleQueue = [];
@@ -95,10 +92,13 @@ function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
  * in batches of maxSamplesPerBulkRequest count.
  *
  * @param {Number} maxSamplesPerBulkRequest - the maximum batch size; unlimited
+ * @param  {Object} firstKeyPairInRegistry - The first pair of
+ *  key and value in registry. Change when Refocus registry name is
+ *  decided.
  *  batch size if arg is not defined or not a number
  * @returns {Number} - number of samples flushed
  */
-function flush(maxSamplesPerBulkRequest) {
+function flush(maxSamplesPerBulkRequest, firstKeyPairInRegistry) {
   debug('Entered: flush', maxSamplesPerBulkRequest);
   const max = new Number(maxSamplesPerBulkRequest) || Number.MAX_SAFE_INTEGER;
   const totSamplesCnt = sampleQueue.length;

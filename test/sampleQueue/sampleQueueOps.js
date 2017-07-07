@@ -135,15 +135,16 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
 
   describe('flush >', () => {
     beforeEach(() => {
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
     });
+
     it('flush, number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
       // right arguments
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
       sinon.assert.calledOnce(doBulkUpsert);
       expect(doBulkUpsert.args[0][0].url).to.be.equal(
         'http://www.xyz.com'
@@ -166,7 +167,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);
@@ -184,10 +185,6 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       nock.cleanAll();
     });
 
-    const firstKeyPairInRegistry = {};
-    firstKeyPairInRegistry[Object.keys(registry)[0]] =
-      registry[Object.keys(registry)[0]];
-
     // Needs setTimeout delay to pass, hence skipping.
     it.skip('bulkUpsertAndLog, ok', (done) => {
       // mock the bulk upsert request.
@@ -195,7 +192,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
-      sampleQueueOps.bulkUpsertAndLog(samples, firstKeyPairInRegistry);
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
 
       // Since logs are created after the bulkUpsert async call returns, hence
       // setTimeout to wait for promise to complete.
@@ -213,7 +210,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
 
-      sampleQueueOps.bulkUpsertAndLog(samples, firstKeyPairInRegistry);
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
 
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
