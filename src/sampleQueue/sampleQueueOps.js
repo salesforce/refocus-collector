@@ -94,8 +94,9 @@ function flush() {
   }
 
   const totSamplesCnt = sampleQueue.length;
-  let samples = sampleQueue;
-  if (samples.length) {
+  if (totSamplesCnt.length) {
+    let samples = sampleQueue;
+
     // If maxSamplesPerBulkRequest set, bulk upsert in batches.
     if (maxSamplesCnt) {
       let startIdx = 0;
@@ -114,7 +115,7 @@ function flush() {
     sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
     debug(`Flushed ${totSamplesCnt} samples.`);
   } else {
-    debug(`Nothing to flush.`);
+    debug(`No samples to flush from the queue.`);
   }
 }
 
