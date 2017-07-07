@@ -141,14 +141,22 @@ function validateToUrlArgs(args) {
 
 /**
  * Validate the sample for these conditions:
- * 1) Number of samples > no. of subjects * no. of aspects.
+ * 1) Number of samples < no. of subjects * no. of aspects.
  * 2) Sample aspect is in aspect array given in generator.
  * 3) Sample subject is in subjects provided in generator.
  * 4) No duplicates samples.
  * @param  {Array} sampleArr - Sample array
  * @param  {Object} generator - Generator object
+ * @throws {TransformError} - if transform function does not return an array
+ *  of zero or more samples
+ * @throws {ValidationError} - if any of the above mentioned check fails
  */
 function validateSamples(sampleArr, generator) {
+  debug('Entered evalUtils.validateSamples');
+  if (!Array.isArray(sampleArr)) {
+    throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NOT_ARRAY);
+  }
+
   const subjectArr = []; // array of subject absolute paths
   const aspectArr = []; // array of aspect names
 
@@ -179,6 +187,15 @@ function validateSamples(sampleArr, generator) {
 
   const uniqueSamples = new Set();
   sampleArr.forEach((samp) => {
+    if (typeof samp !== 'object' || Array.isArray(samp)) {
+      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM
+        .ELEMENT_NOT_OBJECT);
+    }
+
+    if (typeof samp.name !== 'string') {
+      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NO_ELEMENT_NAME);
+    }
+
     const sampName = samp.name;
     const sampNameLowerCase = sampName.toLowerCase();
 
@@ -205,6 +222,7 @@ function validateSamples(sampleArr, generator) {
       throw new errors.ValidationError(`Invalid sample name: ${sampName}`);
     }
   });
+  debug('Sample validation passed; Exiting evalUtils.validateSamples');
 } // validateSamples
 
 /**
@@ -226,8 +244,6 @@ function validateSamples(sampleArr, generator) {
  *    is null or undefined.
  *  {Array} aspects - An array of aspects.
  * @returns {Array} - Array of zero or more samples.
- * @throws {TransformError} - if transform function does not return an array
- *  of zero or more samples
  * @throws {ArgsError} - if thrown by validateTransformArgs function
  * @throws {FunctionBodyError} - if thrown by safeEval function
  */
@@ -236,21 +252,6 @@ function safeTransform(functionBody, args) {
   validateTransformArgs(args);
   args._SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
   const retval = safeEval(transformFnPrefix + functionBody, args);
-  if (!Array.isArray(retval)) {
-    throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NOT_ARRAY);
-  }
-
-  retval.forEach((element) => {
-    if (typeof element !== 'object' || Array.isArray(element)) {
-      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM
-        .ELEMENT_NOT_OBJECT);
-    }
-
-    if (typeof element.name !== 'string') {
-      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NO_ELEMENT_NAME);
-    }
-  });
-
   validateSamples(retval, args);
   debug('evalUtils.safeTransform returning: ${retval}');
   return retval;

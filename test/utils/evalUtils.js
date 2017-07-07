@@ -669,7 +669,7 @@ describe('test/utils/evalUtils >', (done) => {
     it('returns array with at least one element which is not an object',
     (done) => {
       try {
-        eu.safeTransform('return [{ name: "Foo" }, 2]', validArgs);
+        eu.safeTransform('return [{ name: "abc|A1" }, 2]', validArgs);
         done('Expecting TransformError here');
       } catch (err) {
         if (err.name === 'TransformError') {
@@ -787,6 +787,80 @@ describe('test/utils/evalUtils >', (done) => {
     });
   });
   describe('validateSamples >', () => {
+    it('Samples returned not array', (done) => {
+      const sampleArr = { name: 'S1|A1', value: 10 };
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting TransformError');
+      } catch (err) {
+        expect(err.message).to.be.equal(
+          'The transform function must return an array.'
+        );
+        done();
+      }
+    });
+
+    it('Sample is not an object', (done) => {
+      const sampleArr = ['abcd', 'efgh'];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting TransformError');
+      } catch (err) {
+        expect(err.message).to.be.equal(
+          'The transform function must return an array of samples.'
+        );
+        done();
+      }
+    });
+
+    it('Sample does not have name', (done) => {
+      const sampleArr = [{ abc: 'S1|A1', value: 10 }];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting TransformError');
+      } catch (err) {
+        expect(err.message).to.be.equal(
+          'The transform function must return an array of samples, and each ' +
+          'sample must have a "name" attribute of type string.'
+        );
+        done();
+      }
+    });
+
+    it('Sample name is not string', (done) => {
+      const sampleArr = [{ name: 2, value: 10 }];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting TransformError');
+      } catch (err) {
+        expect(err.message).to.be.equal(
+          'The transform function must return an array of samples, and each ' +
+          'sample must have a "name" attribute of type string.'
+        );
+        done();
+      }
+    });
+
     it('More samples than expected', (done) => {
       const sampleArr = [
         { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
