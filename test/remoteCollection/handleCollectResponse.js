@@ -88,13 +88,14 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
   it('ValidationError when obj does not have name attribute', (done) => {
     const obj = {
-      aspects: [{ name: 'A', timeout: '1m' }],
       res: {},
       context: {},
-      subject: { absolutePath: 'abc' },
+      subject: { absolutePath: 'S1' },
       generatorTemplate: {
-        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        transform:
+         'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
       },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
     handleCollectRes(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
@@ -109,7 +110,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   it('calls doBulkUpsert to push samples to refocus', (done) => {
     // use nock to mock the response when flushing
     const sampleArr = [
-      { name: 'S1|A1', value: 10 }, { name: 'S2|A2', value: 2 },
+      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
     ];
     nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
@@ -119,10 +120,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       context: {},
       res: { text: '{ "a": "atext" }' },
-      subject: { absolutePath: 'abc' },
+      subject: { absolutePath: 'S1' },
       generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S2|A2", value: 2 }]',
+        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
       },
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
 
     // stub winston info to test the logs
@@ -136,7 +138,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
       expect(sampleQueueOps.sampleQueue[0])
       .to.eql({ name: 'S1|A1', value: 10 });
-      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S2|A2', value: 2 });
+      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S1|A2', value: 2 });
       sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
 
       // restore winston stub
@@ -149,3 +151,4 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 });
+
