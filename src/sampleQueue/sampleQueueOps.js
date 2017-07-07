@@ -95,24 +95,27 @@ function flush() {
 
   const totSamplesCnt = sampleQueue.length;
   let samples = sampleQueue;
+  if (samples.length) {
+    // If maxSamplesPerBulkRequest set, bulk upsert in batches.
+    if (maxSamplesCnt) {
+      let startIdx = 0;
+      while ((startIdx + maxSamplesCnt) < totSamplesCnt) {
+        const endIdx = startIdx + maxSamplesCnt;
+        samples = sampleQueue.slice(startIdx, endIdx);
 
-  // If maxSamplesPerBulkRequest set, bulk upsert in batches.
-  if (maxSamplesCnt) {
-    let startIdx = 0;
-    while ((startIdx + maxSamplesCnt) < totSamplesCnt) {
-      const endIdx = startIdx + maxSamplesCnt;
-      samples = sampleQueue.slice(startIdx, endIdx);
+        bulkUpsertAndLog(samples);
+        startIdx = endIdx;
+      }
 
-      bulkUpsertAndLog(samples);
-      startIdx = endIdx;
+      samples = sampleQueue.slice(startIdx, totSamplesCnt);
     }
 
-    samples = sampleQueue.slice(startIdx, totSamplesCnt);
+    bulkUpsertAndLog(samples);
+    sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
+    debug(`Flushed ${totSamplesCnt} samples.`);
+  } else {
+    debug(`Nothing to flush.`);
   }
-
-  bulkUpsertAndLog(samples);
-  sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
-  debug(`Flushed ${totSamplesCnt} samples.`);
 }
 
 module.exports = {
