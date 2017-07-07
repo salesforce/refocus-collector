@@ -12,7 +12,6 @@
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
 const doBulkUpsert = require('../sampleQueue/sampleUpsertUtils').doBulkUpsert;
-const config = require('../config/config').getConfig();
 const errors = require('../errors/errors');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
@@ -23,11 +22,12 @@ const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
  * configured refocus instance immediately. In the later versions,
  * instead of calling the sample bulk upsert API immediately, we can start
  * storing the sample in an in-memory sample queue.
+ *
  * @param  {Promise} collectResponse - Response from the "collect" function.
- * This resolves to the generator object along with the "res" attribute
- * which maps to the response from the remote data source
+ *  This resolves to the generator object along with the "res" attribute
+ *  which maps to the response from the remote data source
  * @returns {Promise} - which can be resolved to the response of the sample
- * bulk upsert API. An error object is returned if an error is thrown.
+ *  bulk upsert API. An error object is returned if an error is thrown.
  * @throws {ArgsError} If the argument "collectRes" is not an object.
  * @throws {ValidationError} If the argument "collectRes" does not have a "res"
  *  or "ctx" or "subject|subjects" and "transform" attribute.

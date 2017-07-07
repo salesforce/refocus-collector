@@ -125,7 +125,8 @@ function buildMockResponse(generatorsDir) {
             try {
               newGenerator = JSON.parse(fileContents);
             } catch (err) {
-              logger.error(err);
+              logger.error('%s calling JSON.parse for filename "%s": %s',
+                err.name, filename, err.message);
             }
 
             const isObject = typeof newGenerator === 'object';
