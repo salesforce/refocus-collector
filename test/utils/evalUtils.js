@@ -695,7 +695,7 @@ describe('test/utils/evalUtils >', (done) => {
       }
     });
 
-    it('invalid if function body is an array', (done) => {
+    it.only('invalid if function body is an array', (done) => {
       try {
         eu.safeTransform(['return [{ name: "Foo" }, 2]'], validArgs);
         done('Expecting FunctionBodyError here');
@@ -703,6 +703,7 @@ describe('test/utils/evalUtils >', (done) => {
         if (err.name === 'FunctionBodyError') {
           done();
         } else {
+          console.log(err);
           done('Expecting FunctionBodyError here');
         }
       }
