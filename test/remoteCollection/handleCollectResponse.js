@@ -53,7 +53,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   it('ArgsError when obj does not have subject attribute', (done) => {
     const obj = {
       aspects: [{ name: 'A', timeout: '1h' }],
-      ctx: {},
+      context: {},
       res: {},
       generatorTemplate: {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
@@ -69,7 +69,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     done();
   });
 
-  it('ArgsError when obj does not have ctx attribute', (done) => {
+  it('ArgsError when obj does not have context attribute', (done) => {
     const obj = {
       res: {},
       subject: { absolutePath: 'abc' },
@@ -80,17 +80,17 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     handleCollectRes(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
     .catch((err) => {
-      expect(err.message).to.contain('Missing "ctx" attribute');
+      expect(err.message).to.contain('Missing "context" attribute');
       expect(err.name).to.equal('ArgsError');
-      return done();
     });
+    return done();
   });
 
   it('ValidationError when obj does not have name attribute', (done) => {
     const obj = {
       aspects: [{ name: 'A', timeout: '1m' }],
       res: {},
-      ctx: {},
+      context: {},
       subject: { absolutePath: 'abc' },
       generatorTemplate: {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
@@ -117,7 +117,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const collectRes = {
       name: 'mockGenerator',
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-      ctx: {},
+      context: {},
       res: { text: '{ "a": "atext" }' },
       subject: { absolutePath: 'abc' },
       generatorTemplate: { transform:

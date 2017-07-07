@@ -19,7 +19,7 @@ describe('test/utils/evalUtils >', (done) => {
       try {
         eu.validateTransformArgs({
           aspects: [{ name: 'A', timeout: '1m' }],
-          ctx: {},
+          context: {},
           res: {},
           subject: { absolutePath: 'abc' },
         });
@@ -44,7 +44,7 @@ describe('test/utils/evalUtils >', (done) => {
 
     it('object with missing or inorrect attributes', (done) => {
       try {
-        eu.validateTransformArgs({ ctx: {} });
+        eu.validateTransformArgs({ context: {} });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -164,7 +164,7 @@ describe('test/utils/evalUtils >', (done) => {
     it('object with required set of attributes', (done) => {
       try {
         eu.validateToUrlArgs({
-          ctx: {},
+          context: {},
           aspects: [{ name: 'A', timeout: '1m' }],
           subject: { absolutePath: 'abc' },
         });
@@ -189,7 +189,7 @@ describe('test/utils/evalUtils >', (done) => {
 
     it('object with missing or inorrect attributes', (done) => {
       try {
-        eu.validateToUrlArgs({ ctx: {} });
+        eu.validateToUrlArgs({ context: {} });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -561,7 +561,7 @@ describe('test/utils/evalUtils >', (done) => {
   describe('safeTransform >', (done) => {
     const validArgs = {
       aspects: [{ name: 'A', timeout: '1m' }],
-      ctx: { x: 123, y: 'diamond' },
+      context: { x: 123, y: 'diamond' },
       res: {},
       subject: { absolutePath: 'abc' },
     };
@@ -699,7 +699,7 @@ describe('test/utils/evalUtils >', (done) => {
   describe('safeToUrl >', (done) => {
     const validArgs = {
       aspects: [{ name: 'A1', timeout: '1m' }],
-      ctx: {},
+      context: {},
       subject: { absolutePath: 'abc' },
     };
 
