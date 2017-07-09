@@ -11,7 +11,7 @@
  */
 'use strict';
 const debug = require('debug')('refocus-collector:remoteCollection');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 
 /**
  * Returns a string after doing the variable expansion based on the context

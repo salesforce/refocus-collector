@@ -12,7 +12,7 @@
 'use strict';
 const debug = require('debug')('refocus-collector:evalUtils');
 const logger = require('winston');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const evalValidation = require('./evalValidation');
 const ERROR_MESSAGE = {
   TRANSFORM: {

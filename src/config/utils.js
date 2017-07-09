@@ -13,7 +13,7 @@
  */
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
-const errors = require('../errors/errors');
+const errors = require('./errors');
 const fs = require('fs');
 const validator = require('validator');
 

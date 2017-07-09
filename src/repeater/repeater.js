@@ -12,7 +12,7 @@
 const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
 const logger = require('winston');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;

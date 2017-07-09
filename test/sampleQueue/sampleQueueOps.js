@@ -25,7 +25,7 @@ const refocusUrl = registry[Object.keys(tu.config.registry)[0]].url;
 configModule.clearConfig();
 configModule.setRegistry(registry);
 const sampleQueueOps =  require('../../src/sampleQueue/sampleQueueOps');
-const ValidationError = require('../../src/errors/errors').ValidationError;
+const ValidationError = require('../../src/config/errors').ValidationError;
 
 describe('test/sampleQueue/sampleQueueOps.js >', () => {
   let samples;
