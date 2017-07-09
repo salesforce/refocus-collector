@@ -151,7 +151,9 @@ describe('test/remoteCollection/collect.js >', () => {
         transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
           '{ name: "UnionCity|Delay", value: 2 }]',
       },
-      subject: { absolutePath: 'OneSubject' },
+      bulk: true,
+      subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
+      aspects: [{ name: 'Delay', timeout: '1m' }],
     };
     const remoteData = {
       station: [{ name: 'Fremont|Delay', value: 10 },
