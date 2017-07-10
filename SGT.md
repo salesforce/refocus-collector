@@ -40,7 +40,7 @@ help.
   substitutions.
   - `bulk` (Boolean, optional, default=false) - set to `false` if you want to send one request for each of the designated 
   subjects; set to `true` if you want to collect data for all of the designated subjects in a single request.
-  - `headers` (Object, optional) - a list of headers to include in the request.
+  - `headers` (Object, optional) - headers to include in the request. For each named header, if you define it using an object (with attributes `description` (String), `required` (Boolean)), the Sample Generator is expected to provide the value; if you define it with a string, the header is set using that value.
   - `timeout` (Number, optional, default=[the Refocus Collector's default value], max=[some hard-coded max]) - the number of
   milliseconds to wait before aborting the request. If undefined or non-numeric values or greater than max, the connection 
   will use the Refocus Collector's default value.
