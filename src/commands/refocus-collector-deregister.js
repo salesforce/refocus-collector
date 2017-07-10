@@ -11,8 +11,23 @@
  *
  * Calls the "deregister" command.
  */
-const program = require('./index').program;
-const args = program.args;
+const program = require('commander');
+const logger = require('winston');
 
-console.log('Deregister =>', args[0]);
+program
+  .option('-n, --name <name>', 'The name of the refocus collector')
+  .parse(process.argv);
 
+const name = program.name;
+
+if (!name || typeof (name) === 'function') {
+  logger.error('There is no name of collector specified.');
+  process.exit(1);
+}
+
+try {
+  console.log('Deregister =>', name);
+} catch (err) {
+  logger.error(err.message);
+  logger.error(err);
+}

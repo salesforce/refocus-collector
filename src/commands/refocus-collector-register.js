@@ -11,7 +11,39 @@
  *
  * Calls the "register" command.
  */
-const program = require('./index').program;
-const args = program.args;
+const program = require('commander');
+const logger = require('winston');
+const cmdStart = require('./register');
 
-console.log('Register =>', args[0], args[1], args[2]);
+program
+  .option('-n, --name <name>', 'The name of the refocus collector')
+  .option('-u, --url <url>', 'The url of the refocus instance')
+  .option('-t, --token <token>', 'The token of the refocus instance')
+  .parse(process.argv);
+
+const name = program.name;
+const url = program.url;
+const token = program.token;
+
+if (!name || typeof (name) === 'function') {
+  logger.error('There is no name of collector specified.');
+  process.exit(1);
+}
+
+if (!url || typeof (url) === 'function') {
+  logger.error('There is no url for collector specified.');
+  process.exit(1);
+}
+
+if (!token || typeof (token) === 'function') {
+  logger.error('There is no token for collector specified.');
+  process.exit(1);
+}
+
+try {
+  console.log('Register =>', name, url, token);
+  cmdStart.execute(name, url, token);
+} catch (err) {
+  logger.error(err.message);
+  logger.error(err);
+}
