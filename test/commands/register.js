@@ -40,6 +40,7 @@ describe('test/commands/register >', () => {
 
   it('Test the createRegistryObject function', (done) => {
     const checkResObj = {
+      name: 'PRD',
       url: 'test.com',
       token: 'eewewrrrr',
     };
@@ -52,6 +53,7 @@ describe('test/commands/register >', () => {
 
   it('Test appendObject function', (done) => {
     const regObj = {
+      name: 'PRD',
       url: 'test.com',
       token: 'eewewrrrr',
     };
@@ -67,6 +69,7 @@ describe('test/commands/register >', () => {
 
   it('Test execute function', (done) => {
     const checkResObj = {
+      name: 'PRDTest',
       url: 'test.com',
       token: 'eewewrrrr',
     };

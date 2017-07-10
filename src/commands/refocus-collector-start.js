@@ -16,13 +16,15 @@ const logger = require('winston');
 const cmdStart = require('./start');
 
 program
-  .option('-n, --name <name>', 'The name of the refocus collector')
+  .option('-n, --name <name>',
+    'Specify a name for the Refocus instance you are registering (required)')
   .parse(process.argv);
 
 const name = program.name;
 
 if (!name || typeof (name) === 'function') {
-  logger.error('There is no name of collector specified.');
+  logger.error('You must specify a name ' +
+    'for the Refocus instance you are registering.');
   process.exit(1);
 }
 

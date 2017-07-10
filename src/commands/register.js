@@ -43,8 +43,7 @@ function appendObject(refocusName, refocusDetails, file) {
 /**
  * Create Registry Object using Refocus URL and token.
  *
- * @param {String} name - Refocus instance name @TODO currently not useful
-    and in future it will be useful
+ * @param {String} name - Refocus instance name
  * @param {String} url - Refocus URL
  * @param {String} token - Refocus token
  *
@@ -52,6 +51,7 @@ function appendObject(refocusName, refocusDetails, file) {
  */
 function createRegistryObject(name, url, token) {
   return {
+    name: name,
     url: url,
     token: token,
   };

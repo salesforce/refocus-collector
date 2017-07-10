@@ -13,12 +13,16 @@
  */
 const program = require('commander');
 const logger = require('winston');
-const cmdStart = require('./register');
+const cmdRegister = require('./register');
 
 program
-  .option('-n, --name <name>', 'The name of the refocus collector')
-  .option('-u, --url <url>', 'The url of the refocus instance')
-  .option('-t, --token <token>', 'The token of the refocus instance')
+  .option('-n, --name <name>',
+    'Specify a name for the Refocus instance you are registering (required)')
+  .option('-u, --url <url>',
+    'The url of the Refocus instance you are registering (required)')
+  .option('-t, --token <token>',
+    'A valid API token for the Refocus instance ' +
+    'you are registering (required)')
   .parse(process.argv);
 
 const name = program.name;
@@ -26,23 +30,26 @@ const url = program.url;
 const token = program.token;
 
 if (!name || typeof (name) === 'function') {
-  logger.error('There is no name of collector specified.');
+  logger.error('You must specify a name ' +
+    'for the Refocus instance you are registering.');
   process.exit(1);
 }
 
 if (!url || typeof (url) === 'function') {
-  logger.error('There is no url for collector specified.');
+  logger.error('You must specify the url of the ' +
+    'Refocus instance you are registering.');
   process.exit(1);
 }
 
 if (!token || typeof (token) === 'function') {
-  logger.error('There is no token for collector specified.');
+  logger.error('You must specify a valid API token ' +
+    'for the Refocus instance you are registering.');
   process.exit(1);
 }
 
 try {
   console.log('Register =>', name, url, token);
-  cmdStart.execute(name, url, token);
+  cmdRegister.execute(name, url, token);
 } catch (err) {
   logger.error(err.message);
   logger.error(err);
