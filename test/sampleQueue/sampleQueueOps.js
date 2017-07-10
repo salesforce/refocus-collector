@@ -135,15 +135,16 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
 
   describe('flush >', () => {
     beforeEach(() => {
-      sampleQueueOps.flush();
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
     });
+
     it('flush, number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
       // right arguments
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
       sinon.assert.calledOnce(doBulkUpsert);
       expect(doBulkUpsert.args[0][0].url).to.be.equal(
         'http://www.xyz.com'
@@ -166,7 +167,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);
@@ -184,24 +185,23 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       nock.cleanAll();
     });
 
-    // Flapping test, needs much more setTimeout delay to pass, hence skipping.
+    // Needs setTimeout delay to pass, hence skipping.
     it.skip('bulkUpsertAndLog, ok', (done) => {
       // mock the bulk upsert request.
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
         .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
-      sampleQueueOps.bulkUpsertAndLog(samples);
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
 
       // Since logs are created after the bulkUpsert async call returns, hence
       // setTimeout to wait for promise to complete.
       setTimeout(() => {
         expect(winston.info.calledOnce).to.be.true;
-        expect(winston.info.args[0][0]).contains(
-          'sampleQueue flush successful for : 10 samples'
-        );
+        expect(winston.info.args[0][0].activity).to.equal('bulkUpsertSamples');
+        expect(winston.info.args[0][0].sampleCount).to.equal(10);
         done();
-      }, 1500);
+      }, 1900);
     });
 
     it.skip('bulkUpsertAndLog, error', (done) => {
@@ -210,18 +210,19 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
 
-      sampleQueueOps.bulkUpsertAndLog(samples);
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
 
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
         // setTimeout to wait for promise to complete.
+
         expect(winston.error.calledOnce).to.be.true;
         expect(winston.error.args[0][0]).contains(
-          'sampleQueue flush failed for : 10 samples'
+          'doBulkUpsert failed for 10 samples'
         );
 
         done();
-      }, 1700);
+      }, 1980);
     });
   });
 });

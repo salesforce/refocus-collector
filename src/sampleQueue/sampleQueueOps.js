@@ -11,7 +11,6 @@
  */
 const debug = require('debug')('refocus-collector:sampleQueue');
 const logger = require('winston');
-const config = require('../config/config').getConfig();
 const sampleUpsertUtils = require('./sampleUpsertUtils');
 const errors = require('../errors/errors');
 const sampleQueue = [];
@@ -55,22 +54,25 @@ function enqueue(samples) {
 /**
  * Bulk upsert samples and log the success or failure
  * @param  {Array} samples - Array of samples
- * @throws {ValidationError} - If config or registry is not found
+ * @param  {Object} firstKeyPairInRegistry - The first pair of
+ *  key and value in registry. Change when Refocus registry name is
+ *  decided.
+ * @throws {ValidationError} - If firstKeyPairInRegistry is not found
  */
-function bulkUpsertAndLog(samples) {
+function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
   debug('Entered: bulkUpsertAndLog');
-  if (!config || !config.registry ||
-   Object.keys(config.registry).length === 0) {
+  if (!firstKeyPairInRegistry ||
+    Object.keys(firstKeyPairInRegistry).length === 0) {
     throw new errors.ValidationError(
-      `Registry empty or not found. Config: ${JSON.stringify(config)}`
+      `firstKeyPairInRegistry empty or not found.` +
+      ` Registry: ${JSON.stringify(firstKeyPairInRegistry)}`
     );
   }
 
-  // TODO: change when Refocus registry name is decided.
-  // For now, get only the values mapped to the first attribute of registry
   debug(`Starting bulk upsert of ${samples.length} samples.`);
+
   sampleUpsertUtils.doBulkUpsert(
-    config.registry[Object.keys(config.registry)[0]], samples
+    firstKeyPairInRegistry[Object.keys(firstKeyPairInRegistry)[0]], samples
   )
   .then(() => {
     logger.info({
@@ -90,10 +92,13 @@ function bulkUpsertAndLog(samples) {
  * in batches of maxSamplesPerBulkRequest count.
  *
  * @param {Number} maxSamplesPerBulkRequest - the maximum batch size; unlimited
+ * @param  {Object} firstKeyPairInRegistry - The first pair of
+ *  key and value in registry. Change when Refocus registry name is
+ *  decided.
  *  batch size if arg is not defined or not a number
  * @returns {Number} - number of samples flushed
  */
-function flush(maxSamplesPerBulkRequest) {
+function flush(maxSamplesPerBulkRequest, firstKeyPairInRegistry) {
   debug('Entered: flush', maxSamplesPerBulkRequest);
   const max = new Number(maxSamplesPerBulkRequest) || Number.MAX_SAFE_INTEGER;
   const totSamplesCnt = sampleQueue.length;
@@ -102,12 +107,12 @@ function flush(maxSamplesPerBulkRequest) {
   while ((startIdx + max) < totSamplesCnt) {
     const endIdx = startIdx + max;
     samples = sampleQueue.slice(startIdx, endIdx);
-    bulkUpsertAndLog(samples);
+    bulkUpsertAndLog(samples, firstKeyPairInRegistry);
     startIdx = endIdx;
   }
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
-  bulkUpsertAndLog(samples);
+  bulkUpsertAndLog(samples, firstKeyPairInRegistry);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
   return totSamplesCnt;
