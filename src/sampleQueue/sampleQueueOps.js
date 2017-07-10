@@ -12,7 +12,7 @@
 const debug = require('debug')('refocus-collector:sampleQueue');
 const logger = require('winston');
 const sampleUpsertUtils = require('./sampleUpsertUtils');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const sampleQueue = [];
 
 /**

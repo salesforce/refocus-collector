@@ -12,7 +12,7 @@
  */
 const fs = require('fs');
 const util = require('util');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 
