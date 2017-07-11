@@ -35,7 +35,10 @@ function prepareUrl(generator) {
     subject: generator.subject,
     subjects: generator.subjects,
   };
-  return evalUtils.safeToUrl(generator.generatorTemplate.toUrl, functionArgs);
+  const fbody = Array.isArray(generator.generatorTemplate.toUrl) ?
+    generator.generatorTemplate.toUrl.join('\n') :
+    generator.generatorTemplate.toUrl;
+  return evalUtils.safeToUrl(fbody, functionArgs);
 } // prepareUrl
 
 /**
