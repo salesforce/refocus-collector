@@ -29,19 +29,18 @@ const errors = require('../config/errors');
 function prepareUrl(generator) {
   debug('prepareUrl', generator);
   let url;
+  const toUrl = generator.generatorTemplate.connection.toUrl;
   if (generator.generatorTemplate.connection.url) {
     url = urlUtils.expand(generator.generatorTemplate.connection.url,
       generator.context);
-  } else if (generator.generatorTemplate.toUrl) {
+  } else if (toUrl) {
     const args = {
       aspects: generator.aspects,
       ctx: generator.context,
       subject: generator.subject,
       subjects: generator.subjects,
     };
-    const fbody = Array.isArray(generator.generatorTemplate.toUrl) ?
-      generator.generatorTemplate.toUrl.join('\n') :
-      generator.generatorTemplate.toUrl;
+    const fbody = Array.isArray(toUrl) ? toUrl.join('\n') : toUrl;
     url = evalUtils.safeToUrl(fbody, args);
   } else {
     throw new errors.ValidationError('The generator template must provide ' +

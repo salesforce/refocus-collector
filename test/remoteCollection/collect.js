@@ -220,8 +220,8 @@ describe('test/remoteCollection/collect.js >', () => {
               Authorization: 'abddr121345bb',
             },
             bulk: true,
+            toUrl: 'return "http://bart.gov.api/status";',
           },
-          toUrl: 'return "http://bart.gov.api/status";',
           transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
             '{ name: "UnionCity|Delay", value: 2 }]',
         },
