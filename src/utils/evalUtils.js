@@ -134,7 +134,7 @@ function validateToUrlArgs(args) {
     throw new errors.ArgsError('args must be an object.');
   }
 
-  return evalValidation.isObject('ctx', args.context) &&
+  return evalValidation.isObject('ctx', args.context || {}) &&
     evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subject, args.subjects);
 } // validateToUrlArgs
@@ -285,9 +285,9 @@ function safeTransform(functionBody, args) {
  *  body is not a string
  */
 function safeToUrl(functionBody, args) {
-  debug('Entered evalUtils.safeToUrl');
+  debug('Entered evalUtils.safeToUrl', args);
   if (typeof functionBody !== 'string') {
-    const msg = 'Transform function body must be a string';
+    const msg = 'toUrl function body must be a string';
     throw new errors.FunctionBodyError(msg);
   }
 

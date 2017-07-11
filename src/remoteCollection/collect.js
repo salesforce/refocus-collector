@@ -15,45 +15,70 @@ const request = require('superagent');
 const logger = require('winston');
 const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
+const errors = require('../config/errors');
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
- * calling the toUrl function specified in the generator template
+ * calling the toUrl function specified in the generator template.
+ *
  * @param  {Object} generator - The generator object
  * @returns {String} - Url to the remote datasource
+ * @throws {ValidationError} if generator template does not provide url or
+ *  toUrl
  */
 function prepareUrl(generator) {
   debug('prepareUrl', generator);
+  let url;
   if (generator.generatorTemplate.connection.url) {
-    return urlUtils.expand(generator.generatorTemplate.connection.url,
+    url = urlUtils.expand(generator.generatorTemplate.connection.url,
       generator.context);
+  } else if (generator.generatorTemplate.toUrl) {
+    const args = {
+      aspects: generator.aspects,
+      ctx: generator.context,
+      subject: generator.subject,
+      subjects: generator.subjects,
+    };
+    const fbody = Array.isArray(generator.generatorTemplate.toUrl) ?
+      generator.generatorTemplate.toUrl.join('\n') :
+      generator.generatorTemplate.toUrl;
+    url = evalUtils.safeToUrl(fbody, args);
+  } else {
+    throw new errors.ValidationError('The generator template must provide ' +
+      'either a connection.url attribute or a "toUrl" attribute.');
   }
 
-  const functionArgs = {
-    aspects: generator.aspects,
-    ctx: generator.ctx,
-    subject: generator.subject,
-    subjects: generator.subjects,
-  };
-  const fbody = Array.isArray(generator.generatorTemplate.toUrl) ?
-    generator.generatorTemplate.toUrl.join('\n') :
-    generator.generatorTemplate.toUrl;
-  return evalUtils.safeToUrl(fbody, functionArgs);
+  debug('prepareUrl returning %s', url);
+  return url;
 } // prepareUrl
 
 /**
- *  Uses the superagent library to make the request to the remote datasource
- *  and resolves the response.
- * @param  {String} remoteUrl - Url of the remote data source
- * @param  {String} generator  - The generator object
+ * This is responsible for the data collection from the remote data source. It
+ * calls the "prepareUrl" function to prepare the remote url and then uses the
+ * superagent library to make the request to the remote data source and
+ * resolves the response.
+ * If the generator template does not specify an "Accept" header, default to
+ * "application/json".
+ *
+ * @param  {Object} generator - The generator object
  * @returns {Promise} - which resolves to a generator object with a "res"
- * attribute carrying the response from the remote data source
+ *  attribute carrying the response from the remote data source
+ * @throws {ValidationError} if thrown by prepareUrl
  */
-function doCollection(remoteUrl, generator) {
+function collect(generator) {
+  const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
-  const headers = {};
-  if (connection.headers && connection.headers.Authorization) {
-    headers.Authorization = connection.headers.Authorization;
+  const headers = {
+    Accept: 'application/json', // default
+  };
+  if (connection.headers) {
+    if (connection.headers.Authorization) {
+      headers.Authorization = connection.headers.Authorization;
+    }
+
+    if (connection.headers.Accept) {
+      headers.Accept = connection.headers.Accept;
+    }
   }
 
   return new Promise((resolve) => {
@@ -61,10 +86,9 @@ function doCollection(remoteUrl, generator) {
     request
     .get(remoteUrl)
     .set(headers)
-    .set('Accept', 'application/json')
     .end((err, res) => {
       if (err) {
-        logger.log('error', 'An error was returned as a response: %o', err);
+        logger.error('An error was returned as a response: %o', err);
         generator.res = err;
       } else {
         debug('Remote data source returned an OK response: %o', res);
@@ -74,21 +98,9 @@ function doCollection(remoteUrl, generator) {
       return resolve(generator);
     });
   });
-} // doCollection
-
-/**
- * This is responsible for the data collection from the remote datasource. It
- * calls the "prepareUrl" function to prepare the remote url and then calls the
- * "doCollection" function to get the data.
- * @param  {Object} generator - The generator object
- * @returns {Promise} - which resolves to a generator object with a "res"
- * attribute carrying the response from the remote data source
- */
-function collect(generator) {
-  const remoteUrl = prepareUrl(generator);
-  return doCollection(remoteUrl, generator);
 } // collect
 
 module.exports = {
   collect,
+  prepareUrl, // export for testing
 };
