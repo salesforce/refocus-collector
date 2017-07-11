@@ -11,7 +11,25 @@
  *
  * Calls the "status" command.
  */
-const program = require('./index').program;
-const args = program.args;
+const program = require('commander');
+const logger = require('winston');
 
-console.log('Status =>', args[0]);
+program
+  .option('-n, --name <name>',
+    'Specify a name for the Refocus instance you need the status (required)')
+  .parse(process.argv);
+
+const name = program.name;
+
+if (!name || typeof (name) === 'function') {
+  logger.error('You must specify a name ' +
+    'for the Refocus instance you need the status.');
+  process.exit(1);
+}
+
+try {
+  console.log('Status =>', name);
+} catch (err) {
+  logger.error(err.message);
+  logger.error(err);
+}

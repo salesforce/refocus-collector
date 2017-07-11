@@ -27,9 +27,6 @@ const setRegistryAndParseCommand = require('./utils')
 
 program
   .version('0.0.1')
-  .option('-n, --name', 'The name of the refocus collector')
-  .option('-u, --url', 'The url of the refocus instance')
-  .option('-t, --token', 'The token of the refocus instance')
   .command('register <name> <url> <token>',
     'Register collector by name, refocus url and API token')
   .command('start <name>', 'Start given collector')
@@ -41,18 +38,13 @@ program.on('--help', () => {
   console.log('  Examples:');
   console.log('');
   console.log('    $ refocus-collector --help');
-  console.log('    $ refocus-collector register --name=test' +
-    '--url=test@test.com --token=eygduyguygijfdhkfjhkfdhg');
+  console.log('    $ refocus-collector register --name=test ' +
+    '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
   console.log('    $ refocus-collector start --name=test');
   console.log('    $ refocus-collector stop --name=test');
   console.log('    $ refocus-collector status --name=test');
   console.log('    $ refocus-collector deregister --name=test');
   console.log(figlet.textSync('Refocus Collector'));
-
 });
 
 setRegistryAndParseCommand(program, constants.registryLocation);
-
-module.exports = {
-  program,
-};

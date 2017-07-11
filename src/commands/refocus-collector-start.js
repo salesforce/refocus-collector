@@ -11,16 +11,27 @@
  *
  * Calls the "start" command.
  */
-const program = require('./index').program;
-const args = program.args;
-const cmdStart = require('./start');
+const program = require('commander');
 const logger = require('winston');
+const cmdStart = require('./start');
+
+program
+  .option('-n, --name <name>',
+    'Specify a name for the Refocus instance you are starting (required)')
+  .parse(process.argv);
+
+const name = program.name;
+
+if (!name || typeof (name) === 'function') {
+  logger.error('You must specify a name ' +
+    'for the Refocus instance you are starting.');
+  process.exit(1);
+}
 
 try {
-  console.log('Start =>', args[0]);
+  console.log('Start =>', name);
   cmdStart.execute();
 } catch (err) {
   logger.error(err.message);
   logger.error(err);
 }
-

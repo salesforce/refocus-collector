@@ -11,7 +11,46 @@
  *
  * Calls the "register" command.
  */
-const program = require('./index').program;
-const args = program.args;
+const program = require('commander');
+const logger = require('winston');
+const cmdRegister = require('./register');
 
-console.log('Register =>', args[0], args[1], args[2]);
+program
+  .option('-n, --name <name>',
+    'Specify a name for the Refocus instance you are registering (required)')
+  .option('-u, --url <url>',
+    'The url of the Refocus instance you are registering (required)')
+  .option('-t, --token <token>',
+    'A valid API token for the Refocus instance ' +
+    'you are registering (required)')
+  .parse(process.argv);
+
+const name = program.name;
+const url = program.url;
+const token = program.token;
+
+if (!name || typeof (name) === 'function') {
+  logger.error('You must specify a name ' +
+    'for the Refocus instance you are registering.');
+  process.exit(1);
+}
+
+if (!url || typeof (url) === 'function') {
+  logger.error('You must specify the url of the ' +
+    'Refocus instance you are registering.');
+  process.exit(1);
+}
+
+if (!token || typeof (token) === 'function') {
+  logger.error('You must specify a valid API token ' +
+    'for the Refocus instance you are registering.');
+  process.exit(1);
+}
+
+try {
+  console.log('Register =>', name, url, token);
+  cmdRegister.execute(name, url, token);
+} catch (err) {
+  logger.error(err.message);
+  logger.error(err);
+}
