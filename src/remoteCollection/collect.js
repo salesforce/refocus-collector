@@ -15,6 +15,7 @@ const request = require('superagent');
 const logger = require('winston');
 const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
+const errors = require('../config/errors');
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -22,6 +23,8 @@ const urlUtils = require('./urlUtils');
  *
  * @param  {Object} generator - The generator object
  * @returns {String} - Url to the remote datasource
+ * @throws {ValidationError} if generator template does not provide url or
+ *  toUrl
  */
 function prepareUrl(generator) {
   debug('prepareUrl', generator);
@@ -29,7 +32,7 @@ function prepareUrl(generator) {
   if (generator.generatorTemplate.connection.url) {
     url = urlUtils.expand(generator.generatorTemplate.connection.url,
       generator.context);
-  } else {
+  } else if (generator.generatorTemplate.toUrl) {
     const args = {
       aspects: generator.aspects,
       ctx: generator.context,
@@ -40,6 +43,9 @@ function prepareUrl(generator) {
       generator.generatorTemplate.toUrl.join('\n') :
       generator.generatorTemplate.toUrl;
     url = evalUtils.safeToUrl(fbody, args);
+  } else {
+    throw new errors.ValidationError('The generator template must provide ' +
+      'either a connection.url attribute or a "toUrl" attribute.');
   }
 
   debug('prepareUrl returning %s', url);
@@ -56,7 +62,8 @@ function prepareUrl(generator) {
  *
  * @param  {Object} generator - The generator object
  * @returns {Promise} - which resolves to a generator object with a "res"
- * attribute carrying the response from the remote data source
+ *  attribute carrying the response from the remote data source
+ * @throws {ValidationError} if thrown by prepareUrl
  */
 function collect(generator) {
   const remoteUrl = prepareUrl(generator);

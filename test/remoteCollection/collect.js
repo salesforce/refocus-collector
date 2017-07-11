@@ -184,7 +184,7 @@ describe('test/remoteCollection/collect.js >', () => {
   }); // collect
 
   describe('prepareUrl >', () => {
-    it('url is provided', (done) => {
+    it('url is provided', () => {
       const g = {
         name: 'MyGen',
         interval: 6000,
@@ -206,10 +206,9 @@ describe('test/remoteCollection/collect.js >', () => {
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
       };
       expect(collect.prepareUrl(g)).to.be.equal('http://bart.gov.api/status');
-      done();
     });
 
-    it('toUrl is provided', (done) => {
+    it('toUrl is provided', () => {
       const g = {
         name: 'MyGen',
         interval: 6000,
@@ -229,7 +228,33 @@ describe('test/remoteCollection/collect.js >', () => {
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
       };
       expect(collect.prepareUrl(g)).to.be.equal('http://bart.gov.api/status');
-      done();
+    });
+
+    it('neither url nor toUrl is provided', (done) => {
+      const g = {
+        name: 'MyGen',
+        interval: 6000,
+        aspects: [{ name: 'Delay', timeout: '1m' }],
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            bulk: true,
+          },
+          transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+            '{ name: "UnionCity|Delay", value: 2 }]',
+        },
+        subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
+      };
+      try {
+        expect(collect.prepareUrl(g)).to.be.equal('http://bart.gov.api/status');
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.name).to.be.equal('ValidationError');
+        done();
+      }
     });
   }); // prepareUrl
 });
