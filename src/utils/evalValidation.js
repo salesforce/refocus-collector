@@ -10,7 +10,7 @@
  * src/utils/evalValidation.js
  */
 const debug = require('debug')('refocus-collector:evalUtils');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 
 function isObject(name, val) {
   debug('Entered evalValidation.isObject:', name, val);

@@ -12,7 +12,7 @@
 'use strict';
 const debug = require('debug')('refocus-collector:evalUtils');
 const logger = require('winston');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const evalValidation = require('./evalValidation');
 const ERROR_MESSAGE = {
   TRANSFORM: {
@@ -245,10 +245,18 @@ function validateSamples(sampleArr, generator) {
  *  {Array} aspects - An array of aspects.
  * @returns {Array} - Array of zero or more samples.
  * @throws {ArgsError} - if thrown by validateTransformArgs function
- * @throws {FunctionBodyError} - if thrown by safeEval function
+ * @throws {FunctionBodyError} - if thrown by safeEval function or if function
+ *  body is not a string
+ * @throws {TrasnsformError} - if transform does not return valid array of
+ *  samples
  */
 function safeTransform(functionBody, args) {
   debug('Entered evalUtils.safeTransform');
+  if (typeof functionBody !== 'string') {
+    const msg = 'Transform function body must be a string';
+    throw new errors.FunctionBodyError(msg);
+  }
+
   validateTransformArgs(args);
   args._SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
   const retval = safeEval(transformFnPrefix + functionBody, args);
@@ -273,10 +281,16 @@ function safeTransform(functionBody, args) {
  * @throws {ToUrlError} - if transform function does not return an array
  *  of zero or more samples
  * @throws {ArgsError} - if thrown by validateToUrlArgs function
- * @throws {FunctionBodyError} - if thrown by safeEval function
+ * @throws {FunctionBodyError} - if thrown by safeEval function or if function
+ *  body is not a string
  */
 function safeToUrl(functionBody, args) {
   debug('Entered evalUtils.safeToUrl');
+  if (typeof functionBody !== 'string') {
+    const msg = 'Transform function body must be a string';
+    throw new errors.FunctionBodyError(msg);
+  }
+
   validateToUrlArgs(args);
   const retval = safeEval(toUrlFnPrefix + functionBody, args);
   if (typeof retval !== 'string') {

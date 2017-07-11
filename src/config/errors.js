@@ -7,13 +7,13 @@
  */
 
 /**
- * /src/errors/errors.js
+ * /src/config/errors.js
  *
  * Error Definitions
  */
 'use strict';
-
 const errors = require('errors');
+
 errors.create({ name: 'CollectorError' });
 
 errors.create({

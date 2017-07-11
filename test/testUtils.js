@@ -17,6 +17,10 @@ conf.setRegistry('./test/config/testRegistry.json');
 
 const config = conf.getConfig();
 
+const firstKeyPairInRegistry = {};
+const firstKey = Object.keys(config.registry)[0];
+firstKeyPairInRegistry[firstKey] = config.registry[firstKey];
+
 function makeRegistryFile() {
   const expectedResult = {
     collectorName1: {
@@ -33,6 +37,7 @@ function removeRegistryFile() {
 }
 
 module.exports = {
+  firstKeyPairInRegistry,
   makeRegistryFile,
   removeRegistryFile,
   config,

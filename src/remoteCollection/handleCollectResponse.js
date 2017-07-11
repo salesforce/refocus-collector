@@ -11,7 +11,7 @@
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
-const errors = require('../errors/errors');
+const errors = require('../config/errors');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
 
@@ -46,9 +46,10 @@ function handleCollectResponse(collectResponse) {
           'handleCollectResponse should have a res attribute');
       }
 
-      const transformedSamples =
-        evalUtils.safeTransform(collectRes.generatorTemplate.transform,
-          collectRes);
+      const t = Array.isArray(collectRes.generatorTemplate.transform) ?
+        collectRes.generatorTemplate.transform.join('\n') :
+        collectRes.generatorTemplate.transform;
+      const transformedSamples = evalUtils.safeTransform(t, collectRes);
 
       // collectRes (which is sample generator) should have a name.
       if (!collectRes.name) {
@@ -60,14 +61,15 @@ function handleCollectResponse(collectResponse) {
         generator: ${collectRes.name},
         numSamples: ${transformedSamples.length},
       }`);
-
       enqueue(transformedSamples);
     } catch (err) {
+      debug(err);
       logger.error('handleCollectResponse threw an error: ',
         err.name, err.message);
       return Promise.reject(err);
     }
   }).catch((err) => {
+    debug(err);
     logger.error('handleCollectResponse threw an error: ',
         err.name, err.message);
     return Promise.reject(err);
