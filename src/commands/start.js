@@ -34,28 +34,26 @@ function execute() {
 
   // TODO Replace the success/failure/progress listeners here with proper
   //      logging once we have heartbeat.
-  const def = {
+  repeater.create({
     name: 'Heartbeat',
     interval: conf.collectorConfig.heartbeatInterval,
     func: temporarySendHeartbeatStub, // TODO replace once we have heartbeat
     onSuccess: debug,
     onFailure: debug,
     onProgress: debug,
-  };
-  repeater.create(def);
+  });
 
   const firstKeyPairInRegistry = {};
   firstKeyPairInRegistry[Object.keys(conf.registry)[0]] =
     conf.registry[Object.keys(conf.registry)[0]];
 
   // flush function does not return anything, hence no event functions
-  const sampleQueueFlushDef = {
+  repeater.create({
     name: 'SampleQueueFlush',
     interval: conf.collectorConfig.sampleUpsertQueueTime,
     func: () => flush(conf.collectorConfig.maxSamplesPerBulkRequest,
       firstKeyPairInRegistry),
-  };
-  repeater.create(sampleQueueFlushDef);
+  });
   logger.info({ activity: 'cmdStart' });
   debug('Exiting start.execute');
 } // execute

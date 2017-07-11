@@ -360,5 +360,4 @@ describe('test/heartbeat/heartbeat.js >', () => {
       done();
     }
   });
-
 });

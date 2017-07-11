@@ -89,7 +89,7 @@ function safeEval(functionBody, args) {
     debug(`evalUtils.safeEval returning: ${retval}`);
     return retval;
   } catch (err) {
-    logger.error('safeEval error', err);
+    logger.error('%s running safeEval: %s', err.name, err.message);
     throw new errors.FunctionBodyError(`${err.name}: ${err.message}`);
   }
 }

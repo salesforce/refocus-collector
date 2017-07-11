@@ -23,10 +23,10 @@ const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
  * storing the sample in an in-memory sample queue.
  *
  * @param  {Promise} collectResponse - Response from the "collect" function.
- * This resolves to the generator object along with the "res" attribute
- * which maps to the response from the remote data source
+ *  This resolves to the generator object along with the "res" attribute
+ *  which maps to the response from the remote data source
  * @returns {Promise} - which can be resolved to the response of the sample
- * bulk upsert API. An error object is returned if an error is thrown.
+ *  bulk upsert API. An error object is returned if an error is thrown.
  * @throws {ArgsError} If the argument "collectRes" is not an object.
  * @throws {ValidationError} If the argument "collectRes" does not have a "res"
  *  or "ctx" or "subject|subjects" and "transform" attribute.
