@@ -257,4 +257,19 @@ describe('test/remoteCollection/collect.js >', () => {
       }
     });
   }); // prepareUrl
+
+  describe('prepareHeaders >', () => {
+    it('OK', () => {
+      const headers = {
+        Accept: 'application/xml',
+        Authorization: 'bearer: {{myToken}}',
+      };
+      const context = {
+        myToken: 'abcdef',
+      };
+      const actual = collect.prepareHeaders(headers, context);
+      expect(actual).to.have.property('Accept', 'application/xml');
+      expect(actual).to.have.property('Authorization', 'bearer: abcdef');
+    });
+  }); // prepareHeaders
 });

@@ -14,19 +14,20 @@ const debug = require('debug')('refocus-collector:remoteCollection');
 const errors = require('../config/errors');
 
 /**
- * Returns a string after doing the variable expansion based on the context
- * @param {String} url - the url template to be expanded
+ * Returns a string after doing the variable expansion based on the context.
+ *
+ * @param {String} s - the string to be expanded
  * @param {Object} ctx - the context object with properties to be inserted
- * @returns {String} - the expanded url
- * @throws {ValidationError} - if the url template is invalid or ctx is missing
- * a property referenced by the url
+ * @returns {String} - the expanded string
+ * @throws {ValidationError} - if the string template is invalid or ctx is
+ *  missing a property referenced by the string template
  */
-function expand(url, ctx) {
-  debug(`expand(${url}, ${ctx})`);
-  const matches = url.match(/{{[^\s{}]+?}}/g); // match {{...}}
-  let expandedUrl = url;
+function expand(s, ctx) {
+  debug(`expand(${s}, ${ctx})`);
+  const matches = s.match(/{{[^\s{}]+?}}/g); // match {{...}}
+  let expanded = s;
   if (!Array.isArray(matches)) {
-    return expandedUrl;
+    return expanded;
   }
 
   matches.forEach((match) => {
@@ -34,19 +35,19 @@ function expand(url, ctx) {
     const value = ctx[key];
     if (value === null || value === undefined) {
       throw new errors.ValidationError(
-        `Can't expand url: No property '${key}' in context`);
+        `Can't expand string: No property '${key}' in context`);
     }
 
-    expandedUrl = expandedUrl.replace(match, value);
+    expanded = expanded.replace(match, value);
   });
 
-  if (expandedUrl.match(/[{}]/)) { // there are braces that were not replaced
+  if (expanded.match(/[{}]/)) { // there are braces that were not replaced
     throw new errors.ValidationError(
-      `Can't expand url: Invalid url template: ${url}`);
+      `Can't expand string: Invalid string template: ${s}`);
   }
 
-  debug(`expand returning ${expandedUrl}`);
-  return expandedUrl;
+  debug(`expand returning ${expanded}`);
+  return expanded;
 }
 
 module.exports = {
