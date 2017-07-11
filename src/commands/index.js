@@ -39,7 +39,7 @@ program.on('--help', () => {
   console.log('');
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector register --name=test ' +
-    '--url=test@test.com --token=eygduyguygijfdhkfjhkfdhg');
+    '--url=test.com --token=eygduyguygijfdhkfjhkfdhg');
   console.log('    $ refocus-collector start --name=test');
   console.log('    $ refocus-collector stop --name=test');
   console.log('    $ refocus-collector status --name=test');
