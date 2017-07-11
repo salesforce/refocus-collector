@@ -16,14 +16,14 @@ const logger = require('winston');
 
 program
   .option('-n, --name <name>',
-    'Specify a name for the Refocus instance you are registering (required)')
+    'Specify a name for the Refocus instance you are stopping (required)')
   .parse(process.argv);
 
 const name = program.name;
 
 if (!name || typeof (name) === 'function') {
   logger.error('You must specify a name ' +
-    'for the Refocus instance you are registering.');
+    'for the Refocus instance you are stopping.');
   process.exit(1);
 }
 
