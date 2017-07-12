@@ -63,7 +63,7 @@ module.exports = {
       .set('Accept', 'application/json')
       .end((err, res) => {
         if (err) {
-          logger.log('error', 'bulkUpsert returned an error: %o', err);
+          logger.error('bulkUpsert returned an error: %o', err);
           return reject(err);
         }
 
