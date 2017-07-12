@@ -220,8 +220,8 @@ describe('test/remoteCollection/collect.js >', () => {
               Authorization: 'abddr121345bb',
             },
             bulk: true,
+            toUrl: 'return "http://bart.gov.api/status";',
           },
-          toUrl: 'return "http://bart.gov.api/status";',
           transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
             '{ name: "UnionCity|Delay", value: 2 }]',
         },
@@ -257,4 +257,19 @@ describe('test/remoteCollection/collect.js >', () => {
       }
     });
   }); // prepareUrl
+
+  describe('prepareHeaders >', () => {
+    it('OK', () => {
+      const headers = {
+        Accept: 'application/xml',
+        Authorization: 'bearer: {{myToken}}',
+      };
+      const context = {
+        myToken: 'abcdef',
+      };
+      const actual = collect.prepareHeaders(headers, context);
+      expect(actual).to.have.property('Accept', 'application/xml');
+      expect(actual).to.have.property('Authorization', 'bearer: abcdef');
+    });
+  }); // prepareHeaders
 });

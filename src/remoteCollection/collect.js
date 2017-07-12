@@ -21,7 +21,7 @@ const errors = require('../config/errors');
  * Prepares url of the remote datasource either by expanding the url or by
  * calling the toUrl function specified in the generator template.
  *
- * @param  {Object} generator - The generator object
+ * @param {Object} generator - The generator object
  * @returns {String} - Url to the remote datasource
  * @throws {ValidationError} if generator template does not provide url or
  *  toUrl
@@ -29,19 +29,18 @@ const errors = require('../config/errors');
 function prepareUrl(generator) {
   debug('prepareUrl', generator);
   let url;
+  const toUrl = generator.generatorTemplate.connection.toUrl;
   if (generator.generatorTemplate.connection.url) {
     url = urlUtils.expand(generator.generatorTemplate.connection.url,
       generator.context);
-  } else if (generator.generatorTemplate.toUrl) {
+  } else if (toUrl) {
     const args = {
       aspects: generator.aspects,
       ctx: generator.context,
       subject: generator.subject,
       subjects: generator.subjects,
     };
-    const fbody = Array.isArray(generator.generatorTemplate.toUrl) ?
-      generator.generatorTemplate.toUrl.join('\n') :
-      generator.generatorTemplate.toUrl;
+    const fbody = Array.isArray(toUrl) ? toUrl.join('\n') : toUrl;
     url = evalUtils.safeToUrl(fbody, args);
   } else {
     throw new errors.ValidationError('The generator template must provide ' +
@@ -51,6 +50,27 @@ function prepareUrl(generator) {
   debug('prepareUrl returning %s', url);
   return url;
 } // prepareUrl
+
+/**
+ * Prepares the headers to send by expanding the connection headers specified
+ * by the generator template.
+ *
+ * @param {Object} headers - The headers from generator template connection
+ *  specification
+ * @param {Object} context - The context from the generator
+ * @returns {Object} - the headers object
+ */
+function prepareHeaders(headers, ctx) {
+  debug('prepareHeaders', headers, ctx);
+  const retval = {
+    Accept: 'application/json', // default
+  };
+  const hkeys = Object.keys(headers);
+  hkeys.forEach((key) => {
+    retval[key] = urlUtils.expand(headers[key], ctx);
+  });
+  return retval;
+} // prepareHeaders
 
 /**
  * This is responsible for the data collection from the remote data source. It
@@ -68,19 +88,9 @@ function prepareUrl(generator) {
 function collect(generator) {
   const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
-  const headers = {
-    Accept: 'application/json', // default
-  };
-  if (connection.headers) {
-    if (connection.headers.Authorization) {
-      headers.Authorization = connection.headers.Authorization;
-    }
-
-    if (connection.headers.Accept) {
-      headers.Accept = connection.headers.Accept;
-    }
-  }
-
+  const headers =
+    prepareHeaders(generator.generatorTemplate.connection.headers,
+      generator.context);
   return new Promise((resolve) => {
     // for now assuming that all the calls to the remote data source is a "GET"
     request
@@ -102,5 +112,6 @@ function collect(generator) {
 
 module.exports = {
   collect,
+  prepareHeaders, // export for testing
   prepareUrl, // export for testing
 };
