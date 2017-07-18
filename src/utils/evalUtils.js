@@ -236,13 +236,10 @@ function validateSamples(sampleArr, generator) {
  *  {Object} res - The response object returned by calling the remote data
  *    source.
  *  {Array} aspects - Array of one or more aspects.
- *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
- *    is null or undefined.
  *  {Object} subject - If not bulk, this is the subject; if bulk, this is null
  *    or undefined.
  *  {Array} subjects - If bulk, this is an array of subject; if not bulk, this
  *    is null or undefined.
- *  {Array} aspects - An array of aspects.
  * @returns {Array} - Array of zero or more samples.
  * @throws {ArgsError} - if thrown by validateTransformArgs function
  * @throws {FunctionBodyError} - if thrown by safeEval function or if function
@@ -261,7 +258,8 @@ function safeTransform(functionBody, args) {
   args._SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
   const retval = safeEval(transformFnPrefix + functionBody, args);
   validateSamples(retval, args);
-  debug('evalUtils.safeTransform returning: ${retval}');
+  debug('evalUtils.safeTransform returning %d samples: %j', retval.length,
+    retval);
   return retval;
 }
 

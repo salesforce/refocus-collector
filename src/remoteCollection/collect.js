@@ -69,6 +69,7 @@ function prepareHeaders(headers, ctx) {
   hkeys.forEach((key) => {
     retval[key] = urlUtils.expand(headers[key], ctx);
   });
+  debug('exiting prepareHeaders', retval);
   return retval;
 } // prepareHeaders
 
@@ -88,9 +89,7 @@ function prepareHeaders(headers, ctx) {
 function collect(generator) {
   const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
-  const headers =
-    prepareHeaders(generator.generatorTemplate.connection.headers,
-      generator.context);
+  const headers = prepareHeaders(connection.headers, generator.context);
   return new Promise((resolve) => {
     // for now assuming that all the calls to the remote data source is a "GET"
     request
