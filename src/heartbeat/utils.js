@@ -17,7 +17,6 @@ const logger = require('winston');
 /**
  * Update the "collectorConfig" attribute of the config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function updateCollectorConfig(res) {
   // get a fresh copy of collector config
@@ -30,7 +29,6 @@ function updateCollectorConfig(res) {
     });
     debug('Collector config after updating', config.collectorConfig);
   }
-
 } // updateCollectorConfig
 
 /**
@@ -64,7 +62,6 @@ function assignContextDefaults(ctx, def) {
  * Function to setup a generator repeater and add the generator to the
  * collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function addGenerator(res) {
   // get a fresh copy of collector config
@@ -87,14 +84,12 @@ function addGenerator(res) {
       logger.error('generatorsAdded attribute should be an array');
     }
   }
-
 } // addGenerator
 
 /**
  * Function to stop the generator repeater and delete the generator from the
  * collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function deleteGenerator(res) {
   // get a fresh copy of collector config
@@ -112,13 +107,11 @@ function deleteGenerator(res) {
       logger.error('generatorsDeleted attribute must be an array');
     }
   }
-
 } // deleteGenerator
 
 /**
  * Function to update the generator repeater and the collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function updateGenerator(res) {
   // get a fresh copy of collector config
@@ -143,7 +136,6 @@ function updateGenerator(res) {
       logger.error('generatorsDeleted attribute should be an array');
     }
   }
-
 } // updateGenerator
 
 module.exports = {

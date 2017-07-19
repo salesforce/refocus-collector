@@ -55,8 +55,6 @@ function execute(name) {
   const config = configModule.getConfig();
   const regObj = getRegistryObj(name, registryFile);
 
-  // TODO Replace the success/failure/progress listeners here with proper
-  //      logging once we have heartbeat.
   repeater.create({
     name: 'Heartbeat',
     interval: config.collectorConfig.heartbeatInterval,

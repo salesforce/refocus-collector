@@ -32,12 +32,11 @@ function handleHeartbeatResponse(err, res) {
     return err;
   }
 
-  console.log('I am here');
   utils.updateCollectorConfig(res);
   utils.addGenerator(res);
   utils.deleteGenerator(res);
   utils.updateGenerator(res);
-  config = configModule.getConfig();
+  const config = configModule.getConfig();
   debug('exiting handleHeartbeatResponse', config);
   return config;
 } // handleHeartbeatResponse

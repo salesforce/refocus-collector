@@ -31,6 +31,7 @@ let lastHeartbeatTime;
 function sendHeartbeat(regObj) {
   debug('Entered sendHeartbeat');
   let collectorName;
+  let registryName;
   let baseUrl;
   let token;
   let path;
@@ -40,8 +41,7 @@ function sendHeartbeat(regObj) {
     //TODO: use the registry for this collector once command line args are setup
     //collectorName = config.collectorName;
 
-    //assume the registry only has one entry for this version
-    collectorName = regObj.name;
+    registryName = regObj.name;
     baseUrl = regObj.url;
     token = regObj.token;
     path = `/v1/collectors/${collectorName}/heartbeat`;
@@ -115,7 +115,6 @@ function buildMockResponse(generatorsDir) {
       return Promise.join(Promise.all(statPromises), Promise.all(filePromises),
         (statsList, fileList) => {
           filenames.forEach((filename) => {
-
             const stats = statsList.shift();
             const fileContents = fileList.shift();
             const lastModifiedTime = stats.mtime;
