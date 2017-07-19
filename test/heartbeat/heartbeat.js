@@ -17,7 +17,7 @@ const errors = require('../../src/config/errors');
 const configModule = require('../../src/config/config');
 configModule.clearConfig();
 configModule.setRegistry({});
-const config = configModule.getConfig();
+let config = configModule.getConfig();
 const heartbeat = require('../../src/heartbeat/heartbeat');
 
 const generator1 = {
@@ -72,6 +72,11 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const token = 'cCI6IkpXV5ciOiJIUzI1CJ9eyJhbGNiIsInR';
   const collectorName = 'exampleCollector';
 
+  before(() => {
+    configModule.setRegistry({});
+    config = configModule.getConfig();
+  });
+
   after(() => {
     configModule.clearConfig();
     mock.restore();
@@ -105,17 +110,27 @@ describe('test/heartbeat/heartbeat.js >', () => {
     mock({
       './generators': {
         'generator1.json': mockNew(generator1),
-        'generator2.json': mockOld(generator2),
+        'generator2.json': mockNew(generator2),
       },
     });
 
     heartbeat.buildMockResponse('./generators')
-    .then((response) => {
-      expect(response.generatorsAdded).to.be.an('array').of.length(0);
-      expect(response.generatorsUpdated).to.be.an('array').of.length(1);
-      expect(response.generatorsDeleted).to.be.an('array').of.length(0);
-      expect(response.generatorsUpdated[0].name).to.equal('generator1');
-      done();
+    .then((res) => {
+      mock({
+        './generators': {
+          'generator1.json': mockNew(generator1),
+          'generator2.json': mockOld(generator2),
+        },
+      });
+
+      heartbeat.buildMockResponse('./generators')
+      .then((response) => {
+        expect(response.generatorsAdded).to.be.an('array').of.length(0);
+        expect(response.generatorsUpdated).to.be.an('array').of.length(1);
+        expect(response.generatorsDeleted).to.be.an('array').of.length(0);
+        expect(response.generatorsUpdated[0].name).to.equal('generator1');
+        done();
+      });
     });
   });
 
@@ -259,6 +274,13 @@ describe('test/heartbeat/heartbeat.js >', () => {
     config.registry[collectorName] = {
       url: url,
       token: token,
+      name: 'Test',
+    };
+
+    const regObj = {
+      url: url,
+      token: token,
+      name: 'Test',
     };
 
     mock({
@@ -268,7 +290,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       },
     });
 
-    heartbeat.sendHeartbeat()
+    heartbeat.sendHeartbeat(regObj)
     .then((ret) => {
       expect(ret).to.equal(config);
       expect(config.generators.generator1).to.exist;
@@ -282,6 +304,13 @@ describe('test/heartbeat/heartbeat.js >', () => {
     config.registry[collectorName] = {
       url: url,
       token: token,
+      name: 'Test',
+    };
+
+    const regObj = {
+      url: url,
+      token: token,
+      name: 'Test',
     };
 
     mock({
@@ -291,50 +320,53 @@ describe('test/heartbeat/heartbeat.js >', () => {
       },
     });
 
-    heartbeat.sendHeartbeat()
+    heartbeat.sendHeartbeat(regObj)
     .then((ret) => {
       expect(ret).to.be.an.instanceof(errors.ValidationError);
-      expect(config.generators.generator1).to.not.exist;
       expect(config.generators.generator2).to.not.exist;
       done();
     });
   });
 
   it('sendHeartbeat - missing token', (done) => {
-    config.registry[collectorName] = {
+    const regObj = {
       url: url,
       token: null,
+      name: 'Test',
     };
 
     try {
-      heartbeat.sendHeartbeat();
+      heartbeat.sendHeartbeat(regObj);
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
     }
   });
 
-  it('sendHeartbeat - missing url', (done) => {
-    config.registry[collectorName] = {
+  it('sendHeartbeat - url null', (done) => {
+    const regObj = {
       url: null,
       token: token,
+      name: 'Test',
     };
 
     try {
-      heartbeat.sendHeartbeat();
+      heartbeat.sendHeartbeat(regObj);
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
     }
+
   });
 
   it('sendHeartbeat - missing url', (done) => {
-    config.registry[collectorName] = {
+    const regObj = {
       token: token,
+      name: 'Test',
     };
 
     try {
-      heartbeat.sendHeartbeat();
+      heartbeat.sendHeartbeat(regObj);
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
@@ -344,17 +376,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   it('sendHeartbeat - empty registry', (done) => {
     config.registry = {};
     try {
-      heartbeat.sendHeartbeat();
-    } catch (err) {
-      expect(err.name).to.equal('ValidationError');
-      done();
-    }
-  });
-
-  it('sendHeartbeat - missing registry', (done) => {
-    delete config.registry;
-    try {
-      heartbeat.sendHeartbeat();
+      heartbeat.sendHeartbeat(config.registry[collectorName]);
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();

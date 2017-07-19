@@ -10,7 +10,7 @@
  * src/heartbeat/utils.js
  */
 const debug = require('debug')('refocus-collector:heartbeat');
-const config = require('../config/config').getConfig();
+const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const logger = require('winston');
 
@@ -20,17 +20,17 @@ const logger = require('winston');
  * @returns {Object} - The collector config object
  */
 function updateCollectorConfig(res) {
-  // Update the collector config.
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.collectorConfig) {
     debug('Heartbeat response collectorConfig to update', res.collectorConfig);
-    debug('Collector config before updating', config.collectorConfig);
+    debug('Collector config before updating', config);
     Object.keys(res.collectorConfig).forEach((key) => {
       config.collectorConfig[key] = res.collectorConfig[key];
     });
     debug('Collector config after updating', config.collectorConfig);
   }
 
-  return config;
 } // updateCollectorConfig
 
 /**
@@ -67,6 +67,8 @@ function assignContextDefaults(ctx, def) {
  * @returns {Object} - The collector config object
  */
 function addGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsAdded) {
     if (Array.isArray(res.generatorsAdded)) {
       // create a new repeater for the generators and add them to the config.
@@ -86,7 +88,6 @@ function addGenerator(res) {
     }
   }
 
-  return config;
 } // addGenerator
 
 /**
@@ -96,6 +97,8 @@ function addGenerator(res) {
  * @returns {Object} - The collector config object
  */
 function deleteGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsDeleted) {
     if (Array.isArray(res.generatorsDeleted)) {
       // Stop the repeater for the generators and delete them from config.
@@ -110,7 +113,6 @@ function deleteGenerator(res) {
     }
   }
 
-  return config;
 } // deleteGenerator
 
 /**
@@ -119,6 +121,8 @@ function deleteGenerator(res) {
  * @returns {Object} - The collector config object
  */
 function updateGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsUpdated) {
     if (Array.isArray(res.generatorsDeleted)) {
       // Update the repeater for the generators and update the generator config.
@@ -140,7 +144,6 @@ function updateGenerator(res) {
     }
   }
 
-  return config;
 } // updateGenerator
 
 module.exports = {
