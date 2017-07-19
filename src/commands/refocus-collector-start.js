@@ -30,7 +30,7 @@ if (!name || typeof (name) === 'function') {
 
 try {
   console.log('Start =>', name);
-  cmdStart.execute();
+  cmdStart.execute(name);
 } catch (err) {
   logger.error(err.message);
   logger.error(err);

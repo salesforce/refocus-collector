@@ -12,6 +12,7 @@
 const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
+const configModule = require('../config/config');
 
 /**
  * Handles the heartbeat response:
@@ -34,9 +35,10 @@ function handleHeartbeatResponse(err, res) {
   utils.updateCollectorConfig(res);
   utils.addGenerator(res);
   utils.deleteGenerator(res);
-  const cc = utils.updateGenerator(res);
-  debug('exiting handleHeartbeatResponse', cc);
-  return cc;
+  utils.updateGenerator(res);
+  const config = configModule.getConfig();
+  debug('exiting handleHeartbeatResponse', config);
+  return config;
 } // handleHeartbeatResponse
 
 module.exports = {

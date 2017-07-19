@@ -14,7 +14,7 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const errors = require('../config/errors');
 const request = require('superagent');
-const config = require('../config/config').getConfig();
+const configModule = require('../config/config');
 const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
 const generatorsDir = require('../constants').generatorsDir;
 const fs = require('fs');
@@ -28,10 +28,10 @@ let lastHeartbeatTime;
  * @returns {Request} - the request sent to the Refocus server
  * @throws {ValidationError} - if required config fields are missing
  */
-function sendHeartbeat() {
+function sendHeartbeat(regObj) {
   debug('Entered sendHeartbeat');
-
   let collectorName;
+  let registryName;
   let baseUrl;
   let token;
   let path;
@@ -41,10 +41,9 @@ function sendHeartbeat() {
     //TODO: use the registry for this collector once command line args are setup
     //collectorName = config.collectorName;
 
-    //assume the registry only has one entry for this version
-    collectorName = Object.keys(config.registry)[0];
-    baseUrl = config.registry[collectorName].url;
-    token = config.registry[collectorName].token;
+    registryName = regObj.name;
+    baseUrl = regObj.url;
+    token = regObj.token;
     path = `/v1/collectors/${collectorName}/heartbeat`;
     url = baseUrl + path;
 
@@ -76,10 +75,8 @@ function sendHeartbeat() {
     //return req;
   }
   catch (err) {
-    if (config == null || config.registry == null) {
-      throw new errors.ValidationError('Registry config is missing');
-    } else if (config.registry[collectorName] == null) {
-      throw new errors.ValidationError(`Registry entry empty for ${collectorName}`);
+    if (!regObj) {
+      throw new errors.ValidationError('Registry config Object is missing');
     } else {
       throw err;
     }
@@ -103,6 +100,7 @@ function buildMockResponse(generatorsDir) {
   const generatorsAdded = [];
   const generatorsUpdated = [];
   const generatorsDeleted = [];
+  const config = configModule.getConfig();
 
   return fs.readdirAsync(generatorsDir)
     .then((filenames) => {
@@ -120,7 +118,6 @@ function buildMockResponse(generatorsDir) {
             const stats = statsList.shift();
             const fileContents = fileList.shift();
             const lastModifiedTime = stats.mtime;
-
             let newGenerator;
             try {
               newGenerator = JSON.parse(fileContents);

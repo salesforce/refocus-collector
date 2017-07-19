@@ -10,27 +10,25 @@
  * src/heartbeat/utils.js
  */
 const debug = require('debug')('refocus-collector:heartbeat');
-const config = require('../config/config').getConfig();
+const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const logger = require('winston');
 
 /**
  * Update the "collectorConfig" attribute of the config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function updateCollectorConfig(res) {
-  // Update the collector config.
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.collectorConfig) {
     debug('Heartbeat response collectorConfig to update', res.collectorConfig);
-    debug('Collector config before updating', config.collectorConfig);
+    debug('Collector config before updating', config);
     Object.keys(res.collectorConfig).forEach((key) => {
       config.collectorConfig[key] = res.collectorConfig[key];
     });
     debug('Collector config after updating', config.collectorConfig);
   }
-
-  return config;
 } // updateCollectorConfig
 
 /**
@@ -64,9 +62,10 @@ function assignContextDefaults(ctx, def) {
  * Function to setup a generator repeater and add the generator to the
  * collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function addGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsAdded) {
     if (Array.isArray(res.generatorsAdded)) {
       // create a new repeater for the generators and add them to the config.
@@ -85,17 +84,16 @@ function addGenerator(res) {
       logger.error('generatorsAdded attribute should be an array');
     }
   }
-
-  return config;
 } // addGenerator
 
 /**
  * Function to stop the generator repeater and delete the generator from the
  * collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function deleteGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsDeleted) {
     if (Array.isArray(res.generatorsDeleted)) {
       // Stop the repeater for the generators and delete them from config.
@@ -109,16 +107,15 @@ function deleteGenerator(res) {
       logger.error('generatorsDeleted attribute must be an array');
     }
   }
-
-  return config;
 } // deleteGenerator
 
 /**
  * Function to update the generator repeater and the collector config
  * @param {Object} res - Heartbeat Response
- * @returns {Object} - The collector config object
  */
 function updateGenerator(res) {
+  // get a fresh copy of collector config
+  const config = configModule.getConfig();
   if (res.generatorsUpdated) {
     if (Array.isArray(res.generatorsDeleted)) {
       // Update the repeater for the generators and update the generator config.
@@ -139,8 +136,6 @@ function updateGenerator(res) {
       logger.error('generatorsDeleted attribute should be an array');
     }
   }
-
-  return config;
 } // updateGenerator
 
 module.exports = {

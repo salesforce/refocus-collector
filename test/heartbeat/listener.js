@@ -17,13 +17,23 @@ const obj = {
     },
   },
 };
-require('../../src/config/config').setRegistry(obj);
-const config = require('../../src/config/config').getConfig();
+
+const configModule = require('../../src/config/config');
 const listener = require('../../src/heartbeat/listener');
 const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
 const expect = require('chai').expect;
 
 describe('test/heartbeat/listener.js >', () => {
+  before(() => {
+    configModule.clearConfig();
+    configModule.setRegistry(obj);
+    const config = configModule.getConfig();
+  });
+
+  after(() => {
+    configModule.clearConfig();
+  });
+
   const hbResponse = {
     collectorConfig: {
       heartbeatInterval: 50,
