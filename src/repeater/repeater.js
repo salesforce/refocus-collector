@@ -21,6 +21,22 @@ const collect = require('../remoteCollection/collect').collect;
 const repeatTracker = {};
 
 /**
+ * Update the repeatTracker object to track new repeats
+ * @param  {Object} def - Repeater definition object
+ */
+function trackRepeat(def) {
+  if (!def.hasOwnProperty('bulk')) {
+    repeatTracker[def.name] = def.handle;
+  } else if (def.bulk === true) {
+    repeatTracker[def.name] = { _bulk: def.handle };
+  } else if (def.bulk === false && repeatTracker[def.name]) {
+    repeatTracker[def.name][def.subject.absolutePath] = def.handle;
+  } else if (def.bulk === false && !repeatTracker[def.name]){
+    repeatTracker[def.name] = { [def.subject.absolutePath]: def.handle };
+  }
+} // trackRepeat
+
+/**
  * The default function that is called every time a task is repeated.
  * @param {Object} result - The return value of one particular task
  *  invocation.
@@ -61,8 +77,15 @@ function stop(name) {
   if (!name || !repeatTracker[name]) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
+  if (repeatTracker[name].stop) {
+    repeatTracker[name].stop();
+  } else {
+    Object.keys(repeatTracker[name]).forEach((prop) => {
+      repeatTracker[name][prop].stop();
+      delete repeatTracker[name][prop];
+    });
+  }
 
-  repeatTracker[name].stop();
   delete repeatTracker[name];
   logger.info(`Stopping repeater identified by: ${name}`);
 } // stop
@@ -88,7 +111,9 @@ function validateDefinition(def) {
       'string attribute called "name".');
   }
 
-  if (repeatTracker[def.name]) {
+  if ((repeatTracker[def.name] && !def.hasOwnProperty('bulk')) ||
+    (repeatTracker[def.name] && (repeatTracker[def.name][def.subject.absolutePath] ||
+      repeatTracker[def.name]._bulk))) {
     throw new errors.ValidationError('Duplicate repeater name violation: ' +
       def.name);
   }
@@ -123,12 +148,14 @@ function validateDefinition(def) {
 function create(def) {
   validateDefinition(def);
   const handle = repeat(def.func);
+
+  console.log('what is the typeof my handle', typeof handle);
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
     def.onProgress || onProgress);
-  repeatTracker[def.name] = handle;
   def.handle = handle;
   def.funcName = def.func.name;
+  trackRepeat(def);
   logger.info({
     activity: 'createdRepeater',
     name: def.name,
@@ -155,7 +182,6 @@ function create(def) {
  * @throws {ValidationError} - Thrown by validateDefinition
  */
 function update(def) {
-  stop(def.name);
   return create(def);
 } // update
 
@@ -182,8 +208,9 @@ function createGeneratorRepeater(generator) {
     interval: generator.interval,
     func: collectWrapper,
     onProgress: handleCollectResponse,
+    bulk: generator.generatorTemplate.connection.bulk,
+    subject: generator.subject,
   };
-
   return create(def);
 } // createGeneratorRepeater
 
@@ -210,6 +237,8 @@ function updateGeneratorRepeater(generator) {
     interval: generator.interval,
     func: collectWrapper,
     onProgress: handleCollectResponse,
+    bulk: generator.generatorTemplate.connection.bulk,
+    subject: generator.subject,
   };
 
   return update(def);
