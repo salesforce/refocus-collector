@@ -59,7 +59,7 @@ function assignContextDefaults(ctx, def) {
 } // assignContextDefaults
 
 /**
- * Function to add or update a repeater.
+ * Function to add a repeater.
  * @param {Object} generator - Generator object from the heartbeat
  */
 function setUpRepeater(generator) {
@@ -151,8 +151,8 @@ function updateGenerator(res) {
         });
 
         /**
-         * repeats cannot be updated. The old repeats needs to be stoppned
-         * before creating new repeats
+         * repeats cannot be updated. The old repeats needs to be stopped
+         * before creating new repeats.
          */
         repeater.stop(g.name);
         setUpRepeater(g);

@@ -166,26 +166,6 @@ function create(def) {
 } // create
 
 /**
- * Update the specified repeater.
- *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- *  {Function} func - required, function to execute repeatedly
- *  {Function} onSuccess - function to execute only once, after *all*
- *    of the scheduled repetitions have completed
- *  {Function} onFailure - function to execute if any repetition fails
- *  {Function} onProgress - function to execute upon completion of each
- *    repetition.
- * @returns {Promise} - A read-only Promise instance
- * @throws {ValidationError} - Thrown by validateDefinition
- */
-function update(def) {
-  return create(def);
-} // update
-
-/**
  * Convenience function to create a new generator repeater.
  *
  * @param {Object} generator - The sample generator object
@@ -214,42 +194,10 @@ function createGeneratorRepeater(generator) {
   return create(def);
 } // createGeneratorRepeater
 
-/**
- * Convenience function to update a generator repeater.
- *
- * @param {Object} generator - The sample generator object
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- * @returns {Promise} - A read-only Promise instance.
- */
-function updateGeneratorRepeater(generator) {
-  /**
-   * Wrapping the collect function to pass a function definition to the repeat
-   * task
-   * @returns {Promise} which resolves to the response of the collect function
-   */
-  function collectWrapper() {
-    return collect(generator);
-  }
-
-  const def = {
-    name: generator.name,
-    interval: generator.interval,
-    func: collectWrapper,
-    onProgress: handleCollectResponse,
-    bulk: generator.generatorTemplate.connection.bulk,
-    subject: generator.subject,
-  };
-
-  return update(def);
-} // updateGeneratorRepeater
-
 module.exports = {
   create,
   createGeneratorRepeater,
   repeatTracker, // export for testing only
   stop,
-  update,
-  updateGeneratorRepeater,
   validateDefinition, // export for testing only
 };
