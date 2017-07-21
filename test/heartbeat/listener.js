@@ -178,35 +178,6 @@ describe('test/heartbeat/listener.js >', () => {
     done();
   });
 
-  it('add generator with bulk=false and with subject attribute', (done) => {
-    const res = {
-      heartbeatInterval: 50,
-      generatorsAdded: [
-        {
-          name: 'SGWithSubjectAttribute',
-          generatorTemplateName: 'refocus-trust1-collector',
-          generatorTemplate: {
-            name: 'refocus-trust1-collector',
-            connection: {
-              url: 'http://www.google.com',
-              bulk: false,
-            },
-          },
-          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-          subject: { absolutePath: 'NA1', name: 'NA1' },
-          context: { baseUrl: 'https://example.api' },
-          collectors: [{ name: 'agent1' }],
-          interval: 6000,
-        },
-      ],
-    };
-    const updatedConfig = listener.handleHeartbeatResponse(null, res);
-    expect(updatedConfig.generators.SGWithSubjectAttribute)
-      .to.deep.equal(res.generatorsAdded[0]);
-    expect(repeatTracker.SGWithSubjectAttribute.NA1).not.equal(undefined);
-    done();
-  });
-
   it('SGT update from bulk=true to bulk=false', (done) => {
     const res = {
       heartbeatInterval: 50,

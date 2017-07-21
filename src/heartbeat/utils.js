@@ -59,17 +59,19 @@ function assignContextDefaults(ctx, def) {
 } // assignContextDefaults
 
 /**
- * Function to add a repeater.
+ * Creates a repeat based on the bulk attribute of the of the generator object
+ * that is passed as as agrument. When the bulk attribute is true, it creates
+ * a repeat using the passed in generator. When the bulk attribute is false, it
+ * runs through the subjects array and for each of the subject, it creates a
+ * new generator object(using the generator passed in as the argument),
+ * adds a "subject" attribute and delete the "subjects" attribute
  * @param {Object} generator - Generator object from the heartbeat
  */
 function setUpRepeater(generator) {
   if (generator.generatorTemplate.connection.bulk === true) {
     repeater.createGeneratorRepeater(generator);
-  } else if (generator.generatorTemplate.connection.bulk === false
-    && generator.subject) {
-    repeater.createGeneratorRepeater(generator);
-  } else if (generator.generatorTemplate.connection.bulk === false
-    && generator.subjects) {
+  } else {
+    // generator.generatorTemplate.connection.bluk is false
     generator.subjects.forEach((subject) => {
       const _g = JSON.parse(JSON.stringify(generator));
       delete _g.subjects;

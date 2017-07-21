@@ -17,7 +17,22 @@ const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 
-// Tracks all the repeats defined in the collectors.
+/**
+ * Tracks all the repeats defined in the collectors.
+ * The repeatTracker object looks like
+ *  {
+ *    'heartbeat': repeatHandle,
+ *    'sampleQueueFlush': repeatHandle,
+ *    'generator1' : { // when bulk is true
+ *      _bulk: handle,
+ *    }
+ *    'generator2' : { // when bullk is false
+ *      subject1: repeatHandle,
+ *      subject2: repeatHandle,
+ *    }
+ *  }
+ *
+ */
 const repeatTracker = {};
 
 /**
