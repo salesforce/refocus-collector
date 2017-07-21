@@ -24,7 +24,7 @@ const collect = require('../remoteCollection/collect').collect;
  *    'heartbeat': repeatHandle,
  *    'sampleQueueFlush': repeatHandle,
  *    'generator1' : { // when bulk is true
- *      _bulk: handle,
+ *      _bulk: repeatHandle,
  *    }
  *    'generator2' : { // when bullk is false
  *      subject1: repeatHandle,
