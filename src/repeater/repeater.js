@@ -149,7 +149,6 @@ function create(def) {
   validateDefinition(def);
   const handle = repeat(def.func);
 
-  console.log('what is the typeof my handle', typeof handle);
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
     def.onProgress || onProgress);
