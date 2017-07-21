@@ -95,6 +95,7 @@ function addGenerator(res) {
           g.context = assignContextDefaults(g.context,
             g.generatorTemplate.contextDefinition);
         }
+
         config.generators[g.name] = g;
         setUpRepeater(g, repeater.createGeneratorRepeater);
       });

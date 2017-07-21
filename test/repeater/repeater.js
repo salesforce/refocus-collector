@@ -26,7 +26,7 @@ describe('test/repeater/repeater.js >', () => {
             Authorization: 'abddr121345bb',
           },
           url: 'http://example.com',
-          bulk: true
+          bulk: true,
         },
       },
       subject: { absolutePath: 'oneSubject', name: 'OneSubject' },
@@ -52,7 +52,7 @@ describe('test/repeater/repeater.js >', () => {
             Authorization: 'abddr121345bb',
           },
           url: 'http://example.com',
-          bulk: true
+          bulk: true,
         },
       },
       subject: { absolutePath: 'oneSubject', name: 'OneSubject' },
@@ -80,7 +80,7 @@ describe('test/repeater/repeater.js >', () => {
             Authorization: 'abddr121345bb',
           },
           url: 'http://example.com',
-          bulk: true
+          bulk: true,
         },
       },
       subject: { absolutePath: 'oneSubject', name: 'OneSubject' },
@@ -110,7 +110,7 @@ describe('test/repeater/repeater.js >', () => {
             Authorization: 'abddr121345bb',
           },
           url: 'http://example.com',
-          bulk: true
+          bulk: true,
         },
       },
       subject: { absolutePath: 'oneSubject', name: 'OneSubject' },

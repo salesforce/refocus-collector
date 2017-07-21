@@ -31,7 +31,7 @@ function trackRepeat(def) {
     repeatTracker[def.name] = { _bulk: def.handle };
   } else if (def.bulk === false && repeatTracker[def.name]) {
     repeatTracker[def.name][def.subject.absolutePath] = def.handle;
-  } else if (def.bulk === false && !repeatTracker[def.name]){
+  } else if (def.bulk === false && !repeatTracker[def.name]) {
     repeatTracker[def.name] = { [def.subject.absolutePath]: def.handle };
   }
 } // trackRepeat
@@ -77,6 +77,7 @@ function stop(name) {
   if (!name || !repeatTracker[name]) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
+
   if (repeatTracker[name].stop) {
     repeatTracker[name].stop();
   } else {

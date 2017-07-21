@@ -50,7 +50,7 @@ describe('test/heartbeat/listener.js >', () => {
           name: 'refocus-trust1-collector',
           connection: {
             url: 'http://www.google.com',
-            bulk: true
+            bulk: true,
           },
         },
         interval: 6000,
@@ -87,7 +87,7 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-trust1-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: true
+              bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -115,7 +115,7 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-trust1-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: true
+              bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -135,7 +135,7 @@ describe('test/heartbeat/listener.js >', () => {
           name: 'refocus-trust1-collector',
           connection: {
             url: 'http://www.google.com',
-            bulk: true
+            bulk: true,
           },
         },
       },
@@ -159,10 +159,10 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-trust1-collector-nonbulk',
             connection: {
               url: 'http://www.google.com',
-              bulk: false
+              bulk: false,
             },
           },
-          subjects: [{ absolutePath: 'NA1'}, { absolutePath: 'NA2'}],
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
@@ -189,7 +189,7 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-sample-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: true
+              bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -213,11 +213,11 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-sample-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: false
+              bulk: false,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-          subjects: [{ absolutePath: 'NA1'}, { absolutePath: 'NA2'}],
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
           context: { baseUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
           interval: 6000,
@@ -244,11 +244,11 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-sample-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: false
+              bulk: false,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-          subjects: [{ absolutePath: 'NA1'}, { absolutePath: 'NA2'}],
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
           context: { baseUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
           interval: 6000,
@@ -270,12 +270,12 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'refocus-sample-collector',
             connection: {
               url: 'http://www.google.com',
-              bulk: true
+              bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
-          subjects: [{ absolutePath: 'NA4'}, { absolutePath: 'NA2'}],
+          subjects: [{ absolutePath: 'NA4' }, { absolutePath: 'NA2' }],
           collectors: [{ name: 'agent1' }],
           interval: 6000,
         },
@@ -304,7 +304,7 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'sfdc-live-agent-collector',
             connection: {
               url: 'http://www.liveagentdatasource.com',
-              bulk: true
+              bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -319,7 +319,7 @@ describe('test/heartbeat/listener.js >', () => {
             name: 'sfdc-live-agent-collector',
             connection: {
               url: 'http://www.liveagentdatasource.com',
-              bulk: true
+              bulk: true,
             },
           },
         },
