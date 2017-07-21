@@ -27,6 +27,7 @@ const generator1 = {
   generatorTemplate: {
     connection: {
       url: 'http://www.abc.com',
+      bulk: true,
     },
   },
 };
@@ -35,9 +36,11 @@ const generator2 = {
   name: 'generator2',
   interval: 6000,
   aspects: [{ name: 'A2', timeout: '1m' }],
+  subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
     connection: {
       url: 'http://www.abc.com',
+      bulk: false,
     },
   },
 };
@@ -46,9 +49,11 @@ const generator3 = {
   name: 'generator3',
   interval: 6000,
   aspects: [{ name: 'A3', timeout: '1m' }],
+  subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
     connection: {
       url: 'http://www.abc.com',
+      bulk: false,
     },
   },
 };

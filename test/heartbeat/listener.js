@@ -50,6 +50,7 @@ describe('test/heartbeat/listener.js >', () => {
           name: 'refocus-trust1-collector',
           connection: {
             url: 'http://www.google.com',
+            bulk: true,
           },
         },
         interval: 6000,
@@ -82,7 +83,13 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust2',
           generatorTemplateName: 'refocus-trust1-collector',
-          generatorTemplate: {},
+          generatorTemplate: {
+            name: 'refocus-trust1-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+          },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api' },
           collectors: [{ name: 'agent1' }],
@@ -91,9 +98,9 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
-    expect(updatedConfig.generators.SFDC_Core_Trust1)
-      .to.deep.equal(hbResponse.generatorsAdded[0]);
-    expect(repeatTracker.SFDC_Core_Trust1).not.equal(null);
+    expect(updatedConfig.generators.SFDC_Core_Trust2)
+      .to.deep.equal(res.generatorsAdded[0]);
+    expect(repeatTracker.SFDC_Core_Trust2._bulk).not.equal(undefined);
     done();
   });
 
@@ -104,7 +111,13 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'SFDC_Core_Trust3',
           generatorTemplateName: 'refocus-trust1-collector',
-          generatorTemplate: {},
+          generatorTemplate: {
+            name: 'refocus-trust1-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+          },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
@@ -118,7 +131,13 @@ describe('test/heartbeat/listener.js >', () => {
         name: 'SFDC_Core_Trust3',
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
-        generatorTemplate: {},
+        generatorTemplate: {
+          name: 'refocus-trust1-collector',
+          connection: {
+            url: 'http://www.google.com',
+            bulk: true,
+          },
+        },
       },
     ];
     hbResponse.generatorsAdded = [];
@@ -126,6 +145,148 @@ describe('test/heartbeat/listener.js >', () => {
     expect(updatedConfig.generators.SFDC_Core_Trust3.context)
       .to.deep.equal({ baseUrl: 'https://example.api', });
     expect(repeatTracker.SFDC_Core_Trust3).not.equal(null);
+    done();
+  });
+
+  it('SGT with bulk= false should be handled', (done) => {
+    const res = {
+      heartbeatInterval: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_Core_Trust_nonBulk',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {
+            name: 'refocus-trust1-collector-nonbulk',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: false,
+            },
+          },
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
+          collectors: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    expect(updatedConfig.generators.SFDC_Core_Trust_nonBulk)
+      .to.deep.equal(res.generatorsAdded[0]);
+    expect(repeatTracker.SFDC_Core_Trust_nonBulk.NA1).not.equal(undefined);
+    expect(repeatTracker.SFDC_Core_Trust_nonBulk.NA2).not.equal(undefined);
+    done();
+  });
+
+  it('SGT update from bulk=true to bulk=false', (done) => {
+    const res = {
+      heartbeatInterval: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_bulktrueToBulkFalse_1',
+          generatorTemplateName: 'refocus-sample-collector',
+          generatorTemplate: {
+            name: 'refocus-sample-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
+          collectors: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+
+    let updatedConfig = listener.handleHeartbeatResponse(null, res);
+    expect(updatedConfig.generators.SFDC_bulktrueToBulkFalse_1)
+      .to.deep.equal(res.generatorsAdded[0]);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_1._bulk).not.equal(undefined);
+    const updatedRes = {
+      generatorsUpdated: [
+        {
+          name: 'SFDC_bulktrueToBulkFalse_1',
+          generatorTemplateName: 'refocus-sample-collector',
+          generatorTemplate: {
+            name: 'refocus-sample-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: false,
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
+          context: { baseUrl: 'https://example.api', },
+          collectors: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+
+    updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
+    expect(updatedConfig.generators.SFDC_bulktrueToBulkFalse_1)
+      .to.deep.equal(updatedRes.generatorsUpdated[0]);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_1.NA1).not.equal(undefined);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_1.NA2).not.equal(undefined);
+    done();
+  });
+
+  it('SGT update from bulk=false to bulk=true', (done) => {
+    const res = {
+      heartbeatInterval: 50,
+      generatorsAdded: [
+        {
+          name: 'SFDC_bulktrueToBulkFalse_2',
+          generatorTemplateName: 'refocus-sample-collector',
+          generatorTemplate: {
+            name: 'refocus-sample-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: false,
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
+          context: { baseUrl: 'https://example.api', },
+          collectors: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+
+    let updatedConfig = listener.handleHeartbeatResponse(null, res);
+    expect(updatedConfig.generators.SFDC_bulktrueToBulkFalse_2)
+      .to.deep.equal(res.generatorsAdded[0]);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_2.NA1).not.equal(undefined);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_2.NA2).not.equal(undefined);
+    const updatedRes = {
+      generatorsUpdated: [
+        {
+          name: 'SFDC_bulktrueToBulkFalse_2',
+          generatorTemplateName: 'refocus-sample-collector',
+          generatorTemplate: {
+            name: 'refocus-sample-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseUrl: 'https://example.api', },
+          subjects: [{ absolutePath: 'NA4' }, { absolutePath: 'NA2' }],
+          collectors: [{ name: 'agent1' }],
+          interval: 6000,
+        },
+      ],
+    };
+
+    updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
+    expect(updatedConfig.generators.SFDC_bulktrueToBulkFalse_2)
+      .to.deep.equal(updatedRes.generatorsUpdated[0]);
+    expect(repeatTracker.SFDC_bulktrueToBulkFalse_2._bulk).not.equal(undefined);
+
     done();
   });
 
@@ -139,7 +300,13 @@ describe('test/heartbeat/listener.js >', () => {
           aspects: [{ name: 'A', timeout: '1m' }],
           interval: 6000,
           generatorTemplateName: 'refocus-trust1-collector',
-          generatorTemplate: {},
+          generatorTemplate: {
+            name: 'sfdc-live-agent-collector',
+            connection: {
+              url: 'http://www.liveagentdatasource.com',
+              bulk: true,
+            },
+          },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseUrl: 'https://example.api', },
         },
@@ -148,13 +315,18 @@ describe('test/heartbeat/listener.js >', () => {
           aspects: [{ name: 'A', timeout: '1m' }],
           interval: 1000,
           context: { baseUrl: 'https://argus-api.data.sfdc.net', },
-          generatorTemplate: {},
+          generatorTemplate: {
+            name: 'sfdc-live-agent-collector',
+            connection: {
+              url: 'http://www.liveagentdatasource.com',
+              bulk: true,
+            },
+          },
         },
       ],
     };
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.SFDC_LIVE_AGENT).to.not.equal(undefined);
-    expect(updatedConfig.generators.SFDC_Core_Trust1).to.not.equal(undefined);
     const resDel = {
       generatorsDeleted: [
         { name: 'SFDC_LIVE_AGENT', },

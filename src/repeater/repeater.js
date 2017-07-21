@@ -17,8 +17,39 @@ const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 
-// Tracks all the repeats defined in the collectors.
+/**
+ * Tracks all the repeats defined in the collectors.
+ * The repeatTracker object looks like
+ *  {
+ *    'heartbeat': repeatHandle,
+ *    'sampleQueueFlush': repeatHandle,
+ *    'generator1' : { // when bulk is true
+ *      _bulk: repeatHandle,
+ *    }
+ *    'generator2' : { // when bullk is false
+ *      subject1: repeatHandle,
+ *      subject2: repeatHandle,
+ *    }
+ *  }
+ *
+ */
 const repeatTracker = {};
+
+/**
+ * Update the repeatTracker object to track new repeats
+ * @param  {Object} def - Repeater definition object
+ */
+function trackRepeat(def) {
+  if (!def.hasOwnProperty('bulk')) {
+    repeatTracker[def.name] = def.handle;
+  } else if (def.bulk === true) {
+    repeatTracker[def.name] = { _bulk: def.handle };
+  } else if (def.bulk === false && repeatTracker[def.name]) {
+    repeatTracker[def.name][def.subject.absolutePath] = def.handle;
+  } else if (def.bulk === false && !repeatTracker[def.name]) {
+    repeatTracker[def.name] = { [def.subject.absolutePath]: def.handle };
+  }
+} // trackRepeat
 
 /**
  * The default function that is called every time a task is repeated.
@@ -62,7 +93,15 @@ function stop(name) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
 
-  repeatTracker[name].stop();
+  if (repeatTracker[name].stop) {
+    repeatTracker[name].stop();
+  } else {
+    Object.keys(repeatTracker[name]).forEach((prop) => {
+      repeatTracker[name][prop].stop();
+      delete repeatTracker[name][prop];
+    });
+  }
+
   delete repeatTracker[name];
   logger.info(`Stopping repeater identified by: ${name}`);
 } // stop
@@ -88,7 +127,9 @@ function validateDefinition(def) {
       'string attribute called "name".');
   }
 
-  if (repeatTracker[def.name]) {
+  if ((repeatTracker[def.name] && !def.hasOwnProperty('bulk')) ||
+    (repeatTracker[def.name] && (repeatTracker[def.name][def.subject.absolutePath] ||
+      repeatTracker[def.name]._bulk))) {
     throw new errors.ValidationError('Duplicate repeater name violation: ' +
       def.name);
   }
@@ -123,12 +164,13 @@ function validateDefinition(def) {
 function create(def) {
   validateDefinition(def);
   const handle = repeat(def.func);
+
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
     def.onProgress || onProgress);
-  repeatTracker[def.name] = handle;
   def.handle = handle;
   def.funcName = def.func.name;
+  trackRepeat(def);
   logger.info({
     activity: 'createdRepeater',
     name: def.name,
@@ -137,27 +179,6 @@ function create(def) {
   });
   return def;
 } // create
-
-/**
- * Update the specified repeater.
- *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- *  {Function} func - required, function to execute repeatedly
- *  {Function} onSuccess - function to execute only once, after *all*
- *    of the scheduled repetitions have completed
- *  {Function} onFailure - function to execute if any repetition fails
- *  {Function} onProgress - function to execute upon completion of each
- *    repetition.
- * @returns {Promise} - A read-only Promise instance
- * @throws {ValidationError} - Thrown by validateDefinition
- */
-function update(def) {
-  stop(def.name);
-  return create(def);
-} // update
 
 /**
  * Convenience function to create a new generator repeater.
@@ -182,45 +203,16 @@ function createGeneratorRepeater(generator) {
     interval: generator.interval,
     func: collectWrapper,
     onProgress: handleCollectResponse,
+    bulk: generator.generatorTemplate.connection.bulk,
+    subject: generator.subject,
   };
-
   return create(def);
 } // createGeneratorRepeater
-
-/**
- * Convenience function to update a generator repeater.
- *
- * @param {Object} generator - The sample generator object
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- * @returns {Promise} - A read-only Promise instance.
- */
-function updateGeneratorRepeater(generator) {
-  /**
-   * Wrapping the collect function to pass a function definition to the repeat
-   * task
-   * @returns {Promise} which resolves to the response of the collect function
-   */
-  function collectWrapper() {
-    return collect(generator);
-  }
-
-  const def = {
-    name: generator.name,
-    interval: generator.interval,
-    func: collectWrapper,
-    onProgress: handleCollectResponse,
-  };
-
-  return update(def);
-} // updateGeneratorRepeater
 
 module.exports = {
   create,
   createGeneratorRepeater,
   repeatTracker, // export for testing only
   stop,
-  update,
-  updateGeneratorRepeater,
   validateDefinition, // export for testing only
 };
