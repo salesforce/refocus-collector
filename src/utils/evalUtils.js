@@ -244,7 +244,7 @@ function validateSamples(sampleArr, generator) {
  * @throws {ArgsError} - if thrown by validateTransformArgs function
  * @throws {FunctionBodyError} - if thrown by safeEval function or if function
  *  body is not a string
- * @throws {TrasnsformError} - if transform does not return valid array of
+ * @throws {TransformError} - if transform does not return valid array of
  *  samples
  */
 function safeTransform(functionBody, args) {

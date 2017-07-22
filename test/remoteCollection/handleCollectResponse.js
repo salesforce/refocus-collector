@@ -18,35 +18,64 @@ const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
 const tu = require('../testUtils');
 const registry = tu.config.registry[Object.keys(tu.config.registry)[0]];
 const refocusUrl = registry.url;
-const handleCollectRes =
-  require('../../src/remoteCollection/handleCollectResponse')
-    .handleCollectResponse;
+const errors = require('../../src/config/errors');
+const hcr = require('../../src/remoteCollection/handleCollectResponse');
+const validateCollectResponse = hcr.validateCollectResponse;
+const handleCollectResponse = hcr.handleCollectResponse;
 
 const httpStatus = require('../../src/constants').httpStatus;
 const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
-  it('ArgsError if handleCollectResponse is called with a promise which ' +
-    'resolves to null', (done) => {
-    handleCollectRes(Promise.resolve(null))
-    .then(() => done('Expecting Bad Request Error'))
-    .catch((err) => {
-      expect(err.message).to.contain('The argument to handleCollectResponse ' +
-        'cannot be null or an Array');
-      expect(err.name).to.equal('ArgsError');
-      done();
+  describe('validateCollectResponse >', () => {
+    it('error if arg is undefined', (done) => {
+      try {
+        validateCollectResponse();
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
     });
-  });
 
-  it('Promise passed should not resolve to an array', (done) => {
-    const obj = ['ctx', 'results'];
-    handleCollectRes(Promise.resolve(obj))
-    .then(() => done('Expecting a ValidationError'))
-    .catch((err) => {
-      expect(err.message).to.contain('The argument to handleCollectResponse ' +
-        'cannot be null or an Array');
-      expect(err.name).to.equal('ArgsError');
-      done();
+    it('error if arg is null', (done) => {
+      try {
+        validateCollectResponse(null);
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('error if arg is array', (done) => {
+      try {
+        validateCollectResponse(['a', 1]);
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('error if arg missing "res" attribute', (done) => {
+      try {
+        validateCollectResponse({ name: 'Foo' });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('error if arg missing "name" attribute', (done) => {
+      try {
+        validateCollectResponse({ res: {} });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
     });
   });
 
@@ -59,7 +88,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
       },
     };
-    handleCollectRes(Promise.resolve(obj))
+    handleCollectResponse(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
     .catch((err) => {
       expect(err.message).to.contain('Must include EITHER a "subject" ' +
@@ -77,7 +106,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
       },
     };
-    handleCollectRes(Promise.resolve(obj))
+    handleCollectResponse(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
     .catch((err) => {
       expect(err.message).to.contain('Missing "context" attribute');
@@ -97,10 +126,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
-    handleCollectRes(Promise.resolve(obj))
+    handleCollectResponse(Promise.resolve(obj))
     .then(() => done('Expecting a ValidationError'))
     .catch((err) => {
-      expect(err.message).to.contain('should have a "name" attribute');
       expect(err.name).to.equal('ValidationError');
       return done();
     })
@@ -129,7 +157,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     // stub winston info to test the logs
     const winstonInfoStub = sinon.stub(winston, 'info');
-    handleCollectRes(Promise.resolve(collectRes))
+    handleCollectResponse(Promise.resolve(collectRes))
     .then(() => {
       // check the logs
       expect(winston.info.calledTwice).to.be.true;
