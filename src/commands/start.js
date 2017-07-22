@@ -20,29 +20,7 @@ const flush = require('../sampleQueue/sampleQueueOps').flush;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const fs = require('fs');
 const registryFile = require('../constants').registryLocation;
-
-/**
- * Get registry object from registry file.
- *
- * @param {String} name - Name of the collector
- * @param {String} file - path of registry file
- *
- * @returns {Object} regObj - Return registry object
- */
-function getRegistryObj(name, file) {
-  try {
-    const registryFile = fs.readFileSync(file);
-    let registryData = JSON.parse(registryFile);
-    if (name in registryData) {
-      return registryData[name];
-    } else {
-      return new Error('There is no registry with name');
-    }
-  } catch (err) {
-    logger.error(err.message);
-    logger.error(err);
-  }
-}
+const registryFileUtils = require('../utils/registryFileUtils');
 
 /**
  * The "start" command creates the heartbeat repeater.
@@ -53,7 +31,7 @@ function execute(name) {
   debug('Entered start.execute');
   configModule.setRegistry();
   const config = configModule.getConfig();
-  const regObj = getRegistryObj(name, registryFile);
+  const regObj = registryFileUtils.getRegistry(name, registryFile);
 
   repeater.create({
     name: 'Heartbeat',

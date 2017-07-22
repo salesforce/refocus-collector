@@ -16,6 +16,7 @@ const common = require('../utils/commonUtils');
 const errors = require('./errors');
 const fs = require('fs');
 const validator = require('validator');
+const registryFileUtils = require('../utils/registryFileUtils');
 
 /**
  * Validate the registry.
@@ -84,16 +85,7 @@ function init(reg) {
     try {
       fileContents = common.readFileSynchr(reg);
     } catch (err) {
-      debug('File %s not found', reg);
-      debug('Creating %s', reg);
-
-      fs.writeFile(reg, '{}', 'utf8', (err) => {
-        if (err) {
-          return debug(err);
-        }
-
-        debug('File %s is created successfully', reg);
-      });
+      registryFileUtils.createRegistryFile(reg);
     }
 
     if (fileContents) {

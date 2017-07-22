@@ -51,22 +51,6 @@ describe('test/commands/register >', () => {
     done();
   });
 
-  it('Test appendObject function', (done) => {
-    const regObj = {
-      name: 'PRD',
-      url: 'test.com',
-      token: 'eewewrrrr',
-    };
-
-    cmdStart.appendObject('PRDTest', regObj, constants.registryLocation);
-    const registryFile = fs.readFileSync(constants.registryLocation);
-    let registryData = JSON.parse(registryFile);
-    expect(registryData).to.include.keys('PRDTest');
-    expect(registryData.PRDTest).to.deep
-      .equal(regObj);
-    done();
-  });
-
   it('Test execute function', (done) => {
     const checkResObj = {
       name: 'PRDTest',
