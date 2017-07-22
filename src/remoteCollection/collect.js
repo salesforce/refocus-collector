@@ -65,10 +65,13 @@ function prepareHeaders(headers, ctx) {
   const retval = {
     Accept: 'application/json', // default
   };
-  const hkeys = Object.keys(headers);
-  hkeys.forEach((key) => {
-    retval[key] = urlUtils.expand(headers[key], ctx);
-  });
+  if (headers && typeof headers === 'object') {
+    const hkeys = Object.keys(headers);
+    hkeys.forEach((key) => {
+      retval[key] = urlUtils.expand(headers[key], ctx);
+    });
+  }
+
   debug('exiting prepareHeaders', retval);
   return retval;
 } // prepareHeaders
