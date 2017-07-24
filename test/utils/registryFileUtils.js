@@ -12,6 +12,7 @@
 
 const expect = require('chai').expect;
 const registryFileUtils = require('../../src/utils/registryFileUtils');
+const removeRegistryFile = require('../testUtils').removeRegistryFile;
 const fs = require('fs');
 
 describe('test/utils/registryFileUtils.js - Registry File >', () => {
@@ -35,7 +36,7 @@ describe('test/utils/registryFileUtils.js - Registry Obj >', () => {
   });
 
   after(() => {
-    registryFileUtils.deleteRegistryFile('test.json');
+    removeRegistryFile('test.json');
   });
 
   const reg1 = {
@@ -53,7 +54,7 @@ describe('test/utils/registryFileUtils.js - Registry Obj >', () => {
   it('add registry', (done) => {
     registryFileUtils.addRegistry('reg1', reg1, 'test.json');
     ret = registryFileUtils.getRegistry('reg1', 'test.json');
-    console.log(ret);
+    expect(ret).to.deep.equal(reg1);
     done();
   });
 
@@ -62,37 +63,6 @@ describe('test/utils/registryFileUtils.js - Registry Obj >', () => {
     registryFileUtils.addRegistry('reg2', reg2, 'test.json');
     ret = registryFileUtils.getRegistry('reg2', 'test.json');
     expect(ret).to.deep.equal(reg2);
-    done();
-  });
-
-  it('update registry', (done) => {
-    updatedReg = {
-      name: 'reg1',
-      url: 'xyzw.com',
-      token: 'rrrrrehfsufdhksdgvffvgi',
-    };
-
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    registryFileUtils.updateRegistry('reg1', updatedReg, 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
-    expect(ret).to.deep.equal(updatedReg);
-    done();
-  });
-
-  it('update registry error', (done) => {
-    updatedReg = {
-      name: 'reg1',
-      url: 'xyzw.com',
-      token: 'rrrrrehfsufdhksdgvffvgi',
-    };
-
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    try {
-      registryFileUtils.updateRegistry('reg22', updatedReg, 'test.json');
-    } catch (err) {
-      expect(err.message).contains('There is no registry entry based on name');
-    }
-
     done();
   });
 
@@ -115,7 +85,7 @@ describe('test/utils/registryFileUtils.js - Registry Obj >', () => {
     expect(ret).to.deep.equal(reg1);
 
     registryFileUtils.removeRegistry('reg1', 'test.json');
-    ret = registryFileUtils.getRegistry('reg12', 'test.json');
+    ret = registryFileUtils.getRegistry('reg1', 'test.json');
     expect(ret.message).contains('There is no registry with name');
     done();
   });

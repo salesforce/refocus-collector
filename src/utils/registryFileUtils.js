@@ -26,30 +26,13 @@ const logger = require('winston');
  */
 function createRegistryFile(file=null) {
   file = file ? file : registryFile;
-  fs.writeFile(file, '{}', 'utf8', (err) => {
+  fs.writeFileSync(file, JSON.stringify({}, null, 2), 'utf8', (err) => {
     if (err) {
       return debug(err);
     }
 
     debug('File %s is created successfully', file);
   });
-}
-
-/**
- * Delete registry file
- *
- * @param  {String} file - Name of the registry file
- *
- * @throws {Error} If registry file is not found
- */
-function deleteRegistryFile(file) {
-  file = file ? file : registryFile;
-  try {
-    fs.unlinkSync(file);
-  } catch (err) {
-    logger.error(err.message);
-    logger.error(err);
-  }
 }
 
 /**
@@ -70,17 +53,18 @@ function getRegistry(name, file=null) {
       return new Error('There is no registry with name');
     }
   } catch (err) {
-    logger.error(err.message);
     logger.error(err);
   }
 }
 
 /**
- * Add registry object to regostry file
+ * Add registry object to registry file
  *
  * @param {String} name -  Name of the registry
  * @param {Object} registryObj - Registry Object to add
  * @param {String} file - Name of registry file
+ *
+ * @throws {Error} If file is not found
  */
 function addRegistry(name, registryObj, file=null) {
   file = file ? file : registryFile;
@@ -91,21 +75,19 @@ function addRegistry(name, registryObj, file=null) {
     const configJSON = JSON.stringify(registryData, null, 2);
     fs.writeFileSync(file, configJSON);
   } catch (err) {
-    logger.error(err.message);
     logger.error(err);
   }
 }
 
 /**
- * Remove regsitry object based on name
+ * Remove registry object based on name
  *
  * @param  {String} name - Name of the registry
  * @param  {String} file - Name of registry file
  *
- * @throws error If file is not found or registry data is not present
+ * @throws {Error} If file is not found or registry data is not present
  */
 function removeRegistry(name, file=null) {
-  console.log('I am here');
   file = file ? file : registryFile;
   try {
     const registryFile = fs.readFileSync(file);
@@ -118,7 +100,6 @@ function removeRegistry(name, file=null) {
       throw new Error('There is no registry entry based on name');
     }
   } catch (err) {
-    logger.error(err.message);
     logger.error(err);
   }
 }
@@ -149,7 +130,6 @@ function updateRegistry(name, registryObj, file=null) {
     const configJSON = JSON.stringify(registryData, null, 2);
     fs.writeFileSync(file, configJSON);
   } catch (err) {
-    logger.error(err.message);
     logger.error(err);
   }
 }
@@ -157,8 +137,6 @@ function updateRegistry(name, registryObj, file=null) {
 module.exports = {
   addRegistry,
   createRegistryFile,
-  deleteRegistryFile,
   getRegistry,
   removeRegistry,
-  updateRegistry,
 };
