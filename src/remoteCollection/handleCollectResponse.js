@@ -16,6 +16,34 @@ const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
 
 /**
+ * Validates the response from the collect function. Confirms that it is an
+ * object and has "res" and "name" attributes.
+ *
+ * @param  {Object} collectResponse - Response from the "collect" function,
+ *  i.e. the generator object along with the "res" attribute which maps to the
+ *  response from the remote data source.
+ * @throws {ValidationError} If the argument is not an object or is missing
+ *  "res" or "name" attributes.
+ */
+function validateCollectResponse(cr) {
+  if (!cr || typeof cr !== 'object' || Array.isArray(cr)) {
+    throw new errors.ValidationError('The argument passed to the ' +
+      '"handleCollectResponse" function must be an object, must not be ' +
+      'null, and must not be an Array.');
+  }
+
+  if (!cr.res) {
+    throw new errors.ValidationError('The argument passed to the ' +
+      '"handleCollectResponse" function must have a "res" attribute.');
+  }
+
+  if (!cr.name) {
+    throw new errors.ValidationError('The argument passed to the ' +
+      '"handleCollectResponse" function must have a "name" attribute.');
+  }
+} // validateCollectResponse
+
+/**
  * Handles the response from the remote data source by calling the transform
  * function. It also calls the sample bulk upsert api to send the data to the
  * configured refocus instance immediately. In the later versions,
@@ -23,40 +51,20 @@ const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
  * storing the sample in an in-memory sample queue.
  *
  * @param  {Promise} collectResponse - Response from the "collect" function.
- *  This resolves to the generator object along with the "res" attribute
- *  which maps to the response from the remote data source
- * @returns {Promise} - which can be resolved to the response of the sample
- *  bulk upsert API. An error object is returned if an error is thrown.
- * @throws {ArgsError} If the argument "collectRes" is not an object.
- * @throws {ValidationError} If the argument "collectRes" does not have a "res"
- *  or "ctx" or "subject|subjects" and "transform" attribute.
+ *  This resolves to the generator object along with the "res" attribute which
+ *  maps to the response from the remote data source
+ * @returns {Promise} - which resolves to the response of the sample bulk
+ *  upsert API or an error.
+ * @throws {ValidationError} if thrown by validateCollectResponse
  */
 function handleCollectResponse(collectResponse) {
-  debug('Entered handleCollectResponse: >>');
+  debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
     try {
-      if (!collectRes || typeof collectRes !== 'object' ||
-        Array.isArray(collectRes)) {
-        throw new errors.ArgsError('The argument to handleCollectResponse ' +
-          'cannot be null or an Array');
-      }
-
-      if (!collectRes.res) {
-        throw new errors.ValidationError('The object passed to ' +
-          'handleCollectResponse should have a res attribute');
-      }
-
-      const t = Array.isArray(collectRes.generatorTemplate.transform) ?
-        collectRes.generatorTemplate.transform.join('\n') :
-        collectRes.generatorTemplate.transform;
+      validateCollectResponse(collectRes);
+      const tr = collectRes.generatorTemplate.transform;
+      const t = Array.isArray(tr) ? tr.join('\n') : tr;
       const transformedSamples = evalUtils.safeTransform(t, collectRes);
-
-      // collectRes (which is sample generator) should have a name.
-      if (!collectRes.name) {
-        throw new errors.ValidationError('The object passed to ' +
-          'handleCollectResponse should have a "name" attribute');
-      }
-
       logger.info(`{
         generator: ${collectRes.name},
         numSamples: ${transformedSamples.length},
@@ -64,18 +72,19 @@ function handleCollectResponse(collectResponse) {
       enqueue(transformedSamples);
     } catch (err) {
       debug(err);
-      logger.error('handleCollectResponse threw an error: ',
-        err.name, err.message);
+      logger.error('handleCollectResponse threw an error: ', err.name,
+        err.message);
       return Promise.reject(err);
     }
   }).catch((err) => {
     debug(err);
-    logger.error('handleCollectResponse threw an error: ',
-        err.name, err.message);
+    logger.error('handleCollectResponse threw an error: ', err.name,
+      err.message);
     return Promise.reject(err);
   });
 } // handleCollectResponse
 
 module.exports = {
   handleCollectResponse,
+  validateCollectResponse, // export for testing only
 };
