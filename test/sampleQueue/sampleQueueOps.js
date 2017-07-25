@@ -76,30 +76,21 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
     it('sample does not have name property', (done) => {
       const sample = { abc: 'sample1|aspName' };
       expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(
-        ValidationError,
-        'ValidationError: Invalid sample: {"abc":"sample1|aspName"}\nCode: 602'
-      );
+      .to.throw(ValidationError);
       done();
     });
 
     it('sample name too small', (done) => {
       const sample = { name: 's|' };
       expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(
-        ValidationError,
-        'ValidationError: Invalid sample: {"name":"s|"}\nCode: 602'
-      );
+      .to.throw(ValidationError);
       done();
     });
 
     it('sample name no |', (done) => {
       const sample = { name: 'sn' };
       expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(
-        ValidationError,
-        'ValidationError: Invalid sample: {"name":"sn"}\nCode: 602'
-      );
+      .to.throw(ValidationError);
       done();
     });
   });

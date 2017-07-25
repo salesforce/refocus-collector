@@ -15,6 +15,8 @@
 const errors = require('errors');
 
 errors.create({ name: 'CollectorError' });
+errors.create({ name: 'SampleGeneratorError' });
+errors.create({ name: 'SampleGeneratorTemplateError' });
 
 errors.create({
   name: 'ValidationError',
@@ -70,6 +72,14 @@ errors.create({
     'attribute (object) or a "subjects" attribute (array).',
   status: 400,
   parent: errors.FunctionBodyError,
+});
+
+errors.create({
+  name: 'TemplateVariableSubstitutionError',
+  defaultExplanation: 'Invalid template for variable substitution.',
+  defaultResponse: 'Invalid template for variable substitution.',
+  status: 400,
+  parent: errors.SampleGeneratorTemplateError,
 });
 
 module.exports = errors;
