@@ -17,28 +17,7 @@ const logger = require('winston');
 const config = require('../config/config');
 const fs = require('fs');
 const registryFile = require('../constants').registryLocation;
-
-/**
- * Add registryObj to registry file.
- *
- * @param {String} refocusName - Refocus instance name
- * @param {Object} refocusDetails - Refocus URL and token
- *
- * @throws error if file is not created or adding refocus instance
- *   failed
- */
-function appendObject(refocusName, refocusDetails, file) {
-  try {
-    const registryFile = fs.readFileSync(file);
-    let registryData = JSON.parse(registryFile);
-    registryData[refocusName] = refocusDetails;
-    const configJSON = JSON.stringify(registryData, null, 2);
-    fs.writeFileSync(file, configJSON);
-  } catch (err) {
-    logger.error(err.message);
-    logger.error(err);
-  }
-}
+const registryFileUtils = require('../utils/registryFileUtils');
 
 /**
  * Create Registry Object using Refocus URL and token.
@@ -65,11 +44,10 @@ function createRegistryObject(name, url, token) {
 function execute(name, url, token) {
   debug('Entered register.execute');
   const registryObj = createRegistryObject(name, url, token);
-  appendObject(name, registryObj, registryFile);
+  registryFileUtils.addRegistry(name, registryObj, registryFile);
 } // execute
 
 module.exports = {
-  appendObject,
   createRegistryObject,
   execute,
 };

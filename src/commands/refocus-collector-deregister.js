@@ -13,6 +13,7 @@
  */
 const program = require('commander');
 const logger = require('winston');
+const cmdDeregister = require('./deregister');
 
 program
   .option('-n, --name <name>',
@@ -29,6 +30,7 @@ if (!name || typeof (name) === 'function') {
 
 try {
   console.log('Deregister =>', name);
+  cmdDeregister.execute(name);
 } catch (err) {
   logger.error(err.message);
   logger.error(err);

@@ -32,8 +32,9 @@ function makeRegistryFile() {
     JSON.stringify(expectedResult), 'utf8');
 }
 
-function removeRegistryFile() {
-  fs.unlinkSync(constants.registryLocation);
+function removeRegistryFile(file=null) {
+  file = file ? file : constants.registryLocation;
+  fs.unlinkSync(file);
 }
 
 module.exports = {
