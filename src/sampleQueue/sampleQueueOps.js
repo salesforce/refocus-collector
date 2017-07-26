@@ -13,24 +13,23 @@ const debug = require('debug')('refocus-collector:sampleQueue');
 const logger = require('winston');
 const sampleUpsertUtils = require('./sampleUpsertUtils');
 const errors = require('../config/errors');
+const sampleSchema = require('../utils/schema').sample;
 const sampleQueue = [];
 
 /**
+ * Validates the sample.
+ *
  * @param {Object} sample - The sample to validate
+ * @returns {Object} the valid sample
  * @throws {ValidationError} if the object does not look like a sample
  */
 function validateSample(sample) {
-  if (
-    typeof sample === 'object' && !Array.isArray(sample) &&
-    sample.hasOwnProperty('name') && typeof sample.name === 'string' &&
-    sample.name.length >= 3 && sample.name.indexOf('|') > 0
-  ) {
-    return;
+  const val = sampleSchema.validate(sample);
+  if (val.error) {
+    throw new errors.ValidationError(val.error.message);
   }
 
-  throw new errors.ValidationError(
-    `Invalid sample: ${JSON.stringify(sample)}`
-  );
+  return sample;
 }
 
 /**

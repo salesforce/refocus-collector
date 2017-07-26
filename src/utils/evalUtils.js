@@ -14,12 +14,9 @@ const debug = require('debug')('refocus-collector:evalUtils');
 const logger = require('winston');
 const errors = require('../config/errors');
 const evalValidation = require('./evalValidation');
+const sampleSchema = require('./schema').sample;
 const ERROR_MESSAGE = {
   TRANSFORM: {
-    ELEMENT_NOT_OBJECT: 'The transform function must return an array of ' +
-      'samples.',
-    NO_ELEMENT_NAME: 'The transform function must return an array of ' +
-      'samples, and each sample must have a "name" attribute of type string.',
     NOT_ARRAY: 'The transform function must return an array.',
   },
   TO_URL: {
@@ -187,13 +184,9 @@ function validateSamples(sampleArr, generator) {
 
   const uniqueSamples = new Set();
   sampleArr.forEach((samp) => {
-    if (typeof samp !== 'object' || Array.isArray(samp)) {
-      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM
-        .ELEMENT_NOT_OBJECT);
-    }
-
-    if (typeof samp.name !== 'string') {
-      throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NO_ELEMENT_NAME);
+    const val = sampleSchema.validate(samp);
+    if (val.error) {
+      throw new errors.TransformError(val.error.message);
     }
 
     const sampName = samp.name;

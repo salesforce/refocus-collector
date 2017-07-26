@@ -34,7 +34,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
   beforeEach(() => {
     samples = [];
     for (let i = 0; i < 10; i++) { // create 10 samples
-      samples.push({ name: `sample${i.toString()}|aspName`, value: i });
+      samples.push({ name: `sample${i.toString()}|aspName`, value: '' + i });
     }
 
     winstonInfoStub = sinon.stub(winston, 'info');
@@ -53,42 +53,8 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       done();
     });
 
-    it('sample not object', (done) => {
+    it('throws', (done) => {
       const sample = 'abc';
-      expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(
-        ValidationError,
-        'Invalid sample: "abc"'
-      );
-      done();
-    });
-
-    it('sample an array', (done) => {
-      const sample = ['abc'];
-      expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(
-        ValidationError,
-        'Invalid sample: ["abc"]'
-      );
-      done();
-    });
-
-    it('sample does not have name property', (done) => {
-      const sample = { abc: 'sample1|aspName' };
-      expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(ValidationError);
-      done();
-    });
-
-    it('sample name too small', (done) => {
-      const sample = { name: 's|' };
-      expect(() => sampleQueueOps.validateSample(sample))
-      .to.throw(ValidationError);
-      done();
-    });
-
-    it('sample name no |', (done) => {
-      const sample = { name: 'sn' };
       expect(() => sampleQueueOps.validateSample(sample))
       .to.throw(ValidationError);
       done();
@@ -96,7 +62,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
   });
 
   describe('enqueue >', () => {
-    it('enqueue, ok', (done) => {
+    it('ok', (done) => {
       // check the sample queue length and contents
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
@@ -112,12 +78,11 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       done();
     });
 
-    it('enqueue, failed', (done) => {
+    it('failed', (done) => {
       sampleQueueOps.enqueue([['randomText']]);
       expect(winston.error.calledOnce).to.be.true;
       expect(winston.error.args[0][0]).contains(
-        'Enqueue failed. Error: ValidationError: Invalid sample: ' +
-        '["randomText"]'
+        'Enqueue failed. Error: ValidationError'
       );
 
       done();
@@ -125,11 +90,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
   });
 
   describe('flush >', () => {
-    beforeEach(() => {
-      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
-    });
+    beforeEach(() => sampleQueueOps.flush(100, tu.firstKeyPairInRegistry));
 
-    it('flush, number of samples < maxSamplesPerBulkRequest, ok', (done) => {
+    it('number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
       // right arguments
       sampleQueueOps.enqueue(samples);
@@ -149,9 +112,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       done();
     });
 
-    it('flush, number of samples > maxSamplesPerBulkRequest, ok', (done) => {
+    it('number of samples > maxSamplesPerBulkRequest, ok', (done) => {
       for (let i = 0; i < 250; i++) { // create and enqueue 250 more samples
-        samples.push({ name: `sample${i.toString()}|aspName`, value: i });
+        samples.push({ name: `sample${i.toString()}|aspName`, value: '' + i });
       }
 
       // check that bulk upsert called expected number of times and with

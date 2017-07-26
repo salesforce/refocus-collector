@@ -149,8 +149,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       context: {},
       res: { text: '{ "a": "atext" }' },
       subject: { absolutePath: 'S1' },
-      generatorTemplate: { transform:
-        'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
+      generatorTemplate: {
+        transform: 'return ' +
+          '[{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]',
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
@@ -165,8 +166,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(winston.info.args[0][0]).contains('numSamples: 2');
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
       expect(sampleQueueOps.sampleQueue[0])
-      .to.eql({ name: 'S1|A1', value: 10 });
-      expect(sampleQueueOps.sampleQueue[1]).to.eql({ name: 'S1|A2', value: 2 });
+      .to.eql({ name: 'S1|A1', value: '10' });
+      expect(sampleQueueOps.sampleQueue[1])
+      .to.eql({ name: 'S1|A2', value: '2' });
       sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
 
       // restore winston stub
