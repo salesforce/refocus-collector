@@ -9,7 +9,6 @@
 /**
  * test/repeater/repeater.js
  */
-
 const repeater = require('../../src/repeater/repeater');
 const repeatTracker = repeater.repeatTracker;
 const expect = require('chai').expect;

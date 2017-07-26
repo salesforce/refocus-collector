@@ -11,6 +11,19 @@
  */
 const Joi = require('joi');
 
+const repeater = Joi.object().keys({
+  name: Joi.string().required(),
+  interval: Joi.number().integer().positive(), // TODO define min/max!
+  func: Joi.func().required(),
+  onSuccess: Joi.func(),
+  onFailure: Joi.func(),
+  onProgress: Joi.func(),
+  bulk: Joi.boolean(),
+  subject: Joi.object(),
+  handle: Joi.any(),
+  funcName: Joi.string(),
+});
+
 const sample = Joi.object().keys({
   name: Joi.string().regex(/^[0-9A-Za-z_\\-]{1,4096}\|[0-9A-Za-z_\\-]{1,60}$/)
     .required(),
@@ -26,5 +39,6 @@ const sample = Joi.object().keys({
 });
 
 module.exports = {
+  repeater,
   sample,
 };
