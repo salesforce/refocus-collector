@@ -149,16 +149,16 @@ describe('test/remoteCollection/collect.js >', () => {
             },
             url: 'http://bart.gov.api/status',
           },
-          transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: 'return [{ name: "Fremont|Delay", value: "10" }, ' +
+            '{ name: "UnionCity|Delay", value: "2" }]',
         },
         bulk: true,
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
         aspects: [{ name: 'Delay', timeout: '1m' }],
       };
       const remoteData = {
-        station: [{ name: 'Fremont|Delay', value: 10 },
-          { name: 'UnionCity|Delay', value: 2 },
+        station: [{ name: 'Fremont|Delay', value: '10' },
+          { name: 'UnionCity|Delay', value: '2' },
         ],
       };
       nock(remoteUrl)
@@ -173,9 +173,9 @@ describe('test/remoteCollection/collect.js >', () => {
       .then(() => {
         expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
         expect(sampleQueueOps.sampleQueue[0])
-          .to.eql({ name: 'Fremont|Delay', value: 10 });
+          .to.eql({ name: 'Fremont|Delay', value: '10' });
         expect(sampleQueueOps.sampleQueue[1])
-          .to.eql({ name: 'UnionCity|Delay', value: 2 });
+          .to.eql({ name: 'UnionCity|Delay', value: '2' });
         sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
         done();
       })

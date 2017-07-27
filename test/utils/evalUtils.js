@@ -13,7 +13,7 @@
 const expect = require('chai').expect;
 const eu = require('../../src/utils/evalUtils');
 
-describe('test/utils/evalUtils >', (done) => {
+describe('test/utils/evalUtils.js >', (done) => {
   describe('validateTransformArgs >', (done) => {
     it('object with required set of attributes', (done) => {
       try {
@@ -866,6 +866,7 @@ describe('test/utils/evalUtils >', (done) => {
       }
     });
   });
+
   describe('validateSamples >', () => {
     it('Samples returned not array', (done) => {
       const sampleArr = { name: 'S1|A1', value: 10 };
@@ -896,15 +897,13 @@ describe('test/utils/evalUtils >', (done) => {
         eu.validateSamples(sampleArr, gen);
         done('Expecting TransformError');
       } catch (err) {
-        expect(err.message).to.be.equal(
-          'The transform function must return an array of samples.'
-        );
+        expect(err.name).to.be.equal('TransformError');
         done();
       }
     });
 
     it('Sample does not have name', (done) => {
-      const sampleArr = [{ abc: 'S1|A1', value: 10 }];
+      const sampleArr = [{ abc: 'S1|A1', value: '10' }];
       const gen = {
         name: 'mockGenerator',
         subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
@@ -914,10 +913,7 @@ describe('test/utils/evalUtils >', (done) => {
         eu.validateSamples(sampleArr, gen);
         done('Expecting TransformError');
       } catch (err) {
-        expect(err.message).to.be.equal(
-          'The transform function must return an array of samples, and each ' +
-          'sample must have a "name" attribute of type string.'
-        );
+        expect(err.name).to.be.equal('TransformError');
         done();
       }
     });
@@ -933,10 +929,7 @@ describe('test/utils/evalUtils >', (done) => {
         eu.validateSamples(sampleArr, gen);
         done('Expecting TransformError');
       } catch (err) {
-        expect(err.message).to.be.equal(
-          'The transform function must return an array of samples, and each ' +
-          'sample must have a "name" attribute of type string.'
-        );
+        expect(err.name).to.be.equal('TransformError');
         done();
       }
     });
@@ -964,8 +957,8 @@ describe('test/utils/evalUtils >', (done) => {
 
     it('Unknown aspect in samples', (done) => {
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
-        { name: 'S2|A1', value: 10 }, { name: 'S2|A3', value: 2 },
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' }, { name: 'S2|A3', value: '2' },
       ];
       const gen = {
         name: 'mockGenerator',
@@ -976,16 +969,15 @@ describe('test/utils/evalUtils >', (done) => {
         eu.validateSamples(sampleArr, gen);
         done('Expecting ValidationError');
       } catch (err) {
-        expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
-          ' S2|A3');
+        expect(err.name).to.be.equal('ValidationError');
         done();
       }
     });
 
     it('Unknown subject in samples', (done) => {
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
-        { name: 'S2|A1', value: 10 }, { name: 'S3|A2', value: 2 },
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' }, { name: 'S3|A2', value: '2' },
       ];
       const gen = {
         name: 'mockGenerator',
@@ -996,16 +988,15 @@ describe('test/utils/evalUtils >', (done) => {
         eu.validateSamples(sampleArr, gen);
         done('Expecting ValidationError');
       } catch (err) {
-        expect(err.message).to.be.equal('Unknown subject or aspect for sample:' +
-          ' S3|A2');
+        expect(err.name).to.be.equal('ValidationError');
         done();
       }
     });
 
     it('Duplicate samples in sample array', (done) => {
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
-        { name: 'S2|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
       const gen = {
         name: 'mockGenerator',
@@ -1023,8 +1014,8 @@ describe('test/utils/evalUtils >', (done) => {
 
     it('Invalid sample name without |', (done) => {
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
-        { name: 'S2|A1', value: 10 }, { name: 'S1A2', value: 2 },
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' }, { name: 'S1A2', value: '2' },
       ];
       const gen = {
         name: 'mockGenerator',
@@ -1033,16 +1024,16 @@ describe('test/utils/evalUtils >', (done) => {
       };
       try {
         eu.validateSamples(sampleArr, gen);
-        done('Expecting ValidationError');
+        done('Expecting TransformError');
       } catch (err) {
-        expect(err.message).to.be.equal('Invalid sample name: S1A2');
+        expect(err.name).to.be.equal('TransformError');
         done();
       }
     });
 
     it('OK', (done) => {
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
       const gen = {
         name: 'mockGenerator',

@@ -36,6 +36,7 @@
     "figlet": "^1.2.0",
     "fs": "0.0.1-security",
     "just-template": "^1.1.22",
+    "joi": "^10.6.0",
     "nock": "^9.0.13",
     "path": "^0.12.7",
     "repeat": "0.0.6",
