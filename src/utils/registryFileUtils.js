@@ -9,6 +9,20 @@
 /**
  * ./src/utils/registryFileUtils.js
  * Registry Utility for registry.json file.
+ * Registry file format:
+ *   {
+ *    "name": "MarysLinuxBoxCollector",
+ *    "host": "mary-lx3",
+ *    "ipAddress": "203.281.12.111",
+ *    "description": "This collector runs on the linux box under Mary's desk so
+ *    it is not production-level hardware and there is no guarantee that it will
+ *    be running all the time. It has access to splunk and argus but use at your
+ *    own risk.",
+ *    "refocusInstances": {
+ *      "foo": { "name": "foo", "url": "...", "token": "..." },
+ *      "bar": { "name": "bar", "url": "...", "token": "..." }
+ *    }
+ * }
  */
 const registryFile = require('../constants').registryLocation;
 const fs = require('fs');
@@ -26,7 +40,7 @@ const logger = require('winston');
  */
 function createRegistryFile(file=null) {
   file = file ? file : registryFile;
-  fs.writeFileSync(file, JSON.stringify({}, null, 2), 'utf8', (err) => {
+  fs.writeFileSync(file, JSON.stringify({ refocusInstances: {} }, null, 2), 'utf8', (err) => {
     if (err) {
       return debug(err);
     }
@@ -47,8 +61,8 @@ function getRegistry(name, file=null) {
   try {
     const registryFile = fs.readFileSync(file);
     let registryData = JSON.parse(registryFile);
-    if (name in registryData) {
-      return registryData[name];
+    if (name in registryData.refocusInstances) {
+      return registryData.refocusInstances[name];
     } else {
       return new Error('There is no registry with name');
     }
@@ -71,7 +85,7 @@ function addRegistry(name, registryObj, file=null) {
   try {
     const registryFile = fs.readFileSync(file);
     let registryData = JSON.parse(registryFile);
-    registryData[name] = registryObj;
+    registryData.refocusInstances[name] = registryObj;
     const configJSON = JSON.stringify(registryData, null, 2);
     fs.writeFileSync(file, configJSON);
   } catch (err) {
@@ -92,43 +106,13 @@ function removeRegistry(name, file=null) {
   try {
     const registryFile = fs.readFileSync(file);
     let registryData = JSON.parse(registryFile);
-    if (registryData[name]) {
-      delete registryData[name];
+    if (registryData.refocusInstances[name]) {
+      delete registryData.refocusInstances[name];
       const configJSON = JSON.stringify(registryData, null, 2);
       fs.writeFileSync(file, configJSON);
     } else {
       throw new Error('There is no registry entry based on name');
     }
-  } catch (err) {
-    logger.error(err);
-  }
-}
-
-/**
- * Update regstry object based on name
- *
- * @param  {String} name - Name of registry
- * @param  {Object} registryObj - Registry Object for updation
- * @param  {String} file - Name of registry file
- *
- * @throws {Error} If registry is not found or file is not found
- */
-function updateRegistry(name, registryObj, file=null) {
-  file = file ? file : registryFile;
-  try {
-    const registryFile = fs.readFileSync(file);
-    let registryData = JSON.parse(registryFile);
-
-    if (registryData[name]) {
-      registryData[name] = registryObj;
-      const configJSON = JSON.stringify(registryData, null, 2);
-      fs.writeFileSync(file, configJSON);
-    } else {
-      throw new Error('There is no registry entry based on name');
-    }
-
-    const configJSON = JSON.stringify(registryData, null, 2);
-    fs.writeFileSync(file, configJSON);
   } catch (err) {
     logger.error(err);
   }

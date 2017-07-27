@@ -29,21 +29,24 @@ function validateRegistry(reg) {
     throw new errors.ValidationError('Registry must be an object.');
   }
 
-  for (const r in reg) {
-    if (!reg[r].hasOwnProperty('url') || !reg[r].hasOwnProperty('token')) {
+  const refocusInsts = reg.refocusInstances;
+  for (const r in refocusInsts) {
+    if (!refocusInsts[r].hasOwnProperty('url') ||
+     !refocusInsts[r].hasOwnProperty('token')) {
       const msg = `Registry entry "${r}" missing required "url" and/or ` +
         '"token" attribute.';
       debug(msg);
       throw new errors.ValidationError(msg);
     }
 
-    if ((typeof reg[r].token !== 'string' || !reg[r].token)) {
+    if ((typeof refocusInsts[r].token !== 'string' || !refocusInsts[r].token)) {
       const msg = `Registry entry "${r}" token must be a non empty string `;
       debug(msg);
       throw new errors.ValidationError(msg);
     }
 
-    if (typeof reg[r].url !== 'string' || !validator.isURL(reg[r].url)) {
+    if (typeof refocusInsts[r].url !== 'string' ||
+     !validator.isURL(refocusInsts[r].url)) {
       const msg = `Registry entry "${r}" url must be a string and must be a ` +
       'valid url';
       debug(msg);

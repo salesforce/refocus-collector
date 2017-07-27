@@ -15,6 +15,7 @@
 const debug = require('debug')('refocus-collector:commands');
 const registryFile = require('../constants').registryLocation;
 const registryFileUtils = require('../utils/registryFileUtils');
+const configModule = require('../config/config');
 
 /**
  * The "deregister" command removes the entry into registry.json file.
@@ -24,6 +25,7 @@ const registryFileUtils = require('../utils/registryFileUtils');
 function execute(name) {
   debug('Entered deregister.execute');
   registryFileUtils.removeRegistry(name, registryFile);
+  delete configModule.getConfig().registry.refocusInstances[name];
 } // execute
 
 module.exports = {
