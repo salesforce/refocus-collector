@@ -27,7 +27,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
     // clear stub
     after(mock.clearRoutes);
 
-    it('no url in registry object, gives validation error', (done) => {
+    it('no url in refocus instance object, gives validation error', (done) => {
       sampleUpsertUtils.doBulkUpsert({ token: 'dummy' }, [])
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
@@ -57,7 +57,7 @@ describe('test/sampleQueue/sampleUpsertUtils.js >', () => {
       });
     });
 
-    it('no token in registry object, gives validation error', (done) => {
+    it('no token in refocus instance object, gives validation error', (done) => {
       sampleUpsertUtils.doBulkUpsert(properRegistryObject)
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {

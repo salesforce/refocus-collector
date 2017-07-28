@@ -16,8 +16,9 @@ const winston = require('winston');
 const mockRest = require('../mockedResponse');
 const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
 const tu = require('../testUtils');
-const registry = tu.config.registry[Object.keys(tu.config.registry)[0]];
-const refocusUrl = registry.url;
+const refocusUrl = tu.config.registry.refocusInstances[
+  Object.keys(tu.config.registry.refocusInstances)[0]
+].url;
 const errors = require('../../src/config/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
@@ -169,7 +170,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       .to.eql({ name: 'S1|A1', value: '10' });
       expect(sampleQueueOps.sampleQueue[1])
       .to.eql({ name: 'S1|A2', value: '2' });
-      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
 
       // restore winston stub
       winstonInfoStub.restore();

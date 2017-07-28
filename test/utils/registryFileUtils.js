@@ -51,54 +51,56 @@ describe('test/utils/registryFileUtils.js - Registry Obj >', () => {
     token: 'rrrrrehfsufdhksdgvffvgi',
   };
 
-  it('add registry', (done) => {
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
+  it('add refocus instance', (done) => {
+    registryFileUtils.addRefocusInstance('reg1', reg1, 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg1', 'test.json');
     expect(ret).to.deep.equal(reg1);
     done();
   });
 
-  it('get registry after adding one more', (done) => {
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    registryFileUtils.addRegistry('reg2', reg2, 'test.json');
-    ret = registryFileUtils.getRegistry('reg2', 'test.json');
+  it('get refocus instance after adding one more', (done) => {
+    registryFileUtils.addRefocusInstance('reg1', reg1, 'test.json');
+    registryFileUtils.addRefocusInstance('reg2', reg2, 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg2', 'test.json');
     expect(ret).to.deep.equal(reg2);
     done();
   });
 
-  it('get registry', (done) => {
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
+  it('get refocus instance', (done) => {
+    registryFileUtils.addRefocusInstance('reg1', reg1, 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg1', 'test.json');
     expect(ret).to.deep.equal(reg1);
     done();
   });
 
-  it('get registry error', (done) => {
-    ret = registryFileUtils.getRegistry('reg12', 'test.json');
+  it('get refocus instance error', (done) => {
+    ret = registryFileUtils.getRefocusInstance('reg12', 'test.json');
     expect(ret.message).contains('There is no registry with name');
     done();
   });
 
-  it('delete registry', (done) => {
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
+  it('delete refocus instance', (done) => {
+    registryFileUtils.addRefocusInstance('reg1', reg1, 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg1', 'test.json');
     expect(ret).to.deep.equal(reg1);
 
-    registryFileUtils.removeRegistry('reg1', 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
+    registryFileUtils.removeRefocusInstance('reg1', 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg1', 'test.json');
     expect(ret.message).contains('There is no registry with name');
     done();
   });
 
-  it('delete registry irrelavent entry', (done) => {
-    registryFileUtils.addRegistry('reg1', reg1, 'test.json');
-    ret = registryFileUtils.getRegistry('reg1', 'test.json');
+  it('delete refocus instance irrelavent entry', (done) => {
+    registryFileUtils.addRefocusInstance('reg1', reg1, 'test.json');
+    ret = registryFileUtils.getRefocusInstance('reg1', 'test.json');
     expect(ret).to.deep.equal(reg1);
 
     try {
-      registryFileUtils.removeRegistry('reg13', 'test.json');
+      registryFileUtils.removeRefocusInstance('reg13', 'test.json');
     } catch (err) {
-      expect(err.message).contains('There is no registry entry based on name');
+      expect(err.message).contains(
+        'There is no refocus instance entry based on name'
+      );
     }
 
     done();

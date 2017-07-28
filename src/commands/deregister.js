@@ -24,7 +24,7 @@ const configModule = require('../config/config');
  */
 function execute(name) {
   debug('Entered deregister.execute');
-  registryFileUtils.removeRegistry(name, registryFile);
+  registryFileUtils.removeRefocusInstance(name, registryFile);
   delete configModule.getConfig().registry.refocusInstances[name];
 } // execute
 

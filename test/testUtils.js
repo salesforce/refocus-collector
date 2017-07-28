@@ -17,9 +17,10 @@ conf.setRegistry('./test/config/testRegistry.json');
 
 const config = conf.getConfig();
 
-const firstKeyPairInRegistry = {};
-const firstKey = Object.keys(config.registry)[0];
-firstKeyPairInRegistry[firstKey] = config.registry[firstKey];
+const firstKeyPairInRefocusInstances = {};
+const firstKey = Object.keys(config.registry.refocusInstances)[0];
+firstKeyPairInRefocusInstances[firstKey] = config.registry
+                                            .refocusInstances[firstKey];
 
 function makeRegistryFile() {
   const expectedResult = {
@@ -44,7 +45,7 @@ function removeRegistryFile(file=null) {
 }
 
 module.exports = {
-  firstKeyPairInRegistry,
+  firstKeyPairInRefocusInstances,
   makeRegistryFile,
   removeRegistryFile,
   config,

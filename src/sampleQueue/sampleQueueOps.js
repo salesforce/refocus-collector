@@ -53,25 +53,27 @@ function enqueue(samples) {
 /**
  * Bulk upsert samples and log the success or failure
  * @param  {Array} samples - Array of samples
- * @param  {Object} firstKeyPairInRegistry - The first pair of
- *  key and value in registry. Change when Refocus registry name is
+ * @param  {Object} firstKeyPairInRefocusInstances - The first pair of
+ *  key and value in refocusInstances. Change when Refocus instance name is
  *  decided.
- * @throws {ValidationError} - If firstKeyPairInRegistry is not found
+ * @throws {ValidationError} - If firstKeyPairInRefocusInstances is not found
  */
-function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
+function bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances) {
   debug('Entered: bulkUpsertAndLog');
-  if (!firstKeyPairInRegistry ||
-    Object.keys(firstKeyPairInRegistry).length === 0) {
+  if (!firstKeyPairInRefocusInstances ||
+    Object.keys(firstKeyPairInRefocusInstances).length === 0) {
     throw new errors.ValidationError(
-      `firstKeyPairInRegistry empty or not found.` +
-      ` Registry: ${JSON.stringify(firstKeyPairInRegistry)}`
+      `firstKeyPairInRefocusInstances empty or not found.` +
+      ` RefocusInstance: ${JSON.stringify(firstKeyPairInRefocusInstances)}`
     );
   }
 
   debug(`Starting bulk upsert of ${samples.length} samples.`);
 
   sampleUpsertUtils.doBulkUpsert(
-    firstKeyPairInRegistry[Object.keys(firstKeyPairInRegistry)[0]], samples
+    firstKeyPairInRefocusInstances[
+      Object.keys(firstKeyPairInRefocusInstances)[0]
+    ], samples
   )
   .then(() => {
     logger.info({
@@ -91,13 +93,13 @@ function bulkUpsertAndLog(samples, firstKeyPairInRegistry) {
  * in batches of maxSamplesPerBulkRequest count.
  *
  * @param {Number} maxSamplesPerBulkRequest - the maximum batch size; unlimited
- * @param  {Object} firstKeyPairInRegistry - The first pair of
- *  key and value in registry. Change when Refocus registry name is
+ * @param  {Object} firstKeyPairInRefocusInstances - The first pair of
+ *  key and value in refocusInstances. Change when Refocus instance name is
  *  decided.
  *  batch size if arg is not defined or not a number
  * @returns {Number} - number of samples flushed
  */
-function flush(maxSamplesPerBulkRequest, firstKeyPairInRegistry) {
+function flush(maxSamplesPerBulkRequest, firstKeyPairInRefocusInstances) {
   debug('Entered: flush', maxSamplesPerBulkRequest);
   const max = new Number(maxSamplesPerBulkRequest) || Number.MAX_SAFE_INTEGER;
   const totSamplesCnt = sampleQueue.length;
@@ -106,12 +108,12 @@ function flush(maxSamplesPerBulkRequest, firstKeyPairInRegistry) {
   while ((startIdx + max) < totSamplesCnt) {
     const endIdx = startIdx + max;
     samples = sampleQueue.slice(startIdx, endIdx);
-    bulkUpsertAndLog(samples, firstKeyPairInRegistry);
+    bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances);
     startIdx = endIdx;
   }
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
-  bulkUpsertAndLog(samples, firstKeyPairInRegistry);
+  bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
   return totSamplesCnt;

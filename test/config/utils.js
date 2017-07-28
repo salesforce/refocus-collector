@@ -19,15 +19,16 @@ describe('test/config/utils.js >', () => {
   it('config object is created after reading registry', (done) => {
     const obj = configUtils.init('./test/config/testRegistry.json');
     expect(obj.registry).to.not.equal(null);
-    expect(obj.registry.collectorName1.url).to.equal('http://www.xyz.com');
-    expect(obj.registry.collectorName1.token).to.exist;
+    expect(obj.registry.refocusInstances.collectorName1.url)
+    .to.equal('http://www.xyz.com');
+    expect(obj.registry.refocusInstances.collectorName1.token).to.exist;
     done();
   });
 
-  describe('validateRegistry >', () => {
+  describe('validateRefocusInstances >', () => {
     it('OK', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           a: { token: 'abcdefg', url: 'https://www.google.com' },
         });
         done();
@@ -38,7 +39,7 @@ describe('test/config/utils.js >', () => {
 
     it('no arg', (done) => {
       try {
-        configUtils.validateRegistry();
+        configUtils.validateRefocusInstances();
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -51,7 +52,7 @@ describe('test/config/utils.js >', () => {
 
     it('array arg', (done) => {
       try {
-        configUtils.validateRegistry([1, 2, 3]);
+        configUtils.validateRefocusInstances([1, 2, 3]);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -64,7 +65,7 @@ describe('test/config/utils.js >', () => {
 
     it('string arg', (done) => {
       try {
-        configUtils.validateRegistry('Hello, World!');
+        configUtils.validateRefocusInstances('Hello, World!');
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -85,7 +86,7 @@ describe('test/config/utils.js >', () => {
       };
 
       try {
-        configUtils.validateRegistry(reg);
+        configUtils.validateRefocusInstances(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -106,7 +107,7 @@ describe('test/config/utils.js >', () => {
       };
 
       try {
-        configUtils.validateRegistry(reg);
+        configUtils.validateRefocusInstances(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -127,7 +128,7 @@ describe('test/config/utils.js >', () => {
       };
 
       try {
-        configUtils.validateRegistry(reg);
+        configUtils.validateRefocusInstances(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -147,7 +148,7 @@ describe('test/config/utils.js >', () => {
       };
 
       try {
-        configUtils.validateRegistry(reg);
+        configUtils.validateRefocusInstances(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -168,7 +169,7 @@ describe('test/config/utils.js >', () => {
       };
 
       try {
-        configUtils.validateRegistry(reg);
+        configUtils.validateRefocusInstances(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -181,7 +182,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is undefined', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: undefined },
@@ -200,7 +201,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is empty', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: '' },
@@ -219,7 +220,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is an array', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: [1, 2, 3] },
@@ -238,7 +239,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is an object', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: { a: 'b' } },
@@ -257,7 +258,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is in invalid format: 2 dots(.) in url', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: 'http://.com.com' },
@@ -276,7 +277,7 @@ describe('test/config/utils.js >', () => {
     it('url value is in invalid format without top level ' +
       'domain ', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: 'invalid url' },
@@ -294,7 +295,7 @@ describe('test/config/utils.js >', () => {
 
     it('url value is in invalid format with empty string', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: '' },
@@ -312,7 +313,7 @@ describe('test/config/utils.js >', () => {
 
     it('token value is null', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: 'https://www.google.com' },
@@ -331,7 +332,7 @@ describe('test/config/utils.js >', () => {
 
     it('token value is undefined', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: 'https://www.google.com' },
@@ -350,7 +351,7 @@ describe('test/config/utils.js >', () => {
 
     it('token value is empty', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: 'abcdefg', url: 'https://www.google.com' },
@@ -369,7 +370,7 @@ describe('test/config/utils.js >', () => {
 
     it('token value is an array', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: [1, 2, 3], url: 'https://www.google.com' },
@@ -388,7 +389,7 @@ describe('test/config/utils.js >', () => {
 
     it('token value is an object', (done) => {
       try {
-        configUtils.validateRegistry({
+        configUtils.validateRefocusInstances({
           name: 'collectorName1',
           refocusInstances: {
             a: { token: { a: 'b' }, url: 'https://www.google.com' },

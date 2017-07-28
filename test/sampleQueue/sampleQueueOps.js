@@ -21,7 +21,9 @@ const nock = require('nock');
 const mockRest = require('../mockedResponse');
 const httpStatus = require('../../src/constants').httpStatus;
 const registry = tu.config.registry;
-const refocusUrl = registry[Object.keys(tu.config.registry)[0]].url;
+const refocusUrl = registry.refocusInstances[
+  Object.keys(tu.config.registry.refocusInstances)[0]
+].url;
 configModule.clearConfig();
 configModule.setRegistry(registry);
 const sampleQueueOps =  require('../../src/sampleQueue/sampleQueueOps');
@@ -90,7 +92,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
   });
 
   describe('flush >', () => {
-    beforeEach(() => sampleQueueOps.flush(100, tu.firstKeyPairInRegistry));
+    beforeEach(() => sampleQueueOps.flush(
+      100, tu.firstKeyPairInRefocusInstances
+    ));
 
     it('number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
@@ -98,7 +102,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
       sinon.assert.calledOnce(doBulkUpsert);
       expect(doBulkUpsert.args[0][0].url).to.be.equal(
         'http://www.xyz.com'
@@ -121,7 +125,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100, tu.firstKeyPairInRegistry);
+      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);
@@ -146,7 +150,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
-      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
+      sampleQueueOps.bulkUpsertAndLog(
+        samples, tu.firstKeyPairInRefocusInstances
+      );
 
       // Since logs are created after the bulkUpsert async call returns, hence
       // setTimeout to wait for promise to complete.
@@ -164,7 +170,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
 
-      sampleQueueOps.bulkUpsertAndLog(samples, tu.firstKeyPairInRegistry);
+      sampleQueueOps.bulkUpsertAndLog(
+        samples, tu.firstKeyPairInRefocusInstances
+      );
 
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
