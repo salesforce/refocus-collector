@@ -50,13 +50,13 @@ function createRegistryFile(file=null) {
 }
 
 /**
- * Get Registry object based on name
+ * Get refocus instance object based on name
  *
- * @param  {String} name - Name of the registry
+ * @param  {String} name - Name of the refocus instance
  * @param  {String} file - Name of registry file
- * @return {Object} - Registry object related to name
+ * @return {Object} - Refocus instance object related to name
  */
-function getRegistry(name, file=null) {
+function getRefocusInstance(name, file=null) {
   file = file ? file : registryFile;
   try {
     const registryFile = fs.readFileSync(file);
@@ -72,15 +72,15 @@ function getRegistry(name, file=null) {
 }
 
 /**
- * Add registry object to registry file
+ * Add refocus instance object to registry file
  *
- * @param {String} name -  Name of the registry
- * @param {Object} registryObj - Registry Object to add
+ * @param {String} name -  Name of the refocus instance
+ * @param {Object} registryObj - Refocus instance Object to add
  * @param {String} file - Name of registry file
  *
  * @throws {Error} If file is not found
  */
-function addRegistry(name, registryObj, file=null) {
+function addRefocusInstance(name, registryObj, file=null) {
   file = file ? file : registryFile;
   try {
     const registryFile = fs.readFileSync(file);
@@ -94,14 +94,14 @@ function addRegistry(name, registryObj, file=null) {
 }
 
 /**
- * Remove registry object based on name
+ * Remove refocus instance object based on name
  *
- * @param  {String} name - Name of the registry
+ * @param  {String} name - Name of the refocus instance
  * @param  {String} file - Name of registry file
  *
  * @throws {Error} If file is not found or registry data is not present
  */
-function removeRegistry(name, file=null) {
+function removeRefocusInstance(name, file=null) {
   file = file ? file : registryFile;
   try {
     const registryFile = fs.readFileSync(file);
@@ -111,7 +111,7 @@ function removeRegistry(name, file=null) {
       const configJSON = JSON.stringify(registryData, null, 2);
       fs.writeFileSync(file, configJSON);
     } else {
-      throw new Error('There is no registry entry based on name');
+      throw new Error('There is no refocus instance entry based on name');
     }
   } catch (err) {
     logger.error(err);
@@ -119,8 +119,8 @@ function removeRegistry(name, file=null) {
 }
 
 module.exports = {
-  addRegistry,
+  addRefocusInstance,
   createRegistryFile,
-  getRegistry,
-  removeRegistry,
+  getRefocusInstance,
+  removeRefocusInstance,
 };

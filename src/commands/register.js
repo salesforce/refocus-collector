@@ -44,7 +44,7 @@ function createRegistryObject(name, url, token) {
 function execute(name, url, token) {
   debug('Entered register.execute');
   const registryObj = createRegistryObject(name, url, token);
-  registryFileUtils.addRegistry(name, registryObj, registryFile);
+  registryFileUtils.addRefocusInstance(name, registryObj, registryFile);
 } // execute
 
 module.exports = {

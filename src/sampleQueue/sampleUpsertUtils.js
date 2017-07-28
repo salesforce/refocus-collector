@@ -20,20 +20,20 @@ module.exports = {
   /**
    * Send the upsert and handle any errors in the response.
    *
-   * @param {Object} registry contains Refocus url and token,
+   * @param {Object} refocusInstances contains Refocus url and token,
    * @param {Array} arr is the array of samples to upsert;
    * @throws {ValidationError} if argument(s) is missing,
    * or in a wrong format.
    * @returns {Promise} contains a successful response, or failed error
    */
-  doBulkUpsert(registry, arr) {
-    const { url, token } = registry;
+  doBulkUpsert(refocusInstance, arr) {
+    const { url, token } = refocusInstance;
     return new Promise((resolve, reject) => {
       if (!url) {
         // Throw error if url is not present in registry.
         debug('Error: refocus url not found. Supplied %s', url);
         reject(new errors.ValidationError(
-          'registry should have an url property.'
+          'Refocus instance should have a url property.'
         ));
       }
 
@@ -41,7 +41,7 @@ module.exports = {
         // Throw error if token is not present in registry.
         debug('Error: refocus url not found. Supplied %s', token);
         reject(new errors.ValidationError(
-          'registry should have a token property.'
+          'Refocus instance should have a token property.'
         ));
       }
 

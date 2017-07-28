@@ -28,10 +28,10 @@ let lastHeartbeatTime;
  * @returns {Request} - the request sent to the Refocus server
  * @throws {ValidationError} - if required config fields are missing
  */
-function sendHeartbeat(regObj) {
+function sendHeartbeat(refocusInstanceObj) {
   debug('Entered sendHeartbeat');
   let collectorName;
-  let registryName;
+  let refocusInstanceName;
   let baseUrl;
   let token;
   let path;
@@ -41,18 +41,22 @@ function sendHeartbeat(regObj) {
     //TODO: use the registry for this collector once command line args are setup
     collectorName = configModule.getConfig().name;
 
-    registryName = regObj.name;
-    baseUrl = regObj.url;
-    token = regObj.token;
+    refocusInstanceName = refocusInstanceObj.name;
+    baseUrl = refocusInstanceObj.url;
+    token = refocusInstanceObj.token;
     path = `/v1/collectors/${collectorName}/heartbeat`;
     url = baseUrl + path;
 
     if (baseUrl == null) {
-      throw new errors.ValidationError(`No url in registry for ${collectorName}`);
+      throw new errors.ValidationError(
+        `No url in refocus instance for ${refocusInstanceName}`
+      );
     }
 
     if (token == null) {
-      throw new errors.ValidationError(`No token in registry for ${collectorName}`);
+      throw new errors.ValidationError(
+        `No token in refocus instance for ${refocusInstanceName}`
+      );
     }
 
     const body = {
@@ -75,8 +79,8 @@ function sendHeartbeat(regObj) {
     //return req;
   }
   catch (err) {
-    if (!regObj) {
-      throw new errors.ValidationError('Registry config Object is missing');
+    if (!refocusInstanceObj) {
+      throw new errors.ValidationError('RefocusInstance Object is missing');
     } else {
       throw err;
     }

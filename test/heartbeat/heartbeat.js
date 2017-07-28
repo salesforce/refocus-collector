@@ -16,7 +16,7 @@ const expect = require('chai').expect;
 const errors = require('../../src/config/errors');
 const configModule = require('../../src/config/config');
 configModule.clearConfig();
-configModule.setRegistry({});
+configModule.setRegistry({ refocusInstances: {} });
 let config = configModule.getConfig();
 const heartbeat = require('../../src/heartbeat/heartbeat');
 
@@ -75,10 +75,10 @@ function mockNew(contents) {
 describe('test/heartbeat/heartbeat.js >', () => {
   const url = 'https://www.example.com';
   const token = 'cCI6IkpXV5ciOiJIUzI1CJ9eyJhbGNiIsInR';
-  const collectorName = 'exampleCollector';
+  const refocusInstanceName = 'exampleRefocusInstance';
 
   before(() => {
-    configModule.setRegistry({});
+    configModule.setRegistry({ refocusInstances: {} });
     config = configModule.getConfig();
   });
 
@@ -276,7 +276,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end', (done) => {
     config.generators = {};
-    config.registry[collectorName] = {
+    config.registry[refocusInstanceName] = {
       url: url,
       token: token,
       name: 'Test',
@@ -306,7 +306,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end (error)', (done) => {
     config.generators = {};
-    config.registry[collectorName] = {
+    config.registry.refocusInstances[refocusInstanceName] = {
       url: url,
       token: token,
       name: 'Test',
@@ -378,10 +378,12 @@ describe('test/heartbeat/heartbeat.js >', () => {
     }
   });
 
-  it('sendHeartbeat - empty registry', (done) => {
-    config.registry = {};
+  it('sendHeartbeat - empty refocus instance', (done) => {
+    config.registry = { refocusInstances: {} };
     try {
-      heartbeat.sendHeartbeat(config.registry[collectorName]);
+      heartbeat.sendHeartbeat(
+        config.registry.refocusInstances[refocusInstanceName]
+      );
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();

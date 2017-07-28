@@ -19,35 +19,35 @@ const validator = require('validator');
 const registryFileUtils = require('../utils/registryFileUtils');
 
 /**
- * Validate the registry.
+ * Validate the refocus instances.
  *
  * @throws {ValidationError} - If registry entry missing "url" or "token"
  *  attribute
  */
-function validateRegistry(reg) {
+function validateRefocusInstances(reg) {
   if (!reg || Array.isArray(reg) || typeof reg !== 'object') {
-    throw new errors.ValidationError('Registry must be an object.');
+    throw new errors.ValidationError('refocusInstances must be an object.');
   }
 
   const refocusInsts = reg.refocusInstances;
   for (const r in refocusInsts) {
     if (!refocusInsts[r].hasOwnProperty('url') ||
      !refocusInsts[r].hasOwnProperty('token')) {
-      const msg = `Registry entry "${r}" missing required "url" and/or ` +
+      const msg = `RefocusInstance entry "${r}" missing required "url" and/or ` +
         '"token" attribute.';
       debug(msg);
       throw new errors.ValidationError(msg);
     }
 
     if ((typeof refocusInsts[r].token !== 'string' || !refocusInsts[r].token)) {
-      const msg = `Registry entry "${r}" token must be a non empty string `;
+      const msg = `RefocusInstance entry "${r}" token must be a non empty string `;
       debug(msg);
       throw new errors.ValidationError(msg);
     }
 
     if (typeof refocusInsts[r].url !== 'string' ||
      !validator.isURL(refocusInsts[r].url)) {
-      const msg = `Registry entry "${r}" url must be a string and must be a ` +
+      const msg = `RefocusInstance entry "${r}" url must be a string and must be a ` +
       'valid url';
       debug(msg);
       throw new errors.ValidationError(msg);
@@ -93,7 +93,7 @@ function init(reg) {
 
     if (fileContents) {
       r = JSON.parse(fileContents);
-      validateRegistry(r);
+      validateRefocusInstances(r);
     }
   }
 
@@ -104,5 +104,5 @@ function init(reg) {
 
 module.exports = {
   init,
-  validateRegistry, // export for testing only
+  validateRefocusInstances, // export for testing only
 };

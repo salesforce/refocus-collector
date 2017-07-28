@@ -1,4 +1,9 @@
 {
+  "name": "MarysLinuxBoxCollector",
+  "host": "mary-lx3",
+  "ipAddress": "203.281.12.111",
+  "description": "This collector runs on the linux box under Mary's desk so it is not production-level hardware and there is no guarantee that it will be running all the time. It has access to splunk and argus but use at your own risk.",
+  "refocusInstances": {
     "collectorName1" : {
         "url" : "http://www.xyz.com",
         "token" : "ewuifiekhfewfhsfhshjfjhfgewuih"
@@ -7,4 +12,5 @@
         "url" : "http://abc.def.com",
         "token" : "gsfdgfdsgmns,dfgjkafmasdgkfjgknf"
     }
+  }
 }

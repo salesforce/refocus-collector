@@ -31,7 +31,7 @@ function execute(name) {
   debug('Entered start.execute');
   configModule.setRegistry();
   const config = configModule.getConfig();
-  const regObj = registryFileUtils.getRegistry(name, registryFile);
+  const regObj = registryFileUtils.getRefocusInstance(name, registryFile);
 
   /*
    * TODO: Replace the success/failure/progress listeners here with proper
