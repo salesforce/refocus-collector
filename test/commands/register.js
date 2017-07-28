@@ -61,8 +61,8 @@ describe('test/commands/register >', () => {
     cmdStart.execute('PRDTest', 'test.com', 'eewewrrrr');
     const registryFile = fs.readFileSync(constants.registryLocation);
     let registryData = JSON.parse(registryFile);
-    expect(registryData).to.include.keys('PRDTest');
-    expect(registryData.PRDTest).to.deep
+    expect(registryData.refocusInstances).to.include.keys('PRDTest');
+    expect(registryData.refocusInstances.PRDTest).to.deep
       .equal(checkResObj);
     done();
   });

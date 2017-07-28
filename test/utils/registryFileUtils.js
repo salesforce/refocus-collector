@@ -7,7 +7,7 @@
  */
 
 /**
- * test/utils/regsitryFileUtils.js
+ * test/utils/registryFileUtils.js
  */
 
 const expect = require('chai').expect;

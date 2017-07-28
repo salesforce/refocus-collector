@@ -39,7 +39,7 @@ function sendHeartbeat(regObj) {
 
   try {
     //TODO: use the registry for this collector once command line args are setup
-    //collectorName = config.collectorName;
+    collectorName = configModule.getConfig().name;
 
     registryName = regObj.name;
     baseUrl = regObj.url;

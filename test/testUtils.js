@@ -23,9 +23,15 @@ firstKeyPairInRegistry[firstKey] = config.registry[firstKey];
 
 function makeRegistryFile() {
   const expectedResult = {
-    collectorName1: {
-      url: 'http://www.xyz.com',
-      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+    name: 'MarysLinuxBoxCollector',
+    host: 'mary-lx3',
+    ipAddress: '203.281.12.111',
+    description: 'some description',
+    refocusInstances: {
+      instance1: {
+        url: 'http://www.xyz.com',
+        token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+      },
     },
   };
   fs.writeFile(constants.registryLocation,

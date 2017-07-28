@@ -76,11 +76,16 @@ describe('test/config/utils.js >', () => {
     });
 
     it('missing url', (done) => {
-      try {
-        configUtils.validateRegistry({
+      const reg = {
+        name: 'collectorName1',
+        refocusInstances: {
           a: { token: 'abcdefg', url: 'https://www.google.com' },
           b: { token: 'abcdefg' },
-        });
+        },
+      };
+
+      try {
+        configUtils.validateRegistry(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -92,11 +97,16 @@ describe('test/config/utils.js >', () => {
     });
 
     it('missing token', (done) => {
-      try {
-        configUtils.validateRegistry({
+      const reg = {
+        name: 'collectorName1',
+        refocusInstances: {
           a: { token: 'abcdefg', url: 'https://www.google.com' },
           b: { url: 'https://www.google.com' },
-        });
+        },
+      };
+
+      try {
+        configUtils.validateRegistry(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -108,11 +118,16 @@ describe('test/config/utils.js >', () => {
     });
 
     it('missing url AND token', (done) => {
-      try {
-        configUtils.validateRegistry({
+      const reg = {
+        name: 'collectorName1',
+        refocusInstances: {
           a: { token: 'abcdefg', url: 'https://www.google.com' },
           b: { x: 'https://www.google.com' },
-        });
+        },
+      };
+
+      try {
+        configUtils.validateRegistry(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -124,10 +139,15 @@ describe('test/config/utils.js >', () => {
     });
 
     it('case-sensitive attribute name', (done) => {
-      try {
-        configUtils.validateRegistry({
+      const reg = {
+        name: 'collectorName1',
+        refocusInstances: {
           a: { Token: 'abcdefg', URL: 'https://www.google.com' },
-        });
+        },
+      };
+
+      try {
+        configUtils.validateRegistry(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -139,11 +159,16 @@ describe('test/config/utils.js >', () => {
     });
 
     it('url value is null', (done) => {
-      try {
-        configUtils.validateRegistry({
+      const reg = {
+        name: 'collectorName1',
+        refocusInstances: {
           a: { token: 'abcdefg', url: null },
           b: { token: 'abcdefg', url: 'https://www.google.com' },
-        });
+        },
+      };
+
+      try {
+        configUtils.validateRegistry(reg);
         done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -157,8 +182,11 @@ describe('test/config/utils.js >', () => {
     it('url value is undefined', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: undefined },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: undefined },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -173,8 +201,11 @@ describe('test/config/utils.js >', () => {
     it('url value is empty', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: '' },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: '' },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -189,8 +220,11 @@ describe('test/config/utils.js >', () => {
     it('url value is an array', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: [1, 2, 3] },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: [1, 2, 3] },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -205,8 +239,11 @@ describe('test/config/utils.js >', () => {
     it('url value is an object', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: { a: 'b' } },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: { a: 'b' } },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -221,7 +258,10 @@ describe('test/config/utils.js >', () => {
     it('url value is in invalid format: 2 dots(.) in url', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: 'http://.com.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: 'http://.com.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -237,7 +277,10 @@ describe('test/config/utils.js >', () => {
       'domain ', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: 'invalid url' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: 'invalid url' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -252,7 +295,10 @@ describe('test/config/utils.js >', () => {
     it('url value is in invalid format with empty string', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: '' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: '' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -267,8 +313,11 @@ describe('test/config/utils.js >', () => {
     it('token value is null', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: 'https://www.google.com' },
-          b: { token: null, url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: 'https://www.google.com' },
+            b: { token: null, url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -283,8 +332,11 @@ describe('test/config/utils.js >', () => {
     it('token value is undefined', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: 'https://www.google.com' },
-          b: { token: undefined, url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: 'https://www.google.com' },
+            b: { token: undefined, url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -299,8 +351,11 @@ describe('test/config/utils.js >', () => {
     it('token value is empty', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: 'abcdefg', url: 'https://www.google.com' },
-          b: { token: '', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: 'abcdefg', url: 'https://www.google.com' },
+            b: { token: '', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -315,8 +370,11 @@ describe('test/config/utils.js >', () => {
     it('token value is an array', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: [1, 2, 3], url: 'https://www.google.com' },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: [1, 2, 3], url: 'https://www.google.com' },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
@@ -331,8 +389,11 @@ describe('test/config/utils.js >', () => {
     it('token value is an object', (done) => {
       try {
         configUtils.validateRegistry({
-          a: { token: { a: 'b' }, url: 'https://www.google.com' },
-          b: { token: 'abcdefg', url: 'https://www.google.com' },
+          name: 'collectorName1',
+          refocusInstances: {
+            a: { token: { a: 'b' }, url: 'https://www.google.com' },
+            b: { token: 'abcdefg', url: 'https://www.google.com' },
+          },
         });
         done('Expecting ValidationError');
       } catch (err) {
