@@ -16,6 +16,7 @@ const errors = require('../config/errors');
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
+const repeaterSchema = require('../utils/schema').repeater;
 
 /**
  * Tracks all the repeats defined in the collectors.
@@ -119,12 +120,13 @@ function stop(name) {
  *  {Function} onFailure - function to execute if any repetition fails
  *  {Function} onProgress - function to execute upon completion of each
  *    repetition.
- * @throws {ValidationError} - If name/interval/func missing or incorrect type
+ * @throws {ValidationError} - Invalid repeater def or name collision
  */
 function validateDefinition(def) {
-  if (!def.name || typeof def.name !== 'string') {
-    throw new errors.ValidationError('Repeater definition must have a ' +
-      'string attribute called "name".');
+  debug('validateDefinition', def);
+  const val = repeaterSchema.validate(def);
+  if (val.error) {
+    throw new errors.ValidationError(val.error.message);
   }
 
   if ((repeatTracker[def.name] && !def.hasOwnProperty('bulk')) ||
@@ -132,16 +134,6 @@ function validateDefinition(def) {
       repeatTracker[def.name]._bulk))) {
     throw new errors.ValidationError('Duplicate repeater name violation: ' +
       def.name);
-  }
-
-  if (!def.interval || typeof def.interval !== 'number') {
-    throw new errors.ValidationError('Repeater definition must have a ' +
-      'numeric attribute called "interval".');
-  }
-
-  if (!def.func || typeof def.func !== 'function') {
-    throw new errors.ValidationError('Repeater definition must have a ' +
-      'function attribute called "func".');
   }
 } // validateDefinition
 
