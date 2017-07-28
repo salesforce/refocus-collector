@@ -17,6 +17,8 @@ const errors = require('./errors');
 const fs = require('fs');
 const validator = require('validator');
 const registryFileUtils = require('../utils/registryFileUtils');
+const registrySchema = require('../utils/schema').registry;
+const refocusInstanceSchema = require('../utils/schema').refocusInstance;
 
 /**
  * Validate the refocus instances.
@@ -24,33 +26,22 @@ const registryFileUtils = require('../utils/registryFileUtils');
  * @throws {ValidationError} - If registry entry missing "url" or "token"
  *  attribute
  */
-function validateRefocusInstances(reg) {
-  if (!reg || Array.isArray(reg) || typeof reg !== 'object') {
-    throw new errors.ValidationError('refocusInstances must be an object.');
+function validateRegistry(regObj) {
+  if (!regObj) {
+    throw new errors.ValidationError('No registry object');
   }
 
-  const refocusInsts = reg.refocusInstances;
-  for (const r in refocusInsts) {
-    if (!refocusInsts[r].hasOwnProperty('url') ||
-     !refocusInsts[r].hasOwnProperty('token')) {
-      const msg = `RefocusInstance entry "${r}" missing required "url" and/or ` +
-        '"token" attribute.';
-      debug(msg);
-      throw new errors.ValidationError(msg);
-    }
+  const val = registrySchema.validate(regObj);
+  if (val.error) {
+    throw new errors.ValidationError(val.error.message);
+  }
 
-    if ((typeof refocusInsts[r].token !== 'string' || !refocusInsts[r].token)) {
-      const msg = `RefocusInstance entry "${r}" token must be a non empty string `;
-      debug(msg);
-      throw new errors.ValidationError(msg);
-    }
-
-    if (typeof refocusInsts[r].url !== 'string' ||
-     !validator.isURL(refocusInsts[r].url)) {
-      const msg = `RefocusInstance entry "${r}" url must be a string and must be a ` +
-      'valid url';
-      debug(msg);
-      throw new errors.ValidationError(msg);
+  for (const r in regObj.refocusInstances) {
+    if (regObj.refocusInstances.hasOwnProperty(r)) {
+      const res = refocusInstanceSchema.validate(regObj.refocusInstances[r]);
+      if (res.error) {
+        throw new errors.ValidationError(res.error.message);
+      }
     }
   }
 } // validateRegistry
@@ -93,7 +84,7 @@ function init(reg) {
 
     if (fileContents) {
       r = JSON.parse(fileContents);
-      validateRefocusInstances(r);
+      validateRegistry(r);
     }
   }
 
@@ -104,5 +95,5 @@ function init(reg) {
 
 module.exports = {
   init,
-  validateRefocusInstances, // export for testing only
+  validateRegistry, // export for testing only
 };
