@@ -29,7 +29,7 @@ describe('test/remoteCollection/collect.js >', () => {
           { name: 'UnionCity|Delay', value: 2 },
     ];
 
-    it('collect should return a response with "res" attribute that is ' +
+    it.only('collect should return a response with "res" attribute that is ' +
       'a superagent object', (done) => {
       const remoteUrl = 'http://bart.gov.api/';
       const generator = {
