@@ -10,12 +10,17 @@
  * test/commands/start.js
  */
 'use strict';
+
 const obj = {
-  collectorName1: {
-    url: 'http://www.xyz.com',
-    token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+  name: 'collectorName',
+  refocusInstances: {
+    instanceName1: {
+      url: 'http://www.xyz.com',
+      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+    },
   },
 };
+
 require('../../src/config/config').setRegistry(obj);
 const expect = require('chai').expect;
 const start = require('../../src/commands/start');

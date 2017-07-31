@@ -38,7 +38,23 @@ const sample = Joi.object().keys({
   value: Joi.string().max(255),
 });
 
+const registry = Joi.object().keys({
+  name: Joi.string().max(60).required(),
+  host: Joi.string().max(4096),
+  ipAddress: Joi.string().max(60),
+  description: Joi.string().max(4096),
+  refocusInstances: Joi.object(),
+});
+
+const refocusInstance = Joi.object().keys({
+  name: Joi.string().max(60),
+  url: Joi.string().regex(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g).required(),  // jscs:ignore maximumLineLength
+  token: Joi.string().required(),
+});
+
 module.exports = {
   repeater,
   sample,
+  refocusInstance,
+  registry,
 };
