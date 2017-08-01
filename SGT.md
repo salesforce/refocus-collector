@@ -45,6 +45,7 @@ help.
   - `timeout` (Number, optional, default=[the Refocus Collector's default value], max=[some hard-coded max]) - the number of
   milliseconds to wait before aborting the request. If undefined or non-numeric values or greater than max, the connection 
   will use the Refocus Collector's default value.
+  - `authorization` (String, optional) - set to `simple-oauth` if you want to use oauth for collector.
 - `contextDefinition` (Object, optional) - define any additional context data, available to the URL as a substitution 
 variable and to the `toUrl` and `transform` functions via the functions' `context` argument. Each key defined here must
 provide an object with the following attributes:
