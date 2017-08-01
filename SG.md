@@ -14,6 +14,35 @@ are searching for your sample generator.
   - `name` (String, required) - the name of the sample generator template to use.
   - `version` (String, required) - the version of the sample generator template to use; accepts comparators, hyphen ranges, 
   x-ranges, tilde ranges and caret ranges. See https://docs.npmjs.com/misc/semver for version grammar.
+- `simple-oauth` (Object, optional) - This is full description for simple oauth, collector will pass directly this object to work with simple-oauth package
+  - `credential` (Object, required) - Credential object which is required to create oauth object using simple-oauth
+    - `client` (Onject, required) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - `id` (String, optional) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - `secret` (String, optional) -  Refer https://github.com/lelylan/simple-oauth2) for description
+      - (few more options here refer : https://github.com/lelylan/simple-oauth2)
+    - `auth` (Object, required) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - `tokenHost` (String, optional) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - `tokenPath` (String, optional) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - (few more options here refer : https://github.com/lelylan/simple-oauth2)
+    - `options` - Refer https://github.com/lelylan/simple-oauth2) for description
+      - `bodyFormat` (String, optional) - Refer https://github.com/lelylan/simple-oauth2) for description
+      - (few more options here refer : https://github.com/lelylan/simple-oauth2)
+    - (few more options here refer : https://github.com/lelylan/simple-oauth2)
+  - `authorizarionUri` (Object, optional) - Authorization oauth2 URI
+    - `redirect_uri` (String, optional) - Redirect URI Refer https://github.com/lelylan/simple-oauth2) for more information
+    - `scope` (String, optional) - Scope for oauth https://github.com/lelylan/simple-oauth2) for more information
+    - `state` (String, optional) - State for oauth https://github.com/lelylan/simple-oauth2) for more information
+  - `tokenConfig` (Object, optional) - TokenConfig object for getting access token, pass argument depends on your oauth flow. (Refer https://github.com/lelylan/simple-oauth2) for more information)
+    - `username` (String, optional) - Username for oauth
+    - `password` (String, optional) - Password for oauth
+    - `redirect_uri` (String, optional) - Redirect URI for oauth
+    - `code` (String, optional) - Code for oauth
+  - `tokenObject` (Object, optional) - Token Object for oauth which has refresh token facility
+    - `access_token` (String, optional) - Access token which mostly will be null
+    - `refresh_token` (String, optional) - Refresh token which mostly will be null
+    - `expires_in` (String, optional) - Expires time of access token in second
+    (Refer https://github.com/lelylan/simple-oauth2) for more information)
+  - `function` (String, required) - Function for getting oauth token using simple-oauth package. Select the value from `authorizationCode` Or `ownerPassword` Or `clientCredentials` depends on your implementation. (Refer https://github.com/lelylan/simple-oauth2) for more information)
 - `aspects` (Array of Strings, required) - one or more aspect names.
 - `subjects` (Array of Strings, one of either `subjects` or `subjectQuery` is required) - the absolutePath of one
 or more subjects.
