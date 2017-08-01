@@ -14,7 +14,7 @@ are searching for your sample generator.
   - `name` (String, required) - the name of the sample generator template to use.
   - `version` (String, required) - the version of the sample generator template to use; accepts comparators, hyphen ranges, 
   x-ranges, tilde ranges and caret ranges. See https://docs.npmjs.com/misc/semver for version grammar.
-- `simple-oauth` (Object, optional) - This is full description for simple oauth, collector will pass directly this object to work with simple-oauth package
+- `simple-oauth` (Object, required if sample generator template has connection.authorization = `simple-oauth`) - Refer to http://lelylan.github.io/simple-oauth2/#options for details on how to specify the simple-oauth options.
   - `credential` (Object, required) - Credential object which is required to create oauth object using simple-oauth
     - `client` (Onject, required) - Refer https://github.com/lelylan/simple-oauth2) for description
       - `id` (String, optional) - Refer https://github.com/lelylan/simple-oauth2) for description
