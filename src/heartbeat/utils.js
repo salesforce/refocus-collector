@@ -61,27 +61,27 @@ function assignContextDefaults(ctx, def) {
 } // assignContextDefaults
 
 /**
- * Creates a repeat based on the bulk attribute of the of the generator object
- * that is passed as as agrument. When the bulk attribute is true, it creates
- * a repeat using the passed in generator. When the bulk attribute is false, it
- * runs through the subjects array and for each of the subject, it creates a
- * new generator object(using the generator passed in as the argument),
- * adds a "subject" attribute and delete the "subjects" attribute
+ * Creates a repeater based on the bulk attribute of the of the generator
+ * object that is passed as as agrument. When the bulk attribute is true, it
+ * creates a repeater using the passed in generator. When the bulk attribute
+ * is false, it runs through the subjects array and creates a new generator
+ * object for each subject, using the generator passed in as the argument),
+ * and setting the "subjects" array to contain just the one subject.
+ *
  * @param {Object} generator - Generator object from the heartbeat
  */
-function setUpRepeater(generator) {
+function setupRepeater(generator) {
   if (generator.generatorTemplate.connection.bulk === true) {
     repeater.createGeneratorRepeater(generator);
   } else {
-    // generator.generatorTemplate.connection.bluk is false
-    generator.subjects.forEach((subject) => {
+    // bulk is false
+    generator.subjects.forEach((s) => {
       const _g = JSON.parse(JSON.stringify(generator));
-      delete _g.subjects;
-      _g.subject = subject;
+      _g.subjects = [s];
       repeater.createGeneratorRepeater(_g);
     });
   }
-} // setUpRepeater
+} // setupRepeater
 
 /**
  * Function to setup a generator repeater and add the generator to the
@@ -103,7 +103,7 @@ function addGenerator(generators) {
         }
 
         config.generators[g.name] = g;
-        setUpRepeater(g, repeater.createGeneratorRepeater);
+        setupRepeater(g);
       });
 
       debug('Added generators to the config:', generators);
@@ -169,7 +169,7 @@ function updateGenerator(generators) {
          * before creating new repeats.
          */
         repeater.stop(g.name);
-        setUpRepeater(g);
+        setupRepeater(g);
       });
 
       debug('Updated generators in the config: ', generators);

@@ -149,7 +149,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       context: {},
       res: { text: '{ "a": "atext" }' },
-      subject: { absolutePath: 'S1' },
+      subjects: [{ absolutePath: 'S1' }],
       generatorTemplate: {
         transform: 'return ' +
           '[{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]',

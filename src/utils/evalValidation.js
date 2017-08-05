@@ -54,41 +54,24 @@ module.exports = {
   /**
    * Validates the subject/subjects args.
    *
-   *  {Object} subject - If not bulk, this is the subject; if bulk, this is
-   *    null or undefined.
-   *  {Array} subjects - If bulk, this is an array of subjects; if not bulk,
-   *    this is null or undefined.
+   * @param {Array} subjects - An array of one or more subjects.
    * @returns {Boolean} - true if ok
    * @throws {ArgsError} - If missing or incorrect type
    */
-  subjects: (subject, subjects) => {
-    debug('Entered evalValidation.subjects:', subject, subjects);
-    if ((!subject && !subjects) || (subject && subjects)) {
-      throw new errors.ArgsError('Must include EITHER a "subject" attribute ' +
-        'OR a "subjects" attribute.');
+  subjects: (subjects) => {
+    debug('Entered evalValidation.subjects:', subjects);
+    if (!subjects || !Array.isArray(subjects) || subjects.length < 1) {
+      throw new errors.ArgsError('Must include a "subjects" attribute with ' +
+        'an array of one or more subjects.');
     }
 
-    if (subject) {
-      isObject('subject', subject);
-      if (typeof subject.absolutePath !== 'string') {
-        throw new errors.ArgsError('"subject" attribute must be a valid ' +
-          'subject.');
+    subjects.forEach((subj, n) => {
+      isObject(`subjects[${n}]`, subj);
+      if (typeof subj.absolutePath !== 'string') {
+        throw new errors.ArgsError('Every element in the "subjects" array ' +
+          'must be a valid subject.');
       }
-    }
-
-    if (subjects) {
-      if (!Array.isArray(subjects)) {
-        throw new errors.ArgsError('"subjects" attribute must be an array.');
-      }
-
-      subjects.forEach((subj, n) => {
-        isObject(`subjects[${n}]`, subj);
-        if (typeof subj.absolutePath !== 'string') {
-          throw new errors.ArgsError('Every element in the "subjects" array ' +
-            'must be a valid subject.');
-        }
-      });
-    }
+    });
 
     return true;
   }, // subjects

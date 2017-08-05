@@ -20,7 +20,7 @@ const obj = {
 
 const configModule = require('../../src/config/config');
 const listener = require('../../src/heartbeat/listener');
-const repeatTracker = require('../../src/repeater/repeater').repeatTracker;
+const tracker = require('../../src/repeater/repeater').tracker;
 const expect = require('chai').expect;
 
 describe('test/heartbeat/listener.js >', () => {
@@ -100,7 +100,7 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.Core_Trust2)
       .to.deep.equal(res.generatorsAdded[0]);
-    expect(repeatTracker.Core_Trust2._bulk).not.equal(undefined);
+    expect(tracker.Core_Trust2._bulk).not.equal(undefined);
     done();
   });
 
@@ -144,7 +144,7 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
     expect(updatedConfig.generators.Core_Trust3.context)
       .to.deep.equal({ baseUrl: 'https://example.api', });
-    expect(repeatTracker.Core_Trust3).not.equal(null);
+    expect(tracker.Core_Trust3).not.equal(null);
     done();
   });
 
@@ -173,8 +173,8 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.Core_Trust_nonBulk_NA1_NA2)
       .to.deep.equal(res.generatorsAdded[0]);
-    expect(repeatTracker.Core_Trust_nonBulk_NA1_NA2.NA1).not.equal(undefined);
-    expect(repeatTracker.Core_Trust_nonBulk_NA1_NA2.NA2).not.equal(undefined);
+    expect(tracker.Core_Trust_nonBulk_NA1_NA2.NA1).not.equal(undefined);
+    expect(tracker.Core_Trust_nonBulk_NA1_NA2.NA2).not.equal(undefined);
     done();
   });
 
@@ -203,7 +203,7 @@ describe('test/heartbeat/listener.js >', () => {
     let updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(res.generatorsAdded[0]);
-    expect(repeatTracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
+    expect(tracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
     const updatedRes = {
       generatorsUpdated: [
         {
@@ -228,8 +228,8 @@ describe('test/heartbeat/listener.js >', () => {
     updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
-    expect(repeatTracker.bulktrueToBulkFalse_1.NA1).not.equal(undefined);
-    expect(repeatTracker.bulktrueToBulkFalse_1.NA2).not.equal(undefined);
+    expect(tracker.bulktrueToBulkFalse_1.NA1).not.equal(undefined);
+    expect(tracker.bulktrueToBulkFalse_1.NA2).not.equal(undefined);
     done();
   });
 
@@ -255,12 +255,11 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-
     let updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(res.generatorsAdded[0]);
-    expect(repeatTracker.bulktrueToBulkFalse_2.NA1).not.equal(undefined);
-    expect(repeatTracker.bulktrueToBulkFalse_2.NA2).not.equal(undefined);
+    expect(tracker.bulktrueToBulkFalse_2.NA1).not.equal(undefined);
+    expect(tracker.bulktrueToBulkFalse_2.NA2).not.equal(undefined);
     const updatedRes = {
       generatorsUpdated: [
         {
@@ -281,12 +280,10 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-
     updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
-    expect(repeatTracker.bulktrueToBulkFalse_2._bulk).not.equal(undefined);
-
+    expect(tracker.bulktrueToBulkFalse_2._bulk).not.equal(undefined);
     done();
   });
 
@@ -333,10 +330,10 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
     const updatedConfigAgain = listener.handleHeartbeatResponse(null, resDel);
-    expect(Object.keys(repeatTracker)).to.contain('Core_Trust4');
+    expect(Object.keys(tracker)).to.contain('Core_Trust4');
     expect(updatedConfigAgain.generators.Core_Trust4)
       .to.not.equal(undefined);
-    expect(repeatTracker.LIVE_AGENT).equal(undefined);
+    expect(tracker.LIVE_AGENT).equal(undefined);
     expect(updatedConfigAgain.generators.LIVE_AGENT).to.equal(undefined);
     done();
   });

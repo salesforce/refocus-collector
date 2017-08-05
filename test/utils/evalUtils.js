@@ -21,7 +21,7 @@ describe('test/utils/evalUtils.js >', (done) => {
           aspects: [{ name: 'A', timeout: '1m' }],
           context: {},
           res: {},
-          subject: { absolutePath: 'abc' },
+          subjects: [{ absolutePath: 'abc' }],
         });
         done();
       } catch (err) {
@@ -166,7 +166,7 @@ describe('test/utils/evalUtils.js >', (done) => {
         eu.validateToUrlArgs({
           context: {},
           aspects: [{ name: 'A', timeout: '1m' }],
-          subject: { absolutePath: 'abc' },
+          subjects: [{ absolutePath: 'abc' }],
         });
         done();
       } catch (err) {
@@ -562,7 +562,7 @@ describe('test/utils/evalUtils.js >', (done) => {
     const validArgs = {
       context: { x: 123, y: 'abc|A2' },
       res: {},
-      subject: { absolutePath: 'abc' },
+      subjects: [{ absolutePath: 'abc' }],
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
 
@@ -740,7 +740,7 @@ describe('test/utils/evalUtils.js >', (done) => {
     const validArgs = {
       aspects: [{ name: 'A1', timeout: '1m' }],
       context: {},
-      subject: { absolutePath: 'abc' },
+      subjects: [{ absolutePath: 'abc' }],
     };
 
     it('ok', (done) => {

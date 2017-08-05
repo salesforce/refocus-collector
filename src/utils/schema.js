@@ -19,7 +19,7 @@ const repeater = Joi.object().keys({
   onFailure: Joi.func(),
   onProgress: Joi.func(),
   bulk: Joi.boolean(),
-  subject: Joi.object(),
+  subjects: Joi.array().min(1).items(Joi.object()),
   handle: Joi.any(),
   funcName: Joi.string(),
 });
