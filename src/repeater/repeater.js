@@ -19,8 +19,8 @@ const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
 
 /**
- * Tracks all the repeats defined in the collectors.
- * The repeatTracker object looks like
+ * Tracks all the repeaters defined in the collectors.
+ * The tracker object looks like this:
  *  {
  *    'heartbeat': repeatHandle,
  *    'sampleQueueFlush': repeatHandle,
@@ -32,25 +32,25 @@ const repeaterSchema = require('../utils/schema').repeater;
  *      subject2: repeatHandle,
  *    }
  *  }
- *
  */
-const repeatTracker = {};
+const tracker = {};
 
 /**
- * Update the repeatTracker object to track new repeats
+ * Update the tracker object to track the new repeater.
+ *
  * @param  {Object} def - Repeater definition object
  */
-function trackRepeat(def) {
+function trackRepeater(def) {
   if (!def.hasOwnProperty('bulk')) {
-    repeatTracker[def.name] = def.handle;
+    tracker[def.name] = def.handle;
   } else if (def.bulk === true) {
-    repeatTracker[def.name] = { _bulk: def.handle };
-  } else if (def.bulk === false && repeatTracker[def.name]) {
-    repeatTracker[def.name][def.subject.absolutePath] = def.handle;
-  } else if (def.bulk === false && !repeatTracker[def.name]) {
-    repeatTracker[def.name] = { [def.subject.absolutePath]: def.handle };
+    tracker[def.name] = { _bulk: def.handle };
+  } else if (def.bulk === false && tracker[def.name]) {
+    tracker[def.name][def.subjects[0].absolutePath] = def.handle;
+  } else if (def.bulk === false && !tracker[def.name]) {
+    tracker[def.name] = { [def.subjects[0].absolutePath]: def.handle };
   }
-} // trackRepeat
+} // trackRepeater
 
 /**
  * The default function that is called every time a task is repeated.
@@ -82,29 +82,29 @@ function onFailure(err) {
 } // onFailure
 
 /**
- * Stops the repeat task identified by the name and deletes it from the
- * repeatTracker.
+ * Stops the named repeater and deletes it from the tracker.
+ *
  * @param {String} name - Name of the repeat
  * @throws {ValidationError} If "obj" does not have a name attribute.
  * @throws {ResourceNotFoundError} If the repeat identified by obj.name is not
  * found in the tracker.
  */
 function stop(name) {
-  if (!name || !repeatTracker[name]) {
+  if (!name || !tracker[name]) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
 
-  if (repeatTracker[name].stop) {
-    repeatTracker[name].stop();
+  if (tracker[name].stop) {
+    tracker[name].stop();
   } else {
-    Object.keys(repeatTracker[name]).forEach((prop) => {
-      repeatTracker[name][prop].stop();
-      delete repeatTracker[name][prop];
+    Object.keys(tracker[name]).forEach((prop) => {
+      tracker[name][prop].stop();
+      delete tracker[name][prop];
     });
   }
 
-  delete repeatTracker[name];
-  logger.info(`Stopping repeater identified by: ${name}`);
+  delete tracker[name];
+  logger.info(`Stopped repeater identified by: ${name}`);
 } // stop
 
 /**
@@ -129,16 +129,17 @@ function validateDefinition(def) {
     throw new errors.ValidationError(val.error.message);
   }
 
-  if ((repeatTracker[def.name] && !def.hasOwnProperty('bulk')) ||
-    (repeatTracker[def.name] && (repeatTracker[def.name][def.subject.absolutePath] ||
-      repeatTracker[def.name]._bulk))) {
+  if ((tracker[def.name] && !def.hasOwnProperty('bulk')) ||
+    (tracker[def.name] &&
+      (tracker[def.name][def.subjects[0].absolutePath] ||
+      tracker[def.name]._bulk))) {
     throw new errors.ValidationError('Duplicate repeater name violation: ' +
       def.name);
   }
 } // validateDefinition
 
 /**
- * Start a repeater and track it in the repeatTracker.
+ * Start a repeater and track it in the tracker.
  *
  * @param {Object} def - Repeater definition object with the following
  *  attributes:
@@ -156,13 +157,12 @@ function validateDefinition(def) {
 function create(def) {
   validateDefinition(def);
   const handle = repeat(def.func);
-
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
     def.onProgress || onProgress);
   def.handle = handle;
   def.funcName = def.func.name;
-  trackRepeat(def);
+  trackRepeater(def);
   logger.info({
     activity: 'createdRepeater',
     name: def.name,
@@ -181,30 +181,20 @@ function create(def) {
  * @returns {Promise} - A read-only Promise instance.
  */
 function createGeneratorRepeater(generator) {
-  /**
-   * Wrapping the collect function to pass a function definition to the repeat
-   * task
-   * @returns {Promise} which resolves to the response of the collect function
-   */
-  function collectWrapper() {
-    return collect(generator);
-  }
-
-  const def = {
+  return create({
     name: generator.name,
     interval: generator.interval,
-    func: collectWrapper,
+    func: () => collect(generator),
     onProgress: handleCollectResponse,
     bulk: generator.generatorTemplate.connection.bulk,
-    subject: generator.subject,
-  };
-  return create(def);
+    subjects: generator.subjects,
+  });
 } // createGeneratorRepeater
 
 module.exports = {
   create,
   createGeneratorRepeater,
-  repeatTracker, // export for testing only
+  tracker, // export for testing only
   stop,
   validateDefinition, // export for testing only
 };

@@ -12,7 +12,7 @@
 'use strict';
 const val = require('../../src/utils/evalValidation');
 
-describe('test/utils/evalValidation >', (done) => {
+describe('test/utils/evalValidation.js >', (done) => {
   describe('isObject >', (done) => {
     it('object with attributes', (done) => {
       try {
@@ -138,7 +138,7 @@ describe('test/utils/evalValidation >', (done) => {
   });
 
   describe('subjects >', (done) => {
-    it('both empty', (done) => {
+    it('empty', (done) => {
       try {
         val.subjects();
         done('Expecting ArgsError');
@@ -151,9 +151,9 @@ describe('test/utils/evalValidation >', (done) => {
       }
     });
 
-    it('both null', (done) => {
+    it('null', (done) => {
       try {
-        val.subjects(null, null);
+        val.subjects(null);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -164,74 +164,9 @@ describe('test/utils/evalValidation >', (done) => {
       }
     });
 
-    it('both undefined', (done) => {
+    it('undefined', (done) => {
       try {
-        val.subjects(undefined, undefined);
-        done('Expecting ArgsError');
-      } catch (err) {
-        if (err.name === 'ArgsError') {
-          done();
-        } else {
-          done('Expecting ArgsError here');
-        }
-      }
-    });
-
-    it('both provided', (done) => {
-      try {
-        val.subjects({ absolutePath: 'a' }, []);
-        done('Expecting ArgsError');
-      } catch (err) {
-        if (err.name === 'ArgsError') {
-          done();
-        } else {
-          done('Expecting ArgsError here');
-        }
-      }
-    });
-
-    it('subject is boolean true', (done) => {
-      try {
-        val.subjects(true);
-        done('Expecting ArgsError');
-      } catch (err) {
-        if (err.name === 'ArgsError') {
-          done();
-        } else {
-          done('Expecting ArgsError here');
-        }
-      }
-    });
-
-    it('subject is string', (done) => {
-      try {
-        val.subjects('abcd efgh');
-        done('Expecting ArgsError');
-      } catch (err) {
-        if (err.name === 'ArgsError') {
-          done();
-        } else {
-          done('Expecting ArgsError here');
-        }
-      }
-    });
-
-    it('subject is number', (done) => {
-      try {
-        val.subjects(99);
-        done('Expecting ArgsError');
-      } catch (err) {
-        if (err.name === 'ArgsError') {
-          done();
-        } else {
-          done('Expecting ArgsError here');
-        }
-      }
-    });
-
-    it('subject is array', (done) => {
-      try {
-        val.subjects([1, 2], []);
+        val.subjects(undefined);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -244,7 +179,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is boolean true', (done) => {
       try {
-        val.subjects(null, true);
+        val.subjects(true);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -257,7 +192,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is string', (done) => {
       try {
-        val.subjects(null, 'abcd efgh');
+        val.subjects('abcd efgh');
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -270,7 +205,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is number', (done) => {
       try {
-        val.subjects(null, 103);
+        val.subjects(103);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -283,7 +218,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is object (not array)', (done) => {
       try {
-        val.subjects(null, { a: 'b' });
+        val.subjects({ a: 'b' });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -296,16 +231,20 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is empty array', (done) => {
       try {
-        val.subjects(null, []);
-        done();
+        val.subjects([]);
+        done('Expecting ArgsError');
       } catch (err) {
-        done(err);
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
       }
     });
 
     it('subjects is array with non-subject element', (done) => {
       try {
-        val.subjects(null, [{ absolutePath: 'q' }, { foo: 'bar' }]);
+        val.subjects([{ absolutePath: 'q' }, { foo: 'bar' }]);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -318,7 +257,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is array with non-object element', (done) => {
       try {
-        val.subjects(null, [{ absolutePath: 'q' }, 99]);
+        val.subjects([{ absolutePath: 'q' }, 99]);
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -331,7 +270,7 @@ describe('test/utils/evalValidation >', (done) => {
 
     it('subjects is array with only subject elements', (done) => {
       try {
-        val.subjects(null, [{ absolutePath: 'q' }, { absolutePath: 'w' }]);
+        val.subjects([{ absolutePath: 'q' }, { absolutePath: 'w' }]);
         done();
       } catch (err) {
         done(err);

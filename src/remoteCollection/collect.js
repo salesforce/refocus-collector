@@ -37,7 +37,6 @@ function prepareUrl(generator) {
     const args = {
       aspects: generator.aspects,
       ctx: generator.context,
-      subject: generator.subject,
       subjects: generator.subjects,
     };
     const fbody = Array.isArray(toUrl) ? toUrl.join('\n') : toUrl;
