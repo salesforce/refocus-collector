@@ -10,7 +10,9 @@
  * src/utils/evalUtils.js
  */
 'use strict';
+const EVAL_TIMEOUT_MILLIS = 750;
 const debug = require('debug')('refocus-collector:evalUtils');
+const { VM } = require('vm2');
 const logger = require('winston');
 const errors = require('../config/errors');
 const evalValidation = require('./evalValidation');
@@ -25,26 +27,6 @@ const ERROR_MESSAGE = {
 };
 const SAMPLE_BODY_MAX_LEN = 4096;
 
-/*
- * This makes it possible for the transform function to refer to ctx and res
- * and subjects directly, without having to refer to them as attribtues of
- * args.
- */
-const transformFnPrefix = 'const ctx = args.context; ' +
-  'const res = args.res; ' +
-  'const aspects = args.apsects; ' +
-  'const subjects = args.subjects; ' +
-  'const SAMPLE_BODY_MAX_LEN = args._SAMPLE_BODY_MAX_LEN; ';
-
-/*
- * This makes it possible for the toUrl function to refer to ctx and subject
- * and subjects directly, without having to refer to them as attribtues of
- * args.
- */
-const toUrlFnPrefix = 'const ctx = args.context; ' +
-  'const aspects = args.apsects; ' +
-  'const subjects = args.subjects; ';
-
 /**
  * Safely execute the transform or toUrl code from the sample generator
  * template, blocking certain global functions and node functions, and
@@ -56,34 +38,22 @@ const toUrlFnPrefix = 'const ctx = args.context; ' +
  * @throws {FunctionBodyError} - if functionBody cannot be evaluated
  */
 function safeEval(functionBody, args) {
+  debug('safeEval functionBody', functionBody);
   'use strict';
   if (!args) {
     args = {};
   }
 
-  /*
-   * Make sure user-provided function can't mess with console, process or eval
-   * but *can* use JSON object.
-   */
-  args._JSON = JSON;
-  functionBody = 'const console = undefined; ' +
-    'const process = undefined; ' +
-    'const eval = undefined; ' +
-    'const JSON = args._JSON; ' +
-    functionBody;
-  debug('safeEval functionBody', functionBody);
+  args.eval = undefined; // disable "eval"
   try {
-    /*
-     * TODO generate the fn only once upon receiving the generator, store
-     *  the generated func as part of the generator config in the config
-     */
-    const func = new Function(`return function(args) { ${functionBody} }`)();
-    debug(`evalUtils.newSafeEval generated function: ${func}`);
-    debug(`evalUtils.newSafeEval calling function with args: ${args}`);
-    const retval = func(args);
-    debug(`evalUtils.safeEval returning: ${retval}`);
+    const vm = new VM({
+      timeout: EVAL_TIMEOUT_MILLIS,
+      sandbox: args,
+    });
+    const retval = vm.run(`(() => { ${functionBody} })()`);
     return retval;
   } catch (err) {
+    console.error(err);
     logger.error('%s running safeEval: %s', err.name, err.message);
     throw new errors.FunctionBodyError(`${err.name}: ${err.message}`);
   }
@@ -106,7 +76,7 @@ function validateTransformArgs(args) {
     throw new errors.ArgsError('args must be an object.');
   }
 
-  return evalValidation.isObject('ctx', args.context) &&
+  return evalValidation.isObject('ctx', args.ctx) &&
     evalValidation.isObject('res', args.res) &&
     evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subjects);
@@ -129,7 +99,7 @@ function validateToUrlArgs(args) {
     throw new errors.ArgsError('args must be an object.');
   }
 
-  return evalValidation.isObject('ctx', args.context || {}) &&
+  return evalValidation.isObject('ctx', args.ctx || {}) &&
     evalValidation.aspects(args.aspects) &&
     evalValidation.subjects(args.subjects);
 } // validateToUrlArgs
@@ -243,8 +213,8 @@ function safeTransform(functionBody, args) {
   }
 
   validateTransformArgs(args);
-  args._SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
-  const retval = safeEval(transformFnPrefix + functionBody, args);
+  args.SAMPLE_BODY_MAX_LEN = SAMPLE_BODY_MAX_LEN;
+  const retval = safeEval(functionBody, args);
   validateSamples(retval, args);
   debug('evalUtils.safeTransform returning %d samples: %j', retval.length,
     retval);
@@ -275,7 +245,7 @@ function safeToUrl(functionBody, args) {
   }
 
   validateToUrlArgs(args);
-  const retval = safeEval(toUrlFnPrefix + functionBody, args);
+  const retval = safeEval(functionBody, args);
   if (typeof retval !== 'string') {
     throw new errors.ToUrlError(ERROR_MESSAGE.TO_URL.NOT_STRING);
   }

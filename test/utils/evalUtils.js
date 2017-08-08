@@ -19,7 +19,7 @@ describe('test/utils/evalUtils.js >', (done) => {
       try {
         eu.validateTransformArgs({
           aspects: [{ name: 'A', timeout: '1m' }],
-          context: {},
+          ctx: {},
           res: {},
           subjects: [{ absolutePath: 'abc' }],
         });
@@ -44,7 +44,7 @@ describe('test/utils/evalUtils.js >', (done) => {
 
     it('object with missing or inorrect attributes', (done) => {
       try {
-        eu.validateTransformArgs({ context: {} });
+        eu.validateTransformArgs({ ctx: {} });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -164,7 +164,7 @@ describe('test/utils/evalUtils.js >', (done) => {
     it('object with required set of attributes', (done) => {
       try {
         eu.validateToUrlArgs({
-          context: {},
+          ctx: {},
           aspects: [{ name: 'A', timeout: '1m' }],
           subjects: [{ absolutePath: 'abc' }],
         });
@@ -189,7 +189,7 @@ describe('test/utils/evalUtils.js >', (done) => {
 
     it('object with missing or inorrect attributes', (done) => {
       try {
-        eu.validateToUrlArgs({ context: {} });
+        eu.validateToUrlArgs({ ctx: {} });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -312,7 +312,7 @@ describe('test/utils/evalUtils.js >', (done) => {
         n: -5,
       };
       const str = `
-        return [args.abc, args.n, args.abc.slice(args.n)];
+        return [abc, n, abc.slice(n)];
       `;
       const res = eu.safeEval(str, ctx);
       expect(res).to.be.array;
@@ -556,11 +556,23 @@ describe('test/utils/evalUtils.js >', (done) => {
         done(err);
       }
     });
+
+    it('timeout', (done) => {
+      const str = 'let i = 0; while (true) { i++ } return i;';
+      try {
+        const retval = eu.safeEval(str);
+        done('Expecting "Script execution timed out."');
+      } catch (err) {
+        expect(err).to.have.property('name', 'FunctionBodyError');
+        expect(err.message).to.contain('Script execution timed out.');
+        done();
+      }
+    });
   }); // safeEval
 
   describe('safeTransform >', (done) => {
     const validArgs = {
-      context: { x: 123, y: 'abc|A2' },
+      ctx: { x: 123, y: 'abc|A2' },
       res: {},
       subjects: [{ absolutePath: 'abc' }],
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
@@ -739,7 +751,7 @@ describe('test/utils/evalUtils.js >', (done) => {
   describe('safeToUrl >', (done) => {
     const validArgs = {
       aspects: [{ name: 'A1', timeout: '1m' }],
-      context: {},
+      ctx: {},
       subjects: [{ absolutePath: 'abc' }],
     };
 

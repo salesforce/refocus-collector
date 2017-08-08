@@ -43,6 +43,7 @@
     "superagent": "^3.5.2",
     "superagent-mocker": "^0.5.2",
     "validator": "^7.1.0",
+    "vm2": "^3.4.6",
     "winston": "^2.3.1"
   },
   "devDependencies": {
