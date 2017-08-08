@@ -53,7 +53,6 @@ function safeEval(functionBody, args) {
     const retval = vm.run(`(() => { ${functionBody} })()`);
     return retval;
   } catch (err) {
-    console.error(err);
     logger.error('%s running safeEval: %s', err.name, err.message);
     throw new errors.FunctionBodyError(`${err.name}: ${err.message}`);
   }
