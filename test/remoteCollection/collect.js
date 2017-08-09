@@ -142,7 +142,7 @@ describe('test/remoteCollection/collect.js >', () => {
         name: 'Generator0',
         interval: 600,
         aspects: [{ name: 'Delay', timeout: '1m' }],
-        context: {},
+        ctx: {},
         generatorTemplate: {
           connection: {
             headers: {
