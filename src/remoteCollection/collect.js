@@ -17,6 +17,8 @@ const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
 const errors = require('../config/errors');
 const configModule = require('../config/config');
+const oauth2 = require('simple-oauth2');
+let token;
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -93,61 +95,74 @@ function prepareHeaders(headers, ctx) {
 function collect(generator) {
   const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
-  console.log(connection);
 
-  // get token
-  let token = configModule.getToken();
-
-  if (!token.accessToken) {
-    token = configModule.setToken(connection);
-  }
-
-  connection.headers.Authorization = token.accessToken;
-  let headers = prepareHeaders(connection.headers, generator.context);
-  
-  // Try first time
   return new Promise((resolve) => {
-    // for now assuming that all the calls to the remote data source is a "GET"
-    request
-    .get(remoteUrl)
-    .set(headers)
-    .end((err, res) => {
-      // check if the error is autorization
-      if (err.status === '401') {
-        connection.headers.Authorization = token.refreshToken;
-        headers = prepareHeaders(connection.headers, generator.context);
+    if (connection['simple_auth']) {
+      const method = connection['simple_auth'];
 
-        return new Promise((resolve) => {
-          request
+      if (token) {
+        console.log('accessToken', token.token.accessToken);
+        console.log('refreshToken', token.token.refreshToken);
+      }
+
+      // Get simple auth object from 
+      const simpleOauth = generator['simple_auth'];
+
+      if (!token) {
+        const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+        oauth2[method]
+          .getToken(simpleOauth.tokenConfig)
+          .then((result) => {
+            token = oauth2.accessToken.create(result);
+            generator.token = token;
+            connection.headers.Authorization = 'Bearer ' + token.token.accessToken;
+            let headers = prepareHeaders(connection.headers, generator.context);
+            request
             .get(remoteUrl)
             .set(headers)
             .end((err, res) => {
-              if (err.status === '401') {
-                token = configModule.setToken(connection);
-                collect();
-              }
 
               if (err) {
-                logger.error('An error was returned as a response: %o', err);
-                generator.res = err;
-              } else {
-                debug('Remote data source returned an OK response: %o', res);
-                generator.res = res;
+                console.log(err.status);
               }
+
+              if (res) {
+                console.log(res.status);
+              }
+
+            })
+            return resolve(generator);
+            // return token;
+          })
+          .catch((err) => {
+            console.log('Error from get token', err);
+          });
+      } else {
+        connection.headers.Authorization = 'Bearer ' + token.token.accessToken;
+        let headers = prepareHeaders(connection.headers, generator.context);
+
+        request
+        .get(remoteUrl)
+        .set(headers)
+        .end((err, res) => {
+
+         if (err) {
+            if (err.status == '401') {
+              token = null;
+              collect(generator);
             }
           }
-        }
 
-      if (err) {
-        logger.error('An error was returned as a response: %o', err);
-        generator.res = err;
-      } else {
-        debug('Remote data source returned an OK response: %o', res);
-        generator.res = res;
+          if (res) {
+            console.log(res.status);
+          }
+
+        })
+        
+        return resolve(generator);
       }
-
-      return resolve(generator);
-    });
+    }
+    
   });
 } // collect
 
