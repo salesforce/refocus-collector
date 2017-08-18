@@ -166,7 +166,6 @@ function collect(generator) {
   } else {
     return sendRemoteRequest(generator);
   }
-  
 } // collect
 
 module.exports = {
