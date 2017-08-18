@@ -29,7 +29,55 @@ describe('test/remoteCollection/collect.js >', () => {
           { name: 'UnionCity|Delay', value: 2 },
     ];
 
-    it.only('collect should return a response with "res" attribute that is ' +
+    it('collect should return a response with "res" attribute that is ' +
+      'a superagent object', (done) => {
+      const remoteUrl = 'http://bart.gov.api/';
+      const generator = {
+        name: 'Generator0',
+        interval: 600,
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'http://bart.gov.api/status',
+          },
+          transform:
+          'return [{ name: "Fremont|Delay", value: 10 }, ' +
+            '{ name: "UnionCity|Delay", value: 2 }]',
+        },
+        subject: { absolutePath: 'EastBay' },
+      };
+      const remoteData = {
+        station: [{ name: 'Fremont|Delay', value: 10 },
+          { name: 'UnionCity|Delay', value: 2 },
+        ],
+      };
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, remoteData);
+
+      collect.collect(generator)
+      .then((collectRes) => {
+        expect(collectRes.res).to.not.equal(undefined);
+        expect(collectRes.res.status).to.equal(httpStatus.OK);
+        expect(collectRes.res.body).to.deep.equal(remoteData);
+
+        expect(collectRes.res.req.headers['user-agent'])
+          .to.contain('node-superagent');
+
+        expect(collectRes.generatorTemplate).to.deep
+          .equal(generator.generatorTemplate);
+        expect(collectRes.context).to.deep.equal(generator.context);
+        expect(collectRes.subject).to.deep.equal(generator.subject);
+
+        done();
+      })
+      .catch(done);
+    });
+
+    it('collect should return a response with "res" attribute that is ' +
       'a superagent object', (done) => {
       const remoteUrl = 'http://bart.gov.api/';
       const generator = {
@@ -104,7 +152,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.SERVICE_UNAVAILABLE);
-        expect(collectRes.res.response.text).to.contain('Server is down');
+        expect(collectRes.res.body.error.message).to.contain('Server is down');
         done();
       })
       .catch(done);

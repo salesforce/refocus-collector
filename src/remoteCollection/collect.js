@@ -17,8 +17,6 @@ const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
 const errors = require('../config/errors');
 const configModule = require('../config/config');
-const oauth2 = require('simple-oauth2');
-let token;
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -80,6 +78,58 @@ function prepareHeaders(headers, ctx) {
 } // prepareHeaders
 
 /**
+ * Send Remote request to get data as per the configurations.
+ *
+ * @param  {Object} generator   The generator object
+ * @param  {Object} simpleOauth Simple Oauth Object
+ * @return {Object} generator   updated generator object
+ */
+function sendRemoteRequest(generator, simpleOauth=null) {
+  return new Promise((resolve) => {
+    const remoteUrl = prepareUrl(generator);
+    const connection = generator.generatorTemplate.connection;
+
+    // If token is present then add token to request header.
+    if (generator.token) {
+      const accessToken = generator.token.accessToken;
+      if (simpleOauth.tokenFormat) {
+        connection.headers.Authorization
+        = simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
+      } else {
+        connection.headers.Authorization = accessToken;
+      }
+    }
+
+    let headers = prepareHeaders(connection.headers, generator.context);
+
+    // Remote request for fetching data.
+    request
+    .get(remoteUrl)
+    .set(headers)
+    .end((err, res) => {
+      if (err) {
+        // If error is 401 and token is present with simple oauth object
+        // then token is expired and request new token again.
+        if (err.status == '401' && simpleOauth && generator.token) {
+          generator.token = null;
+          collect(generator);
+        } else {
+          debug('Remote data source returned an OK response: %o', res);
+          generator.res = err;
+        }
+      }
+
+      if (res) {
+        debug('Remote data source returned an OK response: %o', res);
+        generator.res = res;
+      }
+
+      return resolve(generator);
+    });
+  });
+}
+
+/**
  * This is responsible for the data collection from the remote data source. It
  * calls the "prepareUrl" function to prepare the remote url and then uses the
  * superagent library to make the request to the remote data source and
@@ -96,74 +146,27 @@ function collect(generator) {
   const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
 
-  return new Promise((resolve) => {
-    if (connection['simple_auth']) {
-      const method = connection['simple_auth'];
+  // If simple_oauth object is present then use that for token generation
+  // and using that token remote request should be done.
+  if (connection.simple_oauth) {
+    const method = connection.simple_oauth;
+    const simpleOauth = generator.simple_oauth;
 
-      if (token) {
-        console.log('accessToken', token.token.accessToken);
-        console.log('refreshToken', token.token.refreshToken);
-      }
-
-      // Get simple auth object from 
-      const simpleOauth = generator['simple_auth'];
-
-      if (!token) {
-        const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-        oauth2[method]
-          .getToken(simpleOauth.tokenConfig)
-          .then((result) => {
-            token = oauth2.accessToken.create(result);
-            generator.token = token;
-            connection.headers.Authorization = 'Bearer ' + token.token.accessToken;
-            let headers = prepareHeaders(connection.headers, generator.context);
-            request
-            .get(remoteUrl)
-            .set(headers)
-            .end((err, res) => {
-
-              if (err) {
-                console.log(err.status);
-              }
-
-              if (res) {
-                console.log(res.status);
-              }
-
-            })
-            return resolve(generator);
-            // return token;
-          })
-          .catch((err) => {
-            console.log('Error from get token', err);
-          });
-      } else {
-        connection.headers.Authorization = 'Bearer ' + token.token.accessToken;
-        let headers = prepareHeaders(connection.headers, generator.context);
-
-        request
-        .get(remoteUrl)
-        .set(headers)
-        .end((err, res) => {
-
-         if (err) {
-            if (err.status == '401') {
-              token = null;
-              collect(generator);
-            }
-          }
-
-          if (res) {
-            console.log(res.status);
-          }
-
-        })
-        
-        return resolve(generator);
-      }
+    if (!generator.token) {
+      const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+      oauth2[method]
+        .getToken(simpleOauth.tokenConfig)
+        .then((token) => {
+          generator.token = token;
+          return sendRemoteRequest(generator, simpleOauth);
+        });
+    } else {
+      return sendRemoteRequest(generator, simpleOauth);
     }
-    
-  });
+  } else {
+    return sendRemoteRequest(generator);
+  }
+  
 } // collect
 
 module.exports = {
