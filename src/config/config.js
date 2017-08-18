@@ -14,7 +14,6 @@
  */
 const debug = require('debug')('refocus-collector:config');
 const init = require('./utils').init;
-const oauth2 = require('simple-oauth2');
 
 /**
  * Config object created by loading local registry. This object is also
@@ -49,11 +48,7 @@ function setRegistry(reg) {
  * Returns the config object
  * @returns {Object} Config Object
  */
-function getConfig(tokenObject=null) {
-  if (tokenObject) {
-  	return oauth2.accessToken.create(tokenObject);
-  }
-
+function getConfig() {
   return config;
 } // getConfig
 
