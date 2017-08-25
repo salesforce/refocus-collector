@@ -17,6 +17,7 @@ const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
 const errors = require('../config/errors');
 const configModule = require('../config/config');
+const constants = require('../constants');
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -111,7 +112,8 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
          * If error is 401 and token is present with simple oauth object
          * then token is expired and request new token again.
          */
-        if (err.status == '401' && simpleOauth && generator.token) {
+        if (err.status == constants.httpStatus.UNAUTHORIZED
+          && simpleOauth && generator.token) {
           generator.token = null;
           collect(generator);
         } else {
