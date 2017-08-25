@@ -84,10 +84,9 @@ function prepareHeaders(headers, ctx) {
  * @param  {Object} simpleOauth Simple Oauth Object
  * @return {Object} generator   updated generator object
  */
-function sendRemoteRequest(generator, simpleOauth=null) {
+function sendRemoteRequest(generator, connection, simpleOauth=null) {
   return new Promise((resolve) => {
     const remoteUrl = prepareUrl(generator);
-    const connection = generator.generatorTemplate.connection;
 
     // If token is present then add token to request header.
     if (generator.token) {
@@ -108,8 +107,10 @@ function sendRemoteRequest(generator, simpleOauth=null) {
     .set(headers)
     .end((err, res) => {
       if (err) {
-        // If error is 401 and token is present with simple oauth object
-        // then token is expired and request new token again.
+        /*
+         * If error is 401 and token is present with simple oauth object
+         * then token is expired and request new token again.
+         */
         if (err.status == '401' && simpleOauth && generator.token) {
           generator.token = null;
           collect(generator);
@@ -143,28 +144,29 @@ function sendRemoteRequest(generator, simpleOauth=null) {
  * @throws {ValidationError} if thrown by prepareUrl
  */
 function collect(generator) {
-  const remoteUrl = prepareUrl(generator);
   const connection = generator.generatorTemplate.connection;
 
-  // If simple_oauth object is present then use that for token generation
-  // and using that token remote request should be done.
+  /**
+   * If simple_oauth object is present then use that for token generation
+   * and using that token remote request should be done.
+   */
   if (connection.simple_oauth) {
     const method = connection.simple_oauth;
     const simpleOauth = generator.simple_oauth;
 
     if (!generator.token) {
       const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-      oauth2[method]
-        .getToken(simpleOauth.tokenConfig)
-        .then((token) => {
-          generator.token = token;
-          return sendRemoteRequest(generator, simpleOauth);
-        });
-    } else {
-      return sendRemoteRequest(generator, simpleOauth);
+      return oauth2[method]
+      .getToken(simpleOauth.tokenConfig)
+      .then((token) => {
+        generator.token = token;
+        return sendRemoteRequest(generator, connection, simpleOauth);
+      });
     }
+
+    return sendRemoteRequest(generator, connection, simpleOauth);
   } else {
-    return sendRemoteRequest(generator);
+    return sendRemoteRequest(generator, connection);
   }
 } // collect
 
