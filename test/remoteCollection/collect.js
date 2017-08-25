@@ -148,7 +148,7 @@ describe('test/remoteCollection/collect.js >', () => {
           credentials: {
             client: {
               id: '11bogus',
-              secret: '11bogus%^'
+              secret: '11bogus%^',
             },
             auth: {
               tokenHost: 'http://www.xyz.com/',
@@ -160,9 +160,9 @@ describe('test/remoteCollection/collect.js >', () => {
           },
           tokenConfig: {
             username: 'testUser',
-            password: 'testPassword'
+            password: 'testPassword',
           },
-          tokenFormat: 'Bearer {accessToken}'
+          tokenFormat: 'Bearer {accessToken}',
         },
       };
 
@@ -174,7 +174,7 @@ describe('test/remoteCollection/collect.js >', () => {
 
       const token = {
         accessToken: 'eegduygsugfiusguguygyfkufyg',
-      }
+      };
 
       nock(remoteUrl)
         .post('/login')
