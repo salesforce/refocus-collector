@@ -78,6 +78,85 @@ describe('test/remoteCollection/collect.js >', () => {
       .catch(done);
     });
 
+    it('collecting data with simple-oauth parameter', (done) => {
+      const remoteUrl = 'http://www.xyz.com/';
+      const generator = {
+        name: 'Generator0',
+        interval: 600,
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'http://www.xyz.com/status',
+            simple_oauth: 'ownerPassword',
+          },
+          transform:
+          'return [{ name: "Fremont|Delay", value: 10 }, ' +
+            '{ name: "UnionCity|Delay", value: 2 }]',
+        },
+        subject: { absolutePath: 'EastBay' },
+        simple_oauth: {
+          credentials: {
+            client: {
+              id: '11bogus',
+              secret: '11bogus%^',
+            },
+            auth: {
+              tokenHost: 'http://www.xyz.com/',
+              tokenPath: '/login',
+            },
+            options: {
+              bodyFormat: 'json',
+            },
+          },
+          tokenConfig: {
+            username: 'testUser',
+            password: 'testPassword',
+          },
+          tokenFormat: 'Bearer {accessToken}',
+        },
+      };
+
+      const remoteData = {
+        station: [{ name: 'Fremont|Delay', value: 10 },
+          { name: 'UnionCity|Delay', value: 2 },
+        ],
+      };
+
+      const token = {
+        accessToken: 'eegduygsugfiusguguygyfkufyg',
+      };
+
+      nock(remoteUrl)
+        .post('/login')
+        .reply(httpStatus.OK, token);
+
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, remoteData);
+
+      collect.collect(generator)
+      .then((collectRes) => {
+        expect(collectRes.res).to.not.equal(undefined);
+        expect(collectRes.res.status).to.equal(httpStatus.OK);
+        expect(collectRes.res.body).to.deep.equal(remoteData);
+
+        expect(collectRes.res.req.headers['user-agent'])
+          .to.contain('node-superagent');
+
+        expect(collectRes.generatorTemplate).to.deep
+          .equal(generator.generatorTemplate);
+        expect(collectRes.context).to.deep.equal(generator.context);
+        expect(collectRes.subject).to.deep.equal(generator.subject);
+        expect(collectRes.res.request.header.Authorization)
+          .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+
+        done();
+      });
+    });
+
     it('SERVER ERROR: bad responses from collect should also be a part of ' +
       'the "res" attribute', (done) => {
       const remoteUrl1 = 'http://randonUnAvailableUrl.false/';
@@ -105,7 +184,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.SERVICE_UNAVAILABLE);
-        expect(collectRes.res.response.text).to.contain('Server is down');
+        expect(collectRes.res.body.error.message).to.contain('Server is down');
         done();
       })
       .catch(done);
