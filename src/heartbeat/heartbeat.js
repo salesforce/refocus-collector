@@ -36,6 +36,7 @@ function sendHeartbeat(refocusInstanceObj) {
   let token;
   let path;
   let url;
+  const timestamp = Date.now();
 
   try {
     //TODO: use the registry for this collector once command line args are setup
@@ -61,6 +62,7 @@ function sendHeartbeat(refocusInstanceObj) {
 
     const body = {
       logLines: [],
+      timestamp: timestamp,
     };
 
     return buildMockResponse(generatorsDir)
@@ -74,7 +76,10 @@ function sendHeartbeat(refocusInstanceObj) {
     //.set('Authorization', token)
     //.send(body);
 
-    //.end(handleHeartbeatResponse)
+    //.end((res) => {
+    //  res.timestamp = timestamp;
+    //  handleHeartbeatResponse(null, res)
+    // })
 
     //return req;
   }
