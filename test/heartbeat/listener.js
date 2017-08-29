@@ -293,29 +293,29 @@ describe('test/heartbeat/listener.js >', () => {
       heartbeatInterval: 50,
       generatorsAdded: [
         {
-          name: 'LIVE_AGENT',
+          name: 'ABC_DATA',
           aspects: [{ name: 'A', timeout: '1m' }],
           interval: 6000,
           generatorTemplateName: 'refocus-trust1-collector',
           generatorTemplate: {
-            name: 'sfdc-live-agent-collector',
+            name: 'abc-gen-templ',
             connection: {
-              url: 'http://www.liveagentdatasource.com',
+              url: 'http://www.abcdatasource.com',
               bulk: true,
             },
           },
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-          context: { baseUrl: 'http://www.liveagentdatasource.com', },
+          context: { baseUrl: 'http://www.abcdatasource.com', },
         },
         {
-          name: 'Core_Trust4',
+          name: 'Fghijkl_Mnopq',
           aspects: [{ name: 'A', timeout: '1m' }],
           interval: 1000,
-          context: { baseUrl: 'https://argus-api.data.sfdc.net', },
+          context: { baseUrl: 'https://fghijkl.data.mnopq.com', },
           generatorTemplate: {
-            name: 'sfdc-live-agent-collector',
+            name: 'abc-gen-templ',
             connection: {
-              url: 'http://www.liveagentdatasource.com',
+              url: 'http://www.abcdatasource.com',
               bulk: true,
             },
           },
@@ -323,18 +323,18 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
-    expect(updatedConfig.generators.LIVE_AGENT).to.not.equal(undefined);
+    expect(updatedConfig.generators.ABC_DATA).to.not.equal(undefined);
     const resDel = {
       generatorsDeleted: [
-        { name: 'LIVE_AGENT', },
+        { name: 'ABC_DATA', },
       ],
     };
     const updatedConfigAgain = listener.handleHeartbeatResponse(null, resDel);
-    expect(Object.keys(tracker)).to.contain('Core_Trust4');
-    expect(updatedConfigAgain.generators.Core_Trust4)
+    expect(Object.keys(tracker)).to.contain('Fghijkl_Mnopq');
+    expect(updatedConfigAgain.generators.Fghijkl_Mnopq)
       .to.not.equal(undefined);
-    expect(tracker.LIVE_AGENT).equal(undefined);
-    expect(updatedConfigAgain.generators.LIVE_AGENT).to.equal(undefined);
+    expect(tracker.ABC_DATA).equal(undefined);
+    expect(updatedConfigAgain.generators.ABC_DATA).to.equal(undefined);
     done();
   });
 
@@ -345,16 +345,16 @@ describe('test/heartbeat/listener.js >', () => {
         heartbeatInterval: 50,
       },
       generatorsAdded: {
-        name: 'Core_Trust4',
+        name: 'Fghijkl_Mnopq',
         aspects: [{ name: 'A', timeout: '1m' }],
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
       },
       generatorsDeleted: {
-        name: 'Core_Trust4',
+        name: 'Fghijkl_Mnopq',
       },
       generatorsUpdated: {
-        name: 'Core_Trust4',
+        name: 'Fghijkl_Mnopq',
         aspects: [{ name: 'A', timeout: '1m' }],
         interval: 1000,
         context: { baseUrl: 'https://example.api', },
