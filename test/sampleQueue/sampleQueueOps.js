@@ -33,6 +33,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
   let samples;
   let winstonInfoStub;
   let winstonErrStub;
+
   beforeEach(() => {
     samples = [];
     for (let i = 0; i < 10; i++) { // create 10 samples
@@ -73,28 +74,22 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
 
       // check the logs
       expect(winston.info.calledOnce).to.be.true;
-      expect(winston.info.calledWith(
-        'Enqueue successful for : 10 samples'
-      )).to.be.true;
-
+      expect(winston.info.calledWith('Enqueue successful for 10 samples'))
+      .to.be.true;
       done();
     });
 
     it('failed', (done) => {
       sampleQueueOps.enqueue([['randomText']]);
       expect(winston.error.calledOnce).to.be.true;
-      expect(winston.error.args[0][0]).contains(
-        'Enqueue failed. Error: ValidationError'
-      );
-
+      expect(winston.error.args[0][0])
+      .contains('Enqueue failed: ValidationError');
       done();
     });
   });
 
   describe('flush >', () => {
-    beforeEach(() => sampleQueueOps.flush(
-      100, tu.firstKeyPairInRefocusInstances
-    ));
+    beforeEach(() => sampleQueueOps.flush(100, tu.refocusInstance1));
 
     it('number of samples < maxSamplesPerBulkRequest, ok', (done) => {
       // check that bulk upsert called expected number of times and with
@@ -102,11 +97,9 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       sampleQueueOps.enqueue(samples);
       expect(sampleQueueOps.sampleQueue.length).to.be.equal(10);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
+      sampleQueueOps.flush(100, tu.refocusInstance1);
       sinon.assert.calledOnce(doBulkUpsert);
-      expect(doBulkUpsert.args[0][0].url).to.be.equal(
-        'http://www.xyz.com'
-      );
+      expect(doBulkUpsert.args[0][0].url).to.be.equal('http://www.xyz.com');
       expect(doBulkUpsert.args[0][0].token).to.be.string;
       expect(doBulkUpsert.args[0][1][1].name).to.be.equal('sample1|aspName');
       expect(doBulkUpsert.args[0][1].length).to.be.equal(10);
@@ -125,7 +118,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       // right arguments
       sampleQueueOps.enqueue(samples);
       const doBulkUpsert = sinon.spy(sampleUpsertUtils, 'doBulkUpsert');
-      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
+      sampleQueueOps.flush(100, tu.refocusInstance1);
 
       // maxSamplesPerBulkRequest = 100, hence doBulkUpsert called thrice
       sinon.assert.calledThrice(doBulkUpsert);
@@ -150,9 +143,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
         .post(bulkEndPoint, samples)
         .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
-      sampleQueueOps.bulkUpsertAndLog(
-        samples, tu.firstKeyPairInRefocusInstances
-      );
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.refocusInstance1);
 
       // Since logs are created after the bulkUpsert async call returns, hence
       // setTimeout to wait for promise to complete.
@@ -169,11 +160,7 @@ describe('test/sampleQueue/sampleQueueOps.js >', () => {
       nock(refocusUrl)
         .post(bulkEndPoint, samples)
         .reply(httpStatus.BAD_REQUEST, {});
-
-      sampleQueueOps.bulkUpsertAndLog(
-        samples, tu.firstKeyPairInRefocusInstances
-      );
-
+      sampleQueueOps.bulkUpsertAndLog(samples, tu.refocusInstance1);
       setTimeout(() => {
         // Since logs are created after the bulkUpsert async call returns, hence
         // setTimeout to wait for promise to complete.

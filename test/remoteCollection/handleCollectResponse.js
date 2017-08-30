@@ -170,7 +170,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       .to.eql({ name: 'S1|A1', value: '10' });
       expect(sampleQueueOps.sampleQueue[1])
       .to.eql({ name: 'S1|A2', value: '2' });
-      sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
+      sampleQueueOps.flush(100, tu.refocusInstance1);
 
       // restore winston stub
       winstonInfoStub.restore();

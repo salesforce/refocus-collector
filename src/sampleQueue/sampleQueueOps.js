@@ -34,6 +34,7 @@ function validateSample(sample) {
 
 /**
  * Enqueue samples in sample queue.
+ *
  * @param  {Array} samples - Array of samples
  * @throws {ValidationError} - If Invalid sample
  */
@@ -44,63 +45,45 @@ function enqueue(samples) {
       validateSample(sample);
       sampleQueue.push(sample);
     });
-    logger.info(`Enqueue successful for : ${samples.length} samples`);
+    logger.info(`Enqueue successful for ${samples.length} samples`);
   } catch (err) {
-    logger.error(`Enqueue failed. Error: ${err}`);
+    logger.error(`Enqueue failed: ${err}`);
   }
 }
 
 /**
- * Bulk upsert samples and log the success or failure
+ * Bulk upsert samples and log the success or failure.
+ *
  * @param  {Array} samples - Array of samples
- * @param  {Object} firstKeyPairInRefocusInstances - The first pair of
- *  key and value in refocusInstances. Change when Refocus instance name is
- *  decided.
- * @throws {ValidationError} - If firstKeyPairInRefocusInstances is not found
+ * @param  {Object} refocusInst - The Refocus instance
+ * @throws {ValidationError} - If missing refocusInst
  */
-function bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances) {
+function bulkUpsertAndLog(samples, refocusInst) {
   debug('Entered: bulkUpsertAndLog');
-  if (!firstKeyPairInRefocusInstances ||
-    Object.keys(firstKeyPairInRefocusInstances).length === 0) {
-    throw new errors.ValidationError(
-      `firstKeyPairInRefocusInstances empty or not found.` +
-      ` RefocusInstance: ${JSON.stringify(firstKeyPairInRefocusInstances)}`
-    );
+  if (!refocusInst) {
+    throw new errors.ValidationError('Missing refocusInst');
   }
 
   debug(`Starting bulk upsert of ${samples.length} samples.`);
-
-  sampleUpsertUtils.doBulkUpsert(
-    firstKeyPairInRefocusInstances[
-      Object.keys(firstKeyPairInRefocusInstances)[0]
-    ], samples
-  )
-  .then(() => {
-    logger.info({
-      activity: 'bulkUpsertSamples',
-      sampleCount: samples.length,
-    });
-  })
-  .catch((err) => {
-    logger.error(
-      `doBulkUpsert failed for ${samples.length} samples.` +
-      `Error: ${JSON.stringify(err)}`);
-  });
-}
+  sampleUpsertUtils.doBulkUpsert(refocusInst, samples)
+  .then(() => logger.info({
+    activity: 'bulkUpsertSamples',
+    sampleCount: samples.length,
+  }))
+  .catch((err) => logger.error(`doBulkUpsert failed for ${samples.length} ` +
+    `samples: ${JSON.stringify(err)}`));
+} // bulkUpsertAndLog
 
 /**
  * Flush the queue. If maxSamplesPerBulkRequest is set, bulk upsert the samples
  * in batches of maxSamplesPerBulkRequest count.
  *
  * @param {Number} maxSamplesPerBulkRequest - the maximum batch size; unlimited
- * @param  {Object} firstKeyPairInRefocusInstances - The first pair of
- *  key and value in refocusInstances. Change when Refocus instance name is
- *  decided.
- *  batch size if arg is not defined or not a number
+ * @param  {Object} refocusInst - The Refocus instance
  * @returns {Number} - number of samples flushed
  */
-function flush(maxSamplesPerBulkRequest, firstKeyPairInRefocusInstances) {
-  debug('Entered: flush', maxSamplesPerBulkRequest);
+function flush(maxSamplesPerBulkRequest, refocusInst) {
+  debug('Entered: flush', maxSamplesPerBulkRequest, refocusInst.name);
   const max = new Number(maxSamplesPerBulkRequest) || Number.MAX_SAFE_INTEGER;
   const totSamplesCnt = sampleQueue.length;
   let samples = sampleQueue;
@@ -108,12 +91,12 @@ function flush(maxSamplesPerBulkRequest, firstKeyPairInRefocusInstances) {
   while ((startIdx + max) < totSamplesCnt) {
     const endIdx = startIdx + max;
     samples = sampleQueue.slice(startIdx, endIdx);
-    bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances);
+    bulkUpsertAndLog(samples, refocusInst);
     startIdx = endIdx;
   }
 
   samples = sampleQueue.slice(startIdx, totSamplesCnt);
-  bulkUpsertAndLog(samples, firstKeyPairInRefocusInstances);
+  bulkUpsertAndLog(samples, refocusInst);
   sampleQueue.splice(0, totSamplesCnt); // remove these samples from queue.
   debug(`Flushed ${totSamplesCnt} samples.`);
   return totSamplesCnt;
