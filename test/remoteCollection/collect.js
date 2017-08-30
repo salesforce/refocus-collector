@@ -256,7 +256,7 @@ describe('test/remoteCollection/collect.js >', () => {
           .to.eql({ name: 'Fremont|Delay', value: '10' });
         expect(sampleQueueOps.sampleQueue[1])
           .to.eql({ name: 'UnionCity|Delay', value: '2' });
-        sampleQueueOps.flush(100, tu.firstKeyPairInRefocusInstances);
+        sampleQueueOps.flush(100, tu.refocusInstance1);
         done();
       })
       .catch(done);

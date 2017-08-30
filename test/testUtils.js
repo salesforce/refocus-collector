@@ -14,13 +14,12 @@ const conf = require('../src/config/config');
 const constants = require('../src/constants');
 conf.clearConfig();
 conf.setRegistry('./test/config/testRegistry.json');
-
 const config = conf.getConfig();
-
-const firstKeyPairInRefocusInstances = {};
-const firstKey = Object.keys(config.registry.refocusInstances)[0];
-firstKeyPairInRefocusInstances[firstKey] = config.registry
-                                            .refocusInstances[firstKey];
+const refocusInstance1 = {
+  name: 'refocusInstance1',
+  url: 'http://www.xyz.com',
+  token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
+};
 
 function makeRegistryFile() {
   const expectedResult = {
@@ -29,10 +28,7 @@ function makeRegistryFile() {
     ipAddress: '203.281.12.111',
     description: 'some description',
     refocusInstances: {
-      instance1: {
-        url: 'http://www.xyz.com',
-        token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-      },
+      refocusInstance1,
     },
   };
   fs.writeFile(constants.registryLocation,
@@ -45,8 +41,8 @@ function removeRegistryFile(file=null) {
 }
 
 module.exports = {
-  firstKeyPairInRefocusInstances,
-  makeRegistryFile,
-  removeRegistryFile,
   config,
+  makeRegistryFile,
+  refocusInstance1,
+  removeRegistryFile,
 };
