@@ -7,7 +7,7 @@
  */
 
 /**
- * /src/config/errors.js
+ * /src/errors.js
  *
  * Error Definitions
  */

@@ -11,7 +11,7 @@
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
-const errors = require('../config/errors');
+const errors = require('../errors');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
 

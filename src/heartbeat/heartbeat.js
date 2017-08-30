@@ -12,7 +12,7 @@
 'use strict';
 const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
-const errors = require('../config/errors');
+const errors = require('../errors');
 const request = require('superagent');
 const configModule = require('../config/config');
 const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;

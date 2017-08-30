@@ -10,7 +10,7 @@
  * /src/sampleQueue/sampleUpsertUtils.js
  */
 const debug = require('debug')('refocus-collector:sampleQueue');
-const errors = require('../config/errors');
+const errors = require('../errors');
 const request = require('superagent');
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');

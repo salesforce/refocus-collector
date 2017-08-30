@@ -12,7 +12,7 @@
 const expect = require('chai').expect;
 const assert = require('chai').assert;
 const configUtils = require('../../src/config/utils');
-const errors = require('../../src/config/errors');
+const errors = require('../../src/errors');
 const util = require('util');
 
 describe('test/config/utils.js >', () => {

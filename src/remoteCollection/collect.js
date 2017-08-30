@@ -15,7 +15,7 @@ const request = require('superagent');
 const logger = require('winston');
 const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
-const errors = require('../config/errors');
+const errors = require('../errors');
 const configModule = require('../config/config');
 const constants = require('../constants');
 

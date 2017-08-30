@@ -19,7 +19,7 @@ const tu = require('../testUtils');
 const refocusUrl = tu.config.registry.refocusInstances[
   Object.keys(tu.config.registry.refocusInstances)[0]
 ].url;
-const errors = require('../../src/config/errors');
+const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;

@@ -13,7 +13,7 @@
 
 const mock = require('mock-fs');
 const expect = require('chai').expect;
-const errors = require('../../src/config/errors');
+const errors = require('../../src/errors');
 const configModule = require('../../src/config/config');
 configModule.clearConfig();
 configModule.setRegistry({ refocusInstances: {} });
