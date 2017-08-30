@@ -10,7 +10,7 @@
  * test/config/config.js
  */
 const expect = require('chai').expect;
-const errors = require('../../src/config/errors');
+const errors = require('../../src/errors');
 const util = require('util');
 const fs = require('fs');
 const registryLoc = require('../../src/constants').mockRegistryLocation;

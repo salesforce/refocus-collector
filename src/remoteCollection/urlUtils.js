@@ -11,7 +11,7 @@
  */
 'use strict';
 const debug = require('debug')('refocus-collector:remoteCollection');
-const errors = require('../config/errors');
+const errors = require('../errors');
 const template = require('just-template');
 
 /**
