@@ -15,28 +15,24 @@
  *
  * Load the registry and set up all the command-line options.
  */
-
-// for package commands
 const program = require('commander');
-const constants = require('../constants');
-
-// for the large refocus font in command line
+const logger = require('winston');
 const figlet = require('figlet');
-const setRegistryAndParseCommand = require('./utils')
-  .setRegistryAndParseCommand;
+const constants = require('../constants');
+const conf = require('../config/config');
+const pj = require('../../package.json');
 
 program
-  .version('0.0.1')
-  .command('register <name> <url> <token>',
-    'Register collector by name, refocus url and API token')
-  .command('start <name>', 'Start given collector')
-  .command('stop <name>', 'Stop given collector')
-  .command('status <name>', 'Show status of collector')
-  .command('deregister <name>', 'Deregister given collector');
+.version(pj.version)
+.command('register --name <name> --url <url> --token <token>',
+  'Register collector with an instance of Refocus')
+.command('start --name <name>', 'Start collector')
+.command('stop --name <name>', 'Stop collector')
+.command('status --name <name>', 'Show current status of collector')
+.command('deregister --name <name>', 'Deregister collector');
 
 program.on('--help', () => {
-  console.log('  Examples:');
-  console.log('');
+  console.log('  Examples:\n');
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector register --name=test ' +
     '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
@@ -47,4 +43,9 @@ program.on('--help', () => {
   console.log(figlet.textSync('Refocus Collector'));
 });
 
-setRegistryAndParseCommand(program, constants.registryLocation);
+try {
+  conf.setRegistry(constants.registryLocation);
+  program.parse(process.argv);
+} catch (err) {
+  logger.error(`${err.message}\n\n${err}`);
+}
