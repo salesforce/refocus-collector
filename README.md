@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/salesforce/refocus-collector/badge.svg?branch=master)](https://coveralls.io/github/salesforce/refocus-collector?branch=master)
+
 # refocus-collector
 
 ### Installation
