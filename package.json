@@ -8,7 +8,7 @@
   },
   "scripts": {
     "jscs": "./node_modules/jscs/bin/jscs src test",
-    "test": "npm run jscs && ./node_modules/.bin/mocha -R dot --recursive ./test"
+    "test": "npm run jscs && istanbul cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R dot --recursive ./test && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js && rm -rf ./coverage"
   },
   "repository": {
     "type": "git",
@@ -31,12 +31,14 @@
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
     "bluebird": "^3.5.0",
+    "coveralls": "^2.13.1",
     "debug": "^2.6.8",
     "errors": "^0.3.0",
     "figlet": "^1.2.0",
     "fs": "0.0.1-security",
-    "just-template": "^1.1.22",
+    "istanbul": "^0.4.5",
     "joi": "^10.6.0",
+    "just-template": "^1.1.22",
     "nock": "^9.0.13",
     "path": "^0.12.7",
     "repeat": "0.0.6",
