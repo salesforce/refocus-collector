@@ -25,7 +25,7 @@
  * }
  *
  * TODO : Defaul name for refocus collector is Refocus-Collector
- * which can be modified by providing name.
+ * which can be modified by providing name while creating collector.
  */
 const registryFile = require('../constants').registryLocation;
 const fs = require('fs');
