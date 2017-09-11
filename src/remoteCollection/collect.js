@@ -86,7 +86,8 @@ function prepareHeaders(headers, ctx) {
  */
 function sendRemoteRequest(generator, connection, simpleOauth=null) {
   return new Promise((resolve) => {
-    const remoteUrl = prepareUrl(generator);
+    /* Add the url to the generator so the handler has access to it later. */
+    generator.url = prepareUrl(generator);
 
     // If token is present then add token to request header.
     if (generator.token) {
@@ -103,7 +104,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
 
     // Remote request for fetching data.
     request
-    .get(remoteUrl)
+    .get(generator.url)
     .set(headers)
     .end((err, res) => {
       if (err) {
