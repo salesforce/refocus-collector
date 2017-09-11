@@ -23,6 +23,9 @@
  *      "bar": { "name": "bar", "url": "...", "token": "..." }
  *    }
  * }
+ *
+ * TODO : Defaul name for refocus collector is Refocus-Collector
+ * which can be modified by providing name.
  */
 const registryFile = require('../constants').registryLocation;
 const fs = require('fs');
@@ -40,7 +43,8 @@ const logger = require('winston');
  */
 function createRegistryFile(file=null) {
   file = file ? file : registryFile;
-  fs.writeFileSync(file, JSON.stringify({ refocusInstances: {} }, null, 2), 'utf8', (err) => {
+  fs.writeFileSync(file, JSON.stringify({ name: 'Refocus-Collector',
+    refocusInstances: {}, }, null, 2), 'utf8', (err) => {
     if (err) {
       return debug(err);
     }
