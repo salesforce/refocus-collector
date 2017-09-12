@@ -21,6 +21,7 @@ const fs = require('fs');
 const Path = require('path');
 const Promise = require('bluebird');
 Promise.promisifyAll(fs);
+const u = require('../utils/commonUtils');
 let lastHeartbeatTime;
 
 /**
@@ -60,9 +61,15 @@ function sendHeartbeat(refocusInstanceObj) {
       );
     }
 
+    const existing = configModule.getConfig().collectorConfig;
+    const current = u.getCurrentMetadata();
+    const changed = u.getChangedMetadata(existing, current);
+    Object.assign(existing, current);
+
     const body = {
       logLines: [],
       timestamp: timestamp,
+      collectorConfig: changed,
     };
 
     return buildMockResponse(generatorsDir)

@@ -22,6 +22,15 @@ describe('test/config/utils.js >', () => {
     expect(obj.registry.refocusInstances.refocusInstance1.url)
     .to.equal('http://www.xyz.com');
     expect(obj.registry.refocusInstances.refocusInstance1.token).to.exist;
+
+    expect(obj.collectorConfig).to.be.an('object');
+    const osKeys = ['arch', 'hostname', 'platform', 'release', 'type', 'username'];
+    const processKeys = ['execPath', 'memoryUsage', 'uptime', 'version', 'versions'];
+    expect(obj.collectorConfig.osInfo).to.be.an('object');
+    expect(obj.collectorConfig.osInfo).to.have.all.keys(osKeys);
+    expect(obj.collectorConfig.processInfo).to.be.an('object');
+    expect(obj.collectorConfig.processInfo).to.have.all.keys(processKeys);
+    expect(obj.collectorConfig.processInfo.versions).to.be.an('object');
     done();
   });
 

@@ -69,6 +69,9 @@ function init(reg) {
     registry: {},
   };
 
+  const metadata = common.getCurrentMetadata();
+  Object.assign(conf.collectorConfig, metadata);
+
   let r;
   if (typeof reg === 'object') {
     r = reg;
