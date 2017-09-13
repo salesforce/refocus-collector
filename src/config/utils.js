@@ -24,7 +24,7 @@ const refocusInstanceSchema = require('../utils/schema').refocusInstance;
  * Validate the refocus instances.
  *
  * @throws {ValidationError} - If registry entry missing "url" or "token"
- *  attribute
+ *  attribute.
  */
 function validateRegistry(regObj) {
   if (!regObj) {
