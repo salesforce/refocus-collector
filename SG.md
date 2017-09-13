@@ -42,7 +42,7 @@ are searching for your sample generator.
     - `refresh_token` (String, optional) - Refresh token which mostly will be null
     - `expires_in` (String, optional) - Expires time of access token in second
     (Refer https://github.com/lelylan/simple-oauth2) for more information)
-  - `function` (String, required) - Function for getting oauth token using simple-oauth package. Select the value from `authorizationCode` Or `ownerPassword` Or `clientCredentials` depends on your implementation. (Refer https://github.com/lelylan/simple-oauth2) for more information)
+  - `function` (String, required) - Function for getting oauth token using simple-oauth package. Select the value from `authorizationCode` Or `ownerPassword` Or `clientCredentials` depends on your implementation. (Refer https://github.com/lelylan/simple-oauth2) for more information).
 - `aspects` (Array of Strings, required) - one or more aspect names.
 - `subjects` (Array of Strings, one of either `subjects` or `subjectQuery` is required) - the absolutePath of one
 or more subjects.
