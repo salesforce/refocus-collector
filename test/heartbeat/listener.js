@@ -17,17 +17,24 @@ const obj = {
     },
   },
 };
-
 const configModule = require('../../src/config/config');
 const listener = require('../../src/heartbeat/listener');
 const tracker = require('../../src/repeater/repeater').tracker;
 const expect = require('chai').expect;
+const encrypt = require('../../src/utils/commonUtils').encrypt;
+const constants = require('../../src/constants');
 
 describe('test/heartbeat/listener.js >', () => {
+  const refocusInstance = {
+    name: 'myRefocusInstance',
+    url: 'refocus.com',
+    token: 'collectortoken',
+  };
   before(() => {
     configModule.clearConfig();
     configModule.setRegistry(obj);
     const config = configModule.getConfig();
+    config.refocusInstance = refocusInstance;
   });
 
   after(() => {
@@ -363,5 +370,222 @@ describe('test/heartbeat/listener.js >', () => {
     const ret = listener.handleHeartbeatResponse(null, res);
     expect(ret.collectorConfig.heartbeatInterval).to.equal(50);
     done();
+  });
+
+  describe('with encrypted context attributes', () => {
+    const password = 'reallylongsecretpassword';
+    const token = 'alphanumerictoken';
+    const secret = refocusInstance.token + hbResponse.timestamp;
+    const algorithm = constants.encryptionAlgorithm;
+    it('added generators with encrypted context attributed should be ' +
+      'decrypted before the repeats are created', (done) => {
+      const res = {
+        heartbeatInterval: 50,
+        generatorsAdded: [
+          {
+            name: 'Core_Trust2_With_Encryption',
+            generatorTemplateName: 'refocus-trust1-collector',
+            generatorTemplate: {
+              name: 'refocus-trust1-collector',
+              connection: {
+                url: 'http://www.google.com',
+                bulk: true,
+              },
+              contextDefinition: {
+                password: {
+                  encrypted: true,
+                },
+                token: {
+                  encrypted: true,
+                },
+                baseUrl: {
+                  encrypted: false,
+                },
+              },
+            },
+            subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+            context: {
+              baseUrl: 'https://example.api',
+              password: encrypt(password, secret, algorithm),
+              token: encrypt(token, secret, algorithm),
+            },
+            collectors: [{ name: 'agent1' }],
+            interval: 6000,
+          },
+        ],
+      };
+      const updatedConfig = listener.handleHeartbeatResponse(null, res);
+      const decryptedContext = updatedConfig.generators
+        .Core_Trust2_With_Encryption.context;
+
+      expect(decryptedContext).to.deep.equal({ baseUrl: 'https://example.api',
+        password, token, });
+      expect(updatedConfig.generators.Core_Trust2_With_Encryption)
+        .to.deep.equal(res.generatorsAdded[0]);
+      expect(tracker.Core_Trust2_With_Encryption).not.equal(undefined);
+      done();
+    });
+
+    it('updated generator context with encryption should be decrypted',
+    (done) => {
+      const res = {
+        heartbeatInterval: 50,
+        generatorsAdded: [
+          {
+            name: 'Core_Trust3_With_Encryption',
+            generatorTemplateName: 'refocus-trust1-collector',
+            generatorTemplate: {
+              name: 'refocus-trust1-collector',
+              connection: {
+                url: 'http://www.google.com',
+                bulk: true,
+              },
+              contextDefinition: {
+                password: {
+                  encrypted: true,
+                },
+                token: {
+                  encrypted: true,
+                },
+                baseUrl: {
+                  encrypted: false,
+                },
+              },
+            },
+            subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+            context: {
+              baseUrl: 'https://example.api',
+              password: encrypt(password, secret, algorithm),
+              token: encrypt(token, secret, algorithm),
+            },
+            collectors: [{ name: 'agent1' }],
+            interval: 6000,
+          },
+        ],
+      };
+      listener.handleHeartbeatResponse(null, res);
+      const newPassword = 'newPassword';
+      const newToken = 'newToken';
+      hbResponse.generatorsUpdated = [
+        {
+          name: 'Core_Trust3_With_Encryption',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {
+            name: 'refocus-trust1-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+            contextDefinition: {
+              password: {
+                encrypted: true,
+              },
+              token: {
+                encrypted: true,
+              },
+              baseUrl: {
+                encrypted: false,
+              },
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: {
+            baseUrl: 'https://example.api.v2',
+            password: encrypt(newPassword, secret, algorithm),
+            token: encrypt(newToken, secret, algorithm),
+          },
+          collectors: [{ name: 'agent2' }],
+          interval: 6000,
+        },
+      ];
+      hbResponse.generatorsAdded = [];
+      const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+      expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
+        .to.deep.equal({ baseUrl: 'https://example.api.v2',
+          password: newPassword, token: newToken, });
+      expect(tracker.Core_Trust3_With_Encryption).not.equal(null);
+      done();
+    });
+
+    it('when context is updated from encryption = false to encryption = ' +
+      'true, decryption should happen', (done) => {
+      const res = {
+        heartbeatInterval: 50,
+        generatorsAdded: [
+          {
+            name: 'Core_Trust4_With_Encryption',
+            generatorTemplateName: 'refocus-trust1-collector',
+            generatorTemplate: {
+              name: 'refocus-trust1-collector',
+              connection: {
+                url: 'http://www.google.com',
+                bulk: true,
+              },
+              contextDefinition: {
+                password: {
+                  encrypted: true,
+                },
+                token: {
+                  encrypted: true,
+                },
+                baseUrl: {
+                  encrypted: false,
+                },
+              },
+            },
+            subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+            context: {
+              baseUrl: 'https://example.api',
+              password: encrypt(password, secret, algorithm),
+              token: encrypt(token, secret, algorithm),
+            },
+            collectors: [{ name: 'agent1' }],
+            interval: 6000,
+          },
+        ],
+      };
+      listener.handleHeartbeatResponse(null, res);
+      const newPassword = 'newPassword';
+      const newToken = 'newToken';
+      hbResponse.generatorsUpdated = [
+        {
+          name: 'Core_Trust4_With_Encryption',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: {
+            name: 'refocus-trust1-collector',
+            connection: {
+              url: 'http://www.google.com',
+              bulk: true,
+            },
+            contextDefinition: {
+              password: {
+                encrypted: false,
+              },
+              token: {
+                encrypted: true,
+              },
+              baseUrl: {
+                encrypted: false,
+              },
+            },
+          },
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: {
+            baseUrl: 'https://example.api.v2',
+            password: newPassword,
+            token: encrypt(newToken, secret, algorithm),
+          },
+          collectors: [{ name: 'agent2' }],
+          interval: 6000,
+        },
+      ];
+      hbResponse.generatorsAdded = [];
+      const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+      expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
+        .to.deep.equal({ baseUrl: 'https://example.api.v2',
+          password: newPassword, token: newToken, });
+      expect(tracker.Core_Trust3_With_Encryption).not.equal(null);
+      done();
+    });
   });
 });
