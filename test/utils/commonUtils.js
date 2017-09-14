@@ -80,11 +80,13 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
 
       const memoryUsageKeys = ['rss', 'heapTotal', 'heapUsed'];
       expect(metadata.processInfo.memoryUsage).to.be.an('object');
-      expect(metadata.processInfo.memoryUsage).to.be.an('object');
-      expect(metadata.processInfo.memoryUsage).to.have.all.keys(memoryUsageKeys);
+      expect(metadata.processInfo.memoryUsage).to.include.all.keys(memoryUsageKeys);
       expect(metadata.processInfo.memoryUsage.rss).to.be.a('number');
       expect(metadata.processInfo.memoryUsage.heapTotal).to.be.a('number');
       expect(metadata.processInfo.memoryUsage.heapUsed).to.be.a('number');
+      if (metadata.processInfo.memoryUsage.external) {
+        expect(metadata.processInfo.memoryUsage.external).to.be.a('number');
+      }
 
       expect(metadata.processInfo.uptime).to.be.a('number');
       expect(metadata.processInfo.version).to.be.a('string');
