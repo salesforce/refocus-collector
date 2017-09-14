@@ -83,6 +83,22 @@ describe('test/heartbeat/utils.js >', () => {
         .have.property('a', null);
     });
 
+    it('falsey def with falsey ctx should be ok', () => {
+      const ctx = null;
+      const def = null;
+      const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+      expect(_ctx).to.deep.equals({ });
+    });
+
+    it('falsey def with non falsey ctx should be ok', () => {
+      const ctx = {
+        okStatus: 'OK',
+      };
+      const def = null;
+      const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+      expect(_ctx).to.deep.equals(ctx);
+    });
+
     describe('with encrypted ctx attributes', () => {
       const password = 'reallylongsecretpassword';
       const token = 'alphanumerictoken';
@@ -131,6 +147,24 @@ describe('test/heartbeat/utils.js >', () => {
         };
         const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
         expect(_ctx).to.deep.equals({ password, token, notASecret, });
+      });
+
+      it('falsey ctx with a non falsey def that has encrypted attributes ' +
+        ' should be ok', () => {
+        const ctx = null;
+        const def = {
+          password: {
+            encrypted: true,
+          },
+          token: {
+            encrypted: true,
+          },
+          notASecret: {
+            encrypted: false,
+          },
+        };
+        const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+        expect(_ctx).to.deep.equals({ });
       });
     });
   });
