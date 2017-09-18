@@ -142,7 +142,7 @@ module.exports = {
 
     return changed;
   },
-  
+
   /**
    * Decrypt encrypted data using passed in secretKey and algorithm
    * @param  {String} data -  Data to be decrypted
