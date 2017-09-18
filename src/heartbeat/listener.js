@@ -33,10 +33,10 @@ function handleHeartbeatResponse(err, res) {
   }
 
   if (res) {
-    utils.updateCollectorConfig(res.collectorConfig);
-    utils.addGenerator(res.generatorsAdded);
-    utils.deleteGenerator(res.generatorsDeleted);
-    utils.updateGenerator(res.generatorsUpdated);
+    utils.updateCollectorConfig(res);
+    utils.addGenerator(res);
+    utils.deleteGenerator(res);
+    utils.updateGenerator(res);
   }
 
   const config = configModule.getConfig();

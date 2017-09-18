@@ -7,7 +7,7 @@
  */
 
 /**
- * ./src/utils/commonUtils.js
+ * src/utils/commonUtils.js
  * Common utilities.
  */
 const fs = require('fs');
@@ -16,6 +16,7 @@ const errors = require('../errors');
 const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 
 module.exports = {
 
@@ -130,4 +131,33 @@ module.exports = {
 
     return changed;
   },
+  
+  /**
+   * Decrypt encrypted data using passed in secretKey and algorithm
+   * @param  {String} data -  Data to be decrypted
+   * @param  {String} secretKey - Secret key that was used from encryption
+   * @param  {String} algorithm - Name of the encryption algorithm
+   * @returns {String} - encrypted data
+   */
+  decrypt(data, secretKey, algorithm) {
+    const decipher = crypto.createDecipher(algorithm, secretKey);
+    let decrypted = decipher.update(data, 'hex', 'utf-8');
+    decrypted += decipher.final('utf-8');
+    return decrypted;
+  }, // decrypt
+
+  /**
+   * Encrypt the given data using passed in secretKey and algorithm
+   * @param  {String} data -  Data to be encrypted
+   * @param  {String} secretKey - Secret key for encryption
+   * @param  {String} algorithm - Name of the encryption algorithm
+   * @returns {String} - encrypted data
+   */
+  encrypt(data, secretKey, algorithm) {
+    const cipher = crypto.createCipher(algorithm, secretKey);
+    let crypted = cipher.update(data, 'utf-8', 'hex');
+    crypted += cipher.final('hex');
+    return crypted;
+  }, // encrypt
+
 };

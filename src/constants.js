@@ -35,6 +35,9 @@ module.exports = {
   // exported for the purpose of testing
   mockRegistryLocation: './test/config/testRegistry.json',
 
+  // TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
+  encryptionAlgorithm: 'aes-256-cbc',
+
   // generators directory location
   // TODO - remove once we're getting generators from Refocus
   generatorsDir: './generators',

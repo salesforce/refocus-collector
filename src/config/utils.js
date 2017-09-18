@@ -14,8 +14,6 @@
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
 const errors = require('../errors');
-const fs = require('fs');
-const validator = require('validator');
 const registryFileUtils = require('../utils/registryFileUtils');
 const registrySchema = require('../utils/schema').registry;
 const refocusInstanceSchema = require('../utils/schema').refocusInstance;
@@ -98,5 +96,5 @@ function init(reg) {
 
 module.exports = {
   init,
-  validateRegistry, // export for testing only
+  validateRegistry, // exported for testing only
 };
