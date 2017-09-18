@@ -75,6 +75,10 @@ module.exports = {
     return fileContents;
   },
 
+  /**
+   * Get current os and process metadata
+   * @returns {Object} - metadata object
+   */
   getCurrentMetadata() {
     return {
       osInfo: {
@@ -96,6 +100,13 @@ module.exports = {
     };
   },
 
+  /**
+   * Get metadata properties that have been changed
+   * @param  {Object} existing - the existing collectorConfig object
+   * @param  {Object} current - the current metadata object
+   * @returns {Object} changed - an object containing only keys that
+   * are different between the existing and current objects
+   */
   getChangedMetadata(existing, current) {
     const changed = {};
 
