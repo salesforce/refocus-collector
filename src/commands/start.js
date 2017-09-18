@@ -18,7 +18,6 @@ const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const flush = require('../sampleQueue/sampleQueueOps').flush;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
-const fs = require('fs');
 const registryFile = require('../constants').registryLocation;
 const registryFileUtils = require('../utils/registryFileUtils');
 

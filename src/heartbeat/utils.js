@@ -13,14 +13,19 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const logger = require('winston');
+const commonUtils = require('../utils/commonUtils');
+
+// TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
+const encryptionAlgorithm = require('../constants').encryptionAlgorithm;
 
 /**
  * Update the "collectorConfig" attribute of the config.
  *
- * @param {Object} collectorConfig - Heartbeat Response's "collectorConfig"
- *  attribute
+ * @param {Object} res - The Heartbeat Response object
  */
-function updateCollectorConfig(collectorConfig) {
+function updateCollectorConfig(res) {
+  const collectorConfig = res.collectorConfig;
+
   // get a fresh copy of collector config
   const config = configModule.getConfig();
   if (collectorConfig) {
@@ -39,9 +44,13 @@ function updateCollectorConfig(collectorConfig) {
  *
  * @param {Object} ctx - The context from the generator
  * @param {Object} def - The contextDefinition from the generator template
+ * @param {Object} refocusInstance - The refocus instance object, contaning the
+ * instance name, the refocus collector token for this instance and the refocus
+ * instance url
+ * @param {Object} res - The heartbeat response object
  * @returns {Object} the context object with default values populated
  */
-function assignContextDefaults(ctx, def) {
+function assignContext(ctx, def, refocusInstance, res) {
   if (!ctx) {
     ctx = {};
   }
@@ -50,9 +59,18 @@ function assignContextDefaults(ctx, def) {
     def = {};
   }
 
+  const heartbeatTimestamp = res.timestamp;
+  const collectorToken = refocusInstance.token;
+  const secret = collectorToken + heartbeatTimestamp;
+
   Object.keys(def).forEach((key) => {
     if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
       ctx[key] = def[key].default;
+    }
+
+    if (ctx.hasOwnProperty(key) && def.hasOwnProperty(key) &&
+      def[key].encrypted) {
+      ctx[key] = commonUtils.decrypt(ctx[key], secret, encryptionAlgorithm);
     }
   });
 
@@ -87,19 +105,21 @@ function setupRepeater(generator) {
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
- * @param {Array} generators - Heartbeat Response's "generatorsAdded"
- *  attribute, an array of generators
+ * @param {Object} res - The Heartbeat Response object
  */
-function addGenerator(generators) {
+function addGenerator(res) {
+  const generators = res.generatorsAdded;
+
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
+  const refocusInstance = config.refocusInstance;
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContextDefaults(g.context,
-            g.generatorTemplate.contextDefinition);
+          g.context = assignContext(g.context,
+            g.generatorTemplate.contextDefinition, refocusInstance, res);
         }
 
         config.generators[g.name] = g;
@@ -119,10 +139,11 @@ function addGenerator(generators) {
  * Function to stop the generator repeater and delete the generator from the
  * collector config.
  *
- * @param {Array} generators - Heartbeat Response's "generatorsDeleted"
- *  attribute, an array of generators
+ * @param {Object} res - The Heartbeat Response object
  */
-function deleteGenerator(generators) {
+function deleteGenerator(res) {
+  const generators = res.generatorsDeleted;
+
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
   if (generators) {
@@ -145,19 +166,21 @@ function deleteGenerator(generators) {
 /**
  * Function to update the generator repeater and the collector config.
  *
- * @param {Object} generators - Heartbeat Response's "generatorsUpdated"
- *  attribute, an array of generators.
+ * @param {Object} res - The Heartbeat Response object
  */
-function updateGenerator(generators) {
+function updateGenerator(res) {
+  const generators = res.generatorsUpdated;
+
   // Get a fresh copy of collector config.
   const config = configModule.getConfig();
+  const refocusInstance = config.refocusInstance;
   if (generators) {
     if (Array.isArray(generators)) {
       // Update the repeater for the generators and update the generator config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContextDefaults(g.context,
-            g.generatorTemplate.contextDefinition);
+          g.context = assignContext(g.context,
+            g.generatorTemplate.contextDefinition, refocusInstance, res);
         }
 
         Object.keys(g).forEach((key) => {
@@ -183,7 +206,7 @@ function updateGenerator(generators) {
 
 module.exports = {
   addGenerator,
-  assignContextDefaults, // exporting for testing purposes only
+  assignContext, // exporting for testing purposes only
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,
