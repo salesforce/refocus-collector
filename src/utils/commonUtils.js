@@ -15,6 +15,7 @@ const util = require('util');
 const errors = require('../errors');
 const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
+const os = require('os');
 const crypto = require('crypto');
 
 module.exports = {
@@ -72,6 +73,74 @@ module.exports = {
     }
 
     return fileContents;
+  },
+
+  /**
+   * Get current os and process metadata
+   * @returns {Object} - metadata object
+   */
+  getCurrentMetadata() {
+    return {
+      osInfo: {
+        arch: os.arch(),
+        hostname: os.hostname(),
+        platform: os.platform(),
+        release: os.release(),
+        type: os.type(),
+        username: os.userInfo().username,
+      },
+      processInfo: {
+        execPath: process.execPath,
+        memoryUsage: process.memoryUsage(),
+        uptime: process.uptime(),
+        version: process.version,
+        versions: process.versions,
+      },
+      version: require('../../package.json').version,
+    };
+  },
+
+  /**
+   * Get metadata properties that have been changed
+   * @param  {Object} existing - the existing collectorConfig object
+   * @param  {Object} current - the current metadata object
+   * @returns {Object} changed - an object containing only keys that
+   * are different between the existing and current objects
+   */
+  getChangedMetadata(existing, current) {
+    const changed = {};
+
+    Object.keys(current.osInfo).forEach((key) => {
+      const existingValue = existing.osInfo[key];
+      const currentValue = current.osInfo[key];
+      if (existingValue !== currentValue) {
+        if (!changed.osInfo) changed.osInfo = {};
+        changed.osInfo[key] = currentValue;
+      }
+    });
+
+    Object.keys(current.processInfo).forEach((key) => {
+      const existingValue = existing.processInfo[key];
+      const currentValue = current.processInfo[key];
+      if (existingValue instanceof Object && currentValue instanceof Object) {
+        Object.keys(currentValue).forEach((key2) => {
+          if (existingValue[key2] !== currentValue[key2]) {
+            if (!changed.processInfo) changed.processInfo = {};
+            if (!changed.processInfo[key]) changed.processInfo[key] = {};
+            changed.processInfo[key][key2] = currentValue[key2];
+          }
+        });
+      } else if (existingValue !== currentValue) {
+        if (!changed.processInfo) changed.processInfo = {};
+        changed.processInfo[key] = currentValue;
+      }
+    });
+
+    if (existing.version !== current.version) {
+      changed.version = current.version;
+    }
+
+    return changed;
   },
 
   /**
