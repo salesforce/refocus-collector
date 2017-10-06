@@ -13,6 +13,8 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
+const bufferedQueue = require('buffered-queue');
+const sampleQueue;
 
 /**
  * Handles the heartbeat response:
@@ -32,6 +34,22 @@ function handleHeartbeatResponse(err, res) {
     return err;
   }
 
+  // queue generation
+  if (sampleQueue) {
+    sampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
+    sampleQueue._flushTimeout = res.collectorConfig.sampleUpsertQueueTime;
+  } else {
+    const config = configModule.getConfig();
+    sampleQueue = new Queue('bulkUpsertSampleQueue', {
+      size: config.collectorConfig.maxSamplesPerBulkRequest,
+      flshTimeout: config.collectorConfig.sampleUpsertQueueTime,
+    });
+
+    sampleQueue.on('flush', (data, name) => {
+      console.log(data);
+    });
+  }
+
   if (res) {
     utils.updateCollectorConfig(res);
     utils.addGenerator(res);
@@ -46,4 +64,5 @@ function handleHeartbeatResponse(err, res) {
 
 module.exports = {
   handleHeartbeatResponse,
+  sampleQueue,
 };

@@ -31,6 +31,9 @@ function execute(name) {
   configModule.setRegistry();
   const config = configModule.getConfig();
   const regObj = registryFileUtils.getRefocusInstance(name, registryFile);
+  function createQueue(interval, name, maxLimit) {
+    q = new Queue()
+  }
 
   /*
    * TODO: Replace the success/failure/progress listeners here with proper
@@ -46,13 +49,17 @@ function execute(name) {
   });
 
   // flush function does not return anything, hence no event functions
-  repeater.create({
-    name: 'SampleQueueFlush',
-    interval: config.collectorConfig.sampleUpsertQueueTime,
-    func: () => flush(config.collectorConfig.maxSamplesPerBulkRequest,
-      regObj),
-  });
+  // repeater.create({
+  //   name: 'SampleQueueFlush',
+  //   interval: config.collectorConfig.sampleUpsertQueueTime,
+  //   func: () => flush(config.collectorConfig.maxSamplesPerBulkRequest,
+  //     regObj),
+  // });
   logger.info({ activity: 'cmdStart' });
+
+  function enqueue(sample) {
+    q.add(sample);
+  }
   debug('Exiting start.execute');
 } // execute
 

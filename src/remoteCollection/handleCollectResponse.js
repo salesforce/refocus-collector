@@ -13,7 +13,8 @@ const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
 const errors = require('../errors');
 const logger = require('winston');
-const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+// const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+const sampleQueue = require('../heartbeat/listener').sampleQueue;
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -69,7 +70,7 @@ function handleCollectResponse(collectResponse) {
         generator: ${collectRes.name},
         numSamples: ${transformedSamples.length},
       }`);
-      enqueue(transformedSamples);
+      sampleQueue.add(transformedSamples);
     } catch (err) {
       debug(err);
       logger.error('handleCollectResponse threw an error: ', err.name,
