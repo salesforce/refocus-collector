@@ -31,9 +31,6 @@ function execute(name) {
   configModule.setRegistry();
   const config = configModule.getConfig();
   const regObj = registryFileUtils.getRefocusInstance(name, registryFile);
-  function createQueue(interval, name, maxLimit) {
-    q = new Queue()
-  }
 
   /*
    * TODO: Replace the success/failure/progress listeners here with proper
@@ -56,10 +53,6 @@ function execute(name) {
   //     regObj),
   // });
   logger.info({ activity: 'cmdStart' });
-
-  function enqueue(sample) {
-    q.add(sample);
-  }
   debug('Exiting start.execute');
 } // execute
 
