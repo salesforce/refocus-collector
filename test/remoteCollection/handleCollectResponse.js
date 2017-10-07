@@ -61,7 +61,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('error if arg missing "res" attribute', (done) => {
       try {
-        validateCollectResponse({ name: 'Foo' });
+        validateCollectResponse({ name: 'Foo', url: 'abc.com' });
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
@@ -71,11 +71,50 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('error if arg missing "name" attribute', (done) => {
       try {
-        validateCollectResponse({ res: {} });
+        validateCollectResponse({ res: {}, url: 'abc.com' });
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
         done();
+      }
+    });
+
+    it('error if arg missing "url" attribute', (done) => {
+      try {
+        validateCollectResponse({ res: {}, name: 'Foo' });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('error if res missing status code', (done) => {
+      try {
+        validateCollectResponse({ res: {}, url: 'abc.com', name: 'Foo' });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('error if invalid status code', (done) => {
+      try {
+        validateCollectResponse({ res: {statusCode: 4}, url: 'abc.com', name: 'Foo' });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('name', 'ValidationError');
+        done();
+      }
+    });
+
+    it('ok', (done) => {
+      try {
+        validateCollectResponse({ res: {statusCode: 200}, url: 'abc.com', name: 'Foo' });
+        done();
+      } catch (err) {
+        done(err);
       }
     });
   });
@@ -136,50 +175,226 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     .catch(done);
   });
 
-  it('calls doBulkUpsert to push samples to refocus', (done) => {
-    // use nock to mock the response when flushing
-    const sampleArr = [
-      { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
-    ];
-    nock(refocusUrl)
+  describe('handleCollectResponse', () => {
+
+    let winstonInfoStub;
+    before(() => {
+      // use nock to mock the response when flushing
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+      ];
+      nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
-    const collectRes = {
-      name: 'mockGenerator',
-      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-      ctx: {},
-      res: { text: '{ "a": "atext" }' },
-      subjects: [{ absolutePath: 'S1' }],
-      generatorTemplate: {
-        transform: 'return ' +
-          '[{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]',
-      },
-      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-    };
 
-    // stub winston info to test the logs
-    const winstonInfoStub = sinon.stub(winston, 'info');
-    handleCollectResponse(Promise.resolve(collectRes))
-    .then(() => {
-      // check the logs
-      expect(winston.info.calledTwice).to.be.true;
-      expect(winston.info.args[0][0]).contains('generator: mockGenerator');
-      expect(winston.info.args[0][0]).contains('numSamples: 2');
-      expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
-      expect(sampleQueueOps.sampleQueue[0])
-      .to.eql({ name: 'S1|A1', value: '10' });
-      expect(sampleQueueOps.sampleQueue[1])
-      .to.eql({ name: 'S1|A2', value: '2' });
+      // stub winston info to test the logs
+      winstonInfoStub = sinon.stub(winston, 'info');
+    });
+
+    afterEach(() => {
+      winstonInfoStub.reset();
       sampleQueueOps.flush(100, tu.refocusInstance1);
+    });
 
+    after(() => {
       // restore winston stub
       winstonInfoStub.restore();
-      done();
-    })
-    .catch((err) => {
-      winstonInfoStub.restore();
-      done(err);
     });
+
+    const collectRes = {
+      name: 'mockGenerator',
+      aspects: [{name: 'A1', timeout: '1m'}, {name: 'A2', timeout: '1m'}],
+      ctx: {},
+      res: {
+        statusCode: 200,
+        statusMessage: 'MOCK STATUS MESSAGE',
+        body: {
+          text: '{ "a": "text" }'
+        },
+      },
+      subjects: [{absolutePath: 'S1'}],
+      generatorTemplate: {
+        connection: {
+          bulk: true,
+        },
+        transform: {
+          transform: 'return [{ name: "S1|A1", value: "10" },'
+          + ' { name: "S1|A2", value: "2" }]',
+          errorHandlers: {
+            '404': 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },'
+            + ' { name: "S1|A2", messageBody: "NOT FOUND" }]',
+            '40[13]': 'return [{ name: "S1|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
+            + ' { name: "S1|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+            '5..': 'return [{ name: "S1|A1", messageBody: "SERVER ERROR" },'
+            + ' { name: "S1|A2", messageBody: "SERVER ERROR" }]',
+          },
+        },
+      },
+      aspects: [{name: 'A1', timeout: '1m'}, {name: 'A2', timeout: '1m'}],
+      url: 'abc.com',
+    };
+
+    it('OK', (done) => {
+      collectRes.res.statusCode = 200;
+      const expected = [
+        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - 404', (done) => {
+      collectRes.res.statusCode = 404;
+      const expected = [
+        {name: 'S1|A1', messageBody: 'NOT FOUND'},
+        {name: 'S1|A2', messageBody: 'NOT FOUND'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - 401', (done) => {
+      collectRes.res.statusCode = 401;
+      const expected = [
+        {name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+        {name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - 403', (done) => {
+      collectRes.res.statusCode = 403;
+      const expected = [
+        {name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+        {name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - 500', (done) => {
+      collectRes.res.statusCode = 500;
+      const expected = [
+        {name: 'S1|A1', messageBody: 'SERVER ERROR'},
+        {name: 'S1|A2', messageBody: 'SERVER ERROR'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - 503', (done) => {
+      collectRes.res.statusCode = 503;
+      const expected = [
+        {name: 'S1|A1', messageBody: 'SERVER ERROR'},
+        {name: 'S1|A2', messageBody: 'SERVER ERROR'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('error handler match - override 200', (done) => {
+      collectRes.res.statusCode = 200;
+      collectRes.generatorTemplate.transform.errorHandlers['200'] =
+        'return [{ name: "S1|A1", messageBody: "OK" },'
+        + ' { name: "S1|A2", messageBody: "OK" }]';
+      const expected = [
+        {name: 'S1|A1', messageBody: 'OK'},
+        {name: 'S1|A2', messageBody: 'OK'},
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('no match - default error handler', (done) => {
+      collectRes.res.statusCode = 400;
+      collectRes.res.statusMessage = 'MOCK 400';
+      const expected = defaultErrorSamples(400, 'MOCK 400');
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('no error handlers - default error handler', (done) => {
+      collectRes.generatorTemplate.transform.errorHandlers = {};
+      collectRes.res.statusCode = 404;
+      collectRes.res.statusMessage = 'MOCK 404';
+      const expected = defaultErrorSamples(404, 'MOCK 404');
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('transform is a string', (done) => {
+      collectRes.res.statusCode = 200;
+      collectRes.generatorTemplate.transform =
+        'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
+      const expected = [
+        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('transform is a string, handles all status codes', (done) => {
+      collectRes.res.statusCode = 404;
+      collectRes.generatorTemplate.transform =
+        'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
+      const expected = [
+        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+      ];
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    function checkLogs(expected) {
+      expect(winston.info.calledTwice).to.be.true;
+      expect(winston.info.args[0][0]).contains('generator: mockGenerator');
+      expect(winston.info.args[0][0]).contains(`numSamples: ${expected.length}`);
+      expect(sampleQueueOps.sampleQueue.length).to.be.equal(expected.length);
+      expect(sampleQueueOps.sampleQueue[0]).to.eql(expected[0]);
+      expect(sampleQueueOps.sampleQueue[1]).to.eql(expected[1]);
+    }
+
+    function defaultErrorSamples(statusCode, statusMessage) {
+      return [
+        {
+          name: 'S1|A1',
+          value: 'ERROR',
+          messageCode: 'ERROR',
+          messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
+          relatedLinks: [],
+        },
+        {
+          name: 'S1|A2',
+          value: 'ERROR',
+          messageCode: 'ERROR',
+          messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
+          relatedLinks: [],
+        },
+      ];
+    }
+
   });
 });
 
