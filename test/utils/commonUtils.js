@@ -76,7 +76,6 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     done();
   });
 
-
   describe('collector metadata >', () => {
 
     it('getCurrentMetadata()', (done) => {

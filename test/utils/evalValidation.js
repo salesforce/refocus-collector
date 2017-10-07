@@ -141,7 +141,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('args is non-subject object', (done) => {
       try {
-        val.validateSubjectArgs({a: 'a'});
+        val.validateSubjectArgs({ a: 'a' });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -167,7 +167,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('args is object with neither "subject" or "subjects"', (done) => {
       try {
-        val.validateSubjectArgs({a: 'a'});
+        val.validateSubjectArgs({ a: 'a' });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -181,8 +181,8 @@ describe('test/utils/evalValidation.js >', (done) => {
     it('args is object with both "subject" and "subjects"', (done) => {
       try {
         const args = {
-          subjects: [{absolutePath: 'aaa'}, {absolutePath: 'bbb'}],
-          subject: {absolutePath: 'aaa'},
+          subjects: [{ absolutePath: 'aaa' }, { absolutePath: 'bbb' }],
+          subject: { absolutePath: 'aaa' },
         };
         val.validateSubjectArgs(args);
         done('Expecting ArgsError');
@@ -197,7 +197,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('args.subject is valid subject object', (done) => {
       try {
-        const args = { subject: {absolutePath: 'aaa'}};
+        const args = { subject: { absolutePath: 'aaa' } };
         val.validateSubjectArgs(args);
         done();
       } catch (err) {
@@ -207,8 +207,8 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('args.subjects is valid subjects array', (done) => {
       try {
-        const args = { subjects: [{absolutePath: 'aaa'}, {absolutePath: 'bbb'}]};
-        val.validateSubjectArgs(args );
+        const args = { subjects: [{ absolutePath: 'aaa' }, { absolutePath: 'bbb' }] };
+        val.validateSubjectArgs(args);
         done();
       } catch (err) {
         done(err);
@@ -477,7 +477,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('subject is non-subject object', (done) => {
       try {
-        val.subject({a: 'a'});
+        val.subject({ a: 'a' });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -490,7 +490,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('subject is object with null absolutePath', (done) => {
       try {
-        val.subject({absolutePath: null});
+        val.subject({ absolutePath: null });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {
@@ -503,7 +503,7 @@ describe('test/utils/evalValidation.js >', (done) => {
 
     it('subject is object with non-string absolutePath', (done) => {
       try {
-        val.subject({absolutePath: 4});
+        val.subject({ absolutePath: 4 });
         done('Expecting ArgsError');
       } catch (err) {
         if (err.name === 'ArgsError') {

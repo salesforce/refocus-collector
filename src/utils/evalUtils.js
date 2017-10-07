@@ -128,7 +128,7 @@ function validateSamples(sampleArr, generator) {
 
   if (generator.subjects) {
     subjectArr = generator.subjects.map(s => s.absolutePath.toLowerCase());
-  } else if (generator.subject ) {
+  } else if (generator.subject) {
     subjectArr = [generator.subject.absolutePath.toLowerCase()];
   } else {
     throw new errors.ValidationError(

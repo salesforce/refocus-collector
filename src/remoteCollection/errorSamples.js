@@ -22,7 +22,7 @@ module.exports = (collectResponse, messageBody) => {
       if (collectResponse.apiLinks) {
         relatedLinks.push({
           name: 'Sample Generator',
-          url : collectResponse.apiLinks.GET,
+          url: collectResponse.apiLinks.GET,
         });
       }
 

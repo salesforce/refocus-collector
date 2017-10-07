@@ -101,7 +101,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('error if invalid status code', (done) => {
       try {
-        validateCollectResponse({ res: {statusCode: 4}, url: 'abc.com', name: 'Foo' });
+        validateCollectResponse({ res: { statusCode: 4 }, url: 'abc.com', name: 'Foo' });
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
@@ -111,7 +111,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('ok', (done) => {
       try {
-        validateCollectResponse({ res: {statusCode: 200}, url: 'abc.com', name: 'Foo' });
+        validateCollectResponse({ res: { statusCode: 200 }, url: 'abc.com', name: 'Foo' });
         done();
       } catch (err) {
         done(err);
@@ -203,16 +203,16 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     const collectRes = {
       name: 'mockGenerator',
-      aspects: [{name: 'A1', timeout: '1m'}, {name: 'A2', timeout: '1m'}],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       ctx: {},
       res: {
         statusCode: 200,
         statusMessage: 'MOCK STATUS MESSAGE',
         body: {
-          text: '{ "a": "text" }'
+          text: '{ "a": "text" }',
         },
       },
-      subjects: [{absolutePath: 'S1'}],
+      subjects: [{ absolutePath: 'S1' }],
       generatorTemplate: {
         connection: {
           bulk: true,
@@ -221,7 +221,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           transform: 'return [{ name: "S1|A1", value: "10" },'
           + ' { name: "S1|A2", value: "2" }]',
           errorHandlers: {
-            '404': 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },'
+            404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },'
             + ' { name: "S1|A2", messageBody: "NOT FOUND" }]',
             '40[13]': 'return [{ name: "S1|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
             + ' { name: "S1|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
@@ -230,14 +230,14 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           },
         },
       },
-      aspects: [{name: 'A1', timeout: '1m'}, {name: 'A2', timeout: '1m'}],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       url: 'abc.com',
     };
 
     it('OK', (done) => {
       collectRes.res.statusCode = 200;
       const expected = [
-        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -248,8 +248,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 404', (done) => {
       collectRes.res.statusCode = 404;
       const expected = [
-        {name: 'S1|A1', messageBody: 'NOT FOUND'},
-        {name: 'S1|A2', messageBody: 'NOT FOUND'},
+        { name: 'S1|A1', messageBody: 'NOT FOUND' },
+        { name: 'S1|A2', messageBody: 'NOT FOUND' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -260,8 +260,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 401', (done) => {
       collectRes.res.statusCode = 401;
       const expected = [
-        {name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
-        {name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+        { name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -272,8 +272,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 403', (done) => {
       collectRes.res.statusCode = 403;
       const expected = [
-        {name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
-        {name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN'},
+        { name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -284,8 +284,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 500', (done) => {
       collectRes.res.statusCode = 500;
       const expected = [
-        {name: 'S1|A1', messageBody: 'SERVER ERROR'},
-        {name: 'S1|A2', messageBody: 'SERVER ERROR'},
+        { name: 'S1|A1', messageBody: 'SERVER ERROR' },
+        { name: 'S1|A2', messageBody: 'SERVER ERROR' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -296,8 +296,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 503', (done) => {
       collectRes.res.statusCode = 503;
       const expected = [
-        {name: 'S1|A1', messageBody: 'SERVER ERROR'},
-        {name: 'S1|A2', messageBody: 'SERVER ERROR'},
+        { name: 'S1|A1', messageBody: 'SERVER ERROR' },
+        { name: 'S1|A2', messageBody: 'SERVER ERROR' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -311,8 +311,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         'return [{ name: "S1|A1", messageBody: "OK" },'
         + ' { name: "S1|A2", messageBody: "OK" }]';
       const expected = [
-        {name: 'S1|A1', messageBody: 'OK'},
-        {name: 'S1|A2', messageBody: 'OK'},
+        { name: 'S1|A1', messageBody: 'OK' },
+        { name: 'S1|A2', messageBody: 'OK' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -346,7 +346,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       collectRes.generatorTemplate.transform =
         'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
       const expected = [
-        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -359,7 +359,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       collectRes.generatorTemplate.transform =
         'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
       const expected = [
-        {name: 'S1|A1', value: '10'}, {name: 'S1|A2', value: '2'}
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
