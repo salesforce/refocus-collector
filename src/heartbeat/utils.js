@@ -89,7 +89,7 @@ function assignContext(ctx, def, refocusInstance, res) {
  * @param {Object} generator - Generator object from the heartbeat
  */
 function setupRepeater(generator) {
-  if (generator.generatorTemplate.connection.bulk === true) {
+  if (commonUtils.isBulk(generator)) {
     repeater.createGeneratorRepeater(generator);
   } else {
     // bulk is false

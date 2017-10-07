@@ -25,7 +25,7 @@ const repeater = Joi.object().keys({
 });
 
 const sample = Joi.object().keys({
-  name: Joi.string().regex(/^[0-9A-Za-z_\\-]{1,4096}\|[0-9A-Za-z_\\-]{1,60}$/)
+  name: Joi.string().regex(/^[0-9A-Za-z_.\\-]{1,4096}\|[0-9A-Za-z_\\-]{1,60}$/)
     .required(),
   messageBody: Joi.string().max(4096),
   messageCode: Joi.string().max(5),

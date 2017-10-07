@@ -17,6 +17,7 @@ const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
+const u = require('../utils/commonUtils');
 
 /**
  * Tracks all the repeaters defined in the collectors.
@@ -186,7 +187,7 @@ function createGeneratorRepeater(generator) {
     interval: generator.interval,
     func: () => collect(generator),
     onProgress: handleCollectResponse,
-    bulk: generator.generatorTemplate.connection.bulk,
+    bulk: u.isBulk(generator),
     subjects: generator.subjects,
   });
 } // createGeneratorRepeater

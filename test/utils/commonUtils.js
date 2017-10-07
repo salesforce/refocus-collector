@@ -56,6 +56,27 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     done();
   });
 
+  it('isBulk', (done) => {
+    const gen = {
+      generatorTemplate: {
+        connection: {
+          bulk: true,
+        },
+      },
+    };
+    expect(commonUtils.isBulk(gen)).to.be.true;
+    gen.generatorTemplate.connection.bulk = false;
+    expect(commonUtils.isBulk(gen)).to.be.false;
+    delete gen.generatorTemplate.connection.bulk;
+    expect(commonUtils.isBulk(gen)).to.be.false;
+    delete gen.generatorTemplate.connection;
+    expect(commonUtils.isBulk(gen)).to.be.false;
+    delete gen.generatorTemplate;
+    expect(commonUtils.isBulk(gen)).to.be.false;
+    done();
+  });
+
+
   describe('collector metadata >', () => {
 
     it('getCurrentMetadata()', (done) => {
