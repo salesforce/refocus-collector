@@ -15,13 +15,27 @@ const eu = require('../../src/utils/evalUtils');
 
 describe('test/utils/evalUtils.js >', (done) => {
   describe('validateTransformArgs >', (done) => {
-    it('object with required set of attributes', (done) => {
+    it('object with required set of attributes, bulk', (done) => {
       try {
         eu.validateTransformArgs({
           aspects: [{ name: 'A', timeout: '1m' }],
           ctx: {},
           res: {},
           subjects: [{ absolutePath: 'abc' }],
+        });
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('object with required set of attributes, by subject', (done) => {
+      try {
+        eu.validateTransformArgs({
+          aspects: [{ name: 'A', timeout: '1m' }],
+          ctx: {},
+          res: {},
+          subject: { absolutePath: 'abc' },
         });
         done();
       } catch (err) {
@@ -578,11 +592,28 @@ describe('test/utils/evalUtils.js >', (done) => {
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
 
-    it('ok', (done) => {
+    it('ok, bulk', (done) => {
       try {
         const retval =
-          eu.safeTransform('return [{ name: "abc|A1" }, { name: ctx.y }]',
+          eu.safeTransform('return [{ name: subjects[0].absolutePath + "|A1" },' +
+            ' { name: ctx.y }]',
           validArgs);
+        expect(retval[0].name).to.equal('abc|A1');
+        expect(retval[1].name).to.equal('abc|A2');
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('ok, by subject', (done) => {
+      validArgs.subject = validArgs.subjects[0];
+      delete validArgs.subjects;
+      try {
+        const retval =
+          eu.safeTransform('return [{ name: subject.absolutePath + "|A1" },' +
+            ' { name: ctx.y }]',
+            validArgs);
         expect(retval[0].name).to.equal('abc|A1');
         expect(retval[1].name).to.equal('abc|A2');
         done();
@@ -946,7 +977,7 @@ describe('test/utils/evalUtils.js >', (done) => {
       }
     });
 
-    it('More samples than expected', (done) => {
+    it('More samples than expected, bulk', (done) => {
       const sampleArr = [
         { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
         { name: 'S2|A1', value: 10 }, { name: 'S2|A2', value: 2 },
@@ -963,6 +994,26 @@ describe('test/utils/evalUtils.js >', (done) => {
       } catch (err) {
         expect(err.message).to.be.equal('Number of samples more than expected.' +
           ' Samples count: 6, Subjects count: 2, Aspects count: 2');
+        done();
+      }
+    });
+
+    it('More samples than expected, by subject', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S2|A1', value: 10 },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subject: { absolutePath: 'S1' },
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.message).to.be.equal('Number of samples more than expected.' +
+          ' Samples count: 3, Subjects count: 1, Aspects count: 2');
         done();
       }
     });
@@ -986,7 +1037,7 @@ describe('test/utils/evalUtils.js >', (done) => {
       }
     });
 
-    it('Unknown subject in samples', (done) => {
+    it('Unknown subject in samples, bulk', (done) => {
       const sampleArr = [
         { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
         { name: 'S2|A1', value: '10' }, { name: 'S3|A2', value: '2' },
@@ -994,6 +1045,25 @@ describe('test/utils/evalUtils.js >', (done) => {
       const gen = {
         name: 'mockGenerator',
         subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done('Expecting ValidationError');
+      } catch (err) {
+        expect(err.name).to.be.equal('ValidationError');
+        done();
+      }
+    });
+
+    it('Unknown subject in samples, by subject', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subject: { absolutePath: 'S1' },
         aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       };
       try {
@@ -1043,7 +1113,25 @@ describe('test/utils/evalUtils.js >', (done) => {
       }
     });
 
-    it('OK', (done) => {
+    it('OK, bulk', (done) => {
+      const sampleArr = [
+        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S2|A1', value: '10' }, { name: 'S2|A2', value: '2' },
+      ];
+      const gen = {
+        name: 'mockGenerator',
+        subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      };
+      try {
+        eu.validateSamples(sampleArr, gen);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('OK, by subject', (done) => {
       const sampleArr = [
         { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
       ];
@@ -1059,5 +1147,44 @@ describe('test/utils/evalUtils.js >', (done) => {
         done(err);
       }
     });
+  });
+
+  describe('prepareTransformArgs >', () => {
+    const generator = {
+      name: 'mockGenerator',
+      subjects: [{absolutePath: 'S1'}, {absolutePath: 'S2'}],
+      aspects: [{name: 'A1', timeout: '1m'}, {name: 'A2', timeout: '1m'}],
+      ctx: {a: 'a', b: 'b',},
+      res: { body: 'aaa' },
+      generatorTemplate: {
+        connection: {
+          bulk: true,
+        },
+      },
+    };
+
+    it('bulk', (done) => {
+      const args = eu.prepareTransformArgs(generator);
+      expect(args).to.have.property('ctx', generator.ctx)
+      expect(args).to.have.property('res', generator.res)
+      expect(args).to.have.property('aspects', generator.aspects)
+      expect(args).to.have.property('subjects', generator.subjects)
+      expect(args).to.not.have.property('name');
+      expect(args).to.not.have.property('generatorTemplate');
+      done();
+    });
+
+    it('by subject', (done) => {
+      generator.generatorTemplate.connection.bulk = false;
+      const args = eu.prepareTransformArgs(generator);
+      expect(args).to.have.property('ctx', generator.ctx)
+      expect(args).to.have.property('res', generator.res)
+      expect(args).to.have.property('aspects', generator.aspects)
+      expect(args).to.have.property('subject', generator.subjects[0])
+      expect(args).to.not.have.property('name');
+      expect(args).to.not.have.property('generatorTemplate');
+      done();
+    });
+
   });
 });

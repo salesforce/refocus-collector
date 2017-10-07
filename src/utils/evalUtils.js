@@ -17,9 +17,11 @@ const logger = require('winston');
 const errors = require('../errors');
 const evalValidation = require('./evalValidation');
 const sampleSchema = require('./schema').sample;
+const u = require('./commonUtils');
 const ERROR_MESSAGE = {
   TRANSFORM: {
     NOT_ARRAY: 'The transform function must return an array.',
+    NOT_OBJECT: 'The transform function must return an object.',
   },
   TO_URL: {
     NOT_STRING: 'The toUrl function must return a string',
@@ -78,7 +80,7 @@ function validateTransformArgs(args) {
   return evalValidation.isObject('ctx', args.ctx) &&
     evalValidation.isObject('res', args.res) &&
     evalValidation.aspects(args.aspects) &&
-    evalValidation.subjects(args.subjects);
+    evalValidation.validateSubjectArgs(args);
 } // validateTransformArgs
 
 /**
@@ -121,26 +123,21 @@ function validateSamples(sampleArr, generator) {
     throw new errors.TransformError(ERROR_MESSAGE.TRANSFORM.NOT_ARRAY);
   }
 
-  const subjectArr = []; // array of subject absolute paths
-  const aspectArr = []; // array of aspect names
+  let subjectArr; // array of subject absolute paths
+  let aspectArr; // array of aspect names
 
-  // create subject array
   if (generator.subjects) {
-    generator.subjects.forEach((s) => {
-      subjectArr.push(s.absolutePath.toLowerCase());
-    });
-  } else if (generator.subject) {
-    subjectArr.push(generator.subject.absolutePath.toLowerCase());
+    subjectArr = generator.subjects.map(s => s.absolutePath.toLowerCase());
+  } else if (generator.subject ) {
+    subjectArr = [generator.subject.absolutePath.toLowerCase()];
   } else {
     throw new errors.ValidationError(
-      'Generator should have subject/subjects attribute.'
+      'Generator passed to validateSamples should have "subjects" or "subject"'
     );
   }
 
   // create aspect array, generator will have aspects attribute always
-  generator.aspects.forEach((a) => {
-    aspectArr.push(a.name.toLowerCase());
-  });
+  aspectArr = generator.aspects.map(a => a.name.toLowerCase());
 
   // no of samples should not exceed the (no. of subjects * the no. of aspects)
   if (sampleArr.length > subjectArr.length * aspectArr.length) {
@@ -221,6 +218,29 @@ function safeTransform(functionBody, args) {
 }
 
 /**
+ * Prepare arguments to be passed to the transform function
+ * @param  {Object} generator - Generator object
+ * @throws {TransformError} - if transform function does not return an array
+ *  of zero or more samples
+ * @throws {ValidationError} - if any of the above mentioned check fails
+ */
+function prepareTransformArgs(generator) {
+  const args = {};
+
+  args.ctx = generator.ctx;
+  args.res = generator.res;
+  args.aspects = generator.aspects;
+
+  if (u.isBulk(generator)) {
+    args.subjects = generator.subjects;
+  } else {
+    args.subject = generator.subjects[0];
+  }
+
+  return args;
+}
+
+/**
  * Safely executes the toUrl function with the arguments provided.
  *
  * @param {String} functionBody - The toUrl function body as provided by the
@@ -257,6 +277,7 @@ module.exports = {
   safeEval, // exporting for testability
   safeToUrl,
   safeTransform,
+  prepareTransformArgs,
   validateTransformArgs, // exporting for testability
   validateToUrlArgs, // exporting for testability
   validateSamples, // exporting for testability

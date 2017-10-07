@@ -137,6 +137,85 @@ describe('test/utils/evalValidation.js >', (done) => {
     });
   });
 
+  describe('validateSubjectArgs >', (done) => {
+
+    it('args is non-subject object', (done) => {
+      try {
+        val.validateSubjectArgs({a: 'a'});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('args is empty object', (done) => {
+      try {
+        val.validateSubjectArgs({});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('args is object with neither "subject" or "subjects"', (done) => {
+      try {
+        val.validateSubjectArgs({a: 'a'});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('args is object with both "subject" and "subjects"', (done) => {
+      try {
+        const args = {
+          subjects: [{absolutePath: 'aaa'}, {absolutePath: 'bbb'}],
+          subject: {absolutePath: 'aaa'},
+        };
+        val.validateSubjectArgs(args);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('args.subject is valid subject object', (done) => {
+      try {
+        const args = { subject: {absolutePath: 'aaa'}};
+        val.validateSubjectArgs(args);
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+
+    it('args.subjects is valid subjects array', (done) => {
+      try {
+        const args = { subjects: [{absolutePath: 'aaa'}, {absolutePath: 'bbb'}]};
+        val.validateSubjectArgs(args );
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+  });
+
   describe('subjects >', (done) => {
     it('empty', (done) => {
       try {
@@ -277,6 +356,173 @@ describe('test/utils/evalValidation.js >', (done) => {
       }
     });
   }); // subjects
+
+  describe('subject >', (done) => {
+    it('empty', (done) => {
+      try {
+        val.subject();
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('null', (done) => {
+      try {
+        val.subject(null);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('undefined', (done) => {
+      try {
+        val.subject(undefined);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is boolean true', (done) => {
+      try {
+        val.subject(true);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is string', (done) => {
+      try {
+        val.subject('abcd efgh');
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is number', (done) => {
+      try {
+        val.subject(103);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is array', (done) => {
+      try {
+        val.subject(['a', 'b']);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is empty array', (done) => {
+      try {
+        val.subject([]);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is array with subject elements', (done) => {
+      try {
+        val.subject([{ absolutePath: 'q' }, { absolutePath: 'w' }]);
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is non-subject object', (done) => {
+      try {
+        val.subject({a: 'a'});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is object with null absolutePath', (done) => {
+      try {
+        val.subject({absolutePath: null});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is object with non-string absolutePath', (done) => {
+      try {
+        val.subject({absolutePath: 4});
+        done('Expecting ArgsError');
+      } catch (err) {
+        if (err.name === 'ArgsError') {
+          done();
+        } else {
+          done('Expecting ArgsError here');
+        }
+      }
+    });
+
+    it('subject is valid subject object', (done) => {
+      try {
+        val.subject({ absolutePath: 'q' });
+        done();
+      } catch (err) {
+        done(err);
+      }
+    });
+  }); // subject
 
   describe('aspects >', (done) => {
     it('empty', (done) => {

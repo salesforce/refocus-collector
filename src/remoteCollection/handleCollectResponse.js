@@ -86,8 +86,9 @@ function handleCollectResponse(collectResponse) {
      * status codes.
      */
     const tr = collectRes.generatorTemplate.transform;
+    const args = evalUtils.prepareTransformArgs(collectRes);
     if (typeof tr === 'string') { // match all status codes
-      const samplesToEnqueue = evalUtils.safeTransform(tr, collectRes);
+      const samplesToEnqueue = evalUtils.safeTransform(tr, args);
       logger.info(`{
         generator: ${collectRes.name},
         url: ${collectRes.url},
@@ -122,7 +123,7 @@ function handleCollectResponse(collectResponse) {
       }
 
       if (func) {
-        const samplesToEnqueue = evalUtils.safeTransform(func, collectRes);
+        const samplesToEnqueue = evalUtils.safeTransform(func, args);
         logger.info(`{
           generator: ${collectRes.name},
           url: ${collectRes.url},
