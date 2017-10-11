@@ -13,8 +13,9 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
-const bufferedQueue = require('buffered-queue');
-const sampleQueue;
+const sampleBufferedQueueModule =
+  require('../bufferedQueue/sampleBufferedQueue');
+const sampleBufferedQueue = sampleBufferedQueueModule.sampleBufferedQueue;
 
 /**
  * Handles the heartbeat response:
@@ -35,19 +36,16 @@ function handleHeartbeatResponse(err, res) {
   }
 
   // queue generation
-  if (sampleQueue) {
-    sampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
-    sampleQueue._flushTimeout = res.collectorConfig.sampleUpsertQueueTime;
+  if (sampleBufferedQueue) {
+    sampleBufferedQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
+    sampleBufferedQueue._flushTimeout =
+      res.collectorConfig.sampleUpsertQueueTime;
   } else {
     const config = configModule.getConfig();
-    sampleQueue = new Queue('bulkUpsertSampleQueue', {
-      size: config.collectorConfig.maxSamplesPerBulkRequest,
-      flshTimeout: config.collectorConfig.sampleUpsertQueueTime,
-    });
-
-    sampleQueue.on('flush', (data, name) => {
-      console.log(data);
-    });
+    sampleBufferedQueueModule.create('bulkUpsertSampleQueue',
+      config.collectorConfig.maxSamplesPerBulkRequest,
+      config.collectorConfig.sampleUpsertQueueTime,
+    );
   }
 
   if (res) {
@@ -64,5 +62,4 @@ function handleHeartbeatResponse(err, res) {
 
 module.exports = {
   handleHeartbeatResponse,
-  sampleQueue,
 };
