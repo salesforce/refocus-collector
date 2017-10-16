@@ -21,7 +21,6 @@ const u = require('./commonUtils');
 const ERROR_MESSAGE = {
   TRANSFORM: {
     NOT_ARRAY: 'The transform function must return an array.',
-    NOT_OBJECT: 'The transform function must return an object.',
   },
   TO_URL: {
     NOT_STRING: 'The toUrl function must return a string',

@@ -159,10 +159,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const obj = {
       res: {},
       context: {},
-      subject: { absolutePath: 'S1' },
+      subject: { absolutePath: 'S1.S2' },
       generatorTemplate: {
         transform:
-         'return [{ name: "S1|A1", value: 10 }, { name: "S1|A2", value: 2 }]',
+         'return [{ name: "S1.S2|A1", value: 10 }, { name: "S1.S2|A2", value: 2 }]',
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
@@ -181,7 +181,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     before(() => {
       // use nock to mock the response when flushing
       const sampleArr = [
-        { name: 'S1|A1', value: 10 }, { name: 'S1|A2', value: 2 },
+        { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
       ];
       nock(refocusUrl)
       .post(bulkEndPoint, sampleArr)
@@ -212,21 +212,21 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           text: '{ "a": "text" }',
         },
       },
-      subjects: [{ absolutePath: 'S1' }],
+      subjects: [{ absolutePath: 'S1.S2', name: 'S2', }],
       generatorTemplate: {
         connection: {
           bulk: true,
         },
         transform: {
-          transform: 'return [{ name: "S1|A1", value: "10" },'
-          + ' { name: "S1|A2", value: "2" }]',
+          transform: 'return [{ name: "S1.S2|A1", value: "10" },'
+          + ' { name: "S1.S2|A2", value: "2" }]',
           errorHandlers: {
-            404: 'return [{ name: "S1|A1", messageBody: "NOT FOUND" },'
-            + ' { name: "S1|A2", messageBody: "NOT FOUND" }]',
-            '40[13]': 'return [{ name: "S1|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
-            + ' { name: "S1|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
-            '5..': 'return [{ name: "S1|A1", messageBody: "SERVER ERROR" },'
-            + ' { name: "S1|A2", messageBody: "SERVER ERROR" }]',
+            404: 'return [{ name: "S1.S2|A1", messageBody: "NOT FOUND" },'
+            + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
+            '40[13]': 'return [{ name: "S1.S2|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
+            + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+            '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
+            + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
           },
         },
       },
@@ -237,7 +237,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('OK', (done) => {
       collectRes.res.statusCode = 200;
       const expected = [
-        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -248,8 +248,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 404', (done) => {
       collectRes.res.statusCode = 404;
       const expected = [
-        { name: 'S1|A1', messageBody: 'NOT FOUND' },
-        { name: 'S1|A2', messageBody: 'NOT FOUND' },
+        { name: 'S1.S2|A1', messageBody: 'NOT FOUND' },
+        { name: 'S1.S2|A2', messageBody: 'NOT FOUND' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -260,8 +260,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 401', (done) => {
       collectRes.res.statusCode = 401;
       const expected = [
-        { name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-        { name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -272,8 +272,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 403', (done) => {
       collectRes.res.statusCode = 403;
       const expected = [
-        { name: 'S1|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-        { name: 'S1|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
+        { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -284,8 +284,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 500', (done) => {
       collectRes.res.statusCode = 500;
       const expected = [
-        { name: 'S1|A1', messageBody: 'SERVER ERROR' },
-        { name: 'S1|A2', messageBody: 'SERVER ERROR' },
+        { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
+        { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -296,8 +296,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - 503', (done) => {
       collectRes.res.statusCode = 503;
       const expected = [
-        { name: 'S1|A1', messageBody: 'SERVER ERROR' },
-        { name: 'S1|A2', messageBody: 'SERVER ERROR' },
+        { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
+        { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -308,11 +308,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('error handler match - override 200', (done) => {
       collectRes.res.statusCode = 200;
       collectRes.generatorTemplate.transform.errorHandlers['200'] =
-        'return [{ name: "S1|A1", messageBody: "OK" },'
-        + ' { name: "S1|A2", messageBody: "OK" }]';
+        'return [{ name: "S1.S2|A1", messageBody: "OK" },'
+        + ' { name: "S1.S2|A2", messageBody: "OK" }]';
       const expected = [
-        { name: 'S1|A1', messageBody: 'OK' },
-        { name: 'S1|A2', messageBody: 'OK' },
+        { name: 'S1.S2|A1', messageBody: 'OK' },
+        { name: 'S1.S2|A2', messageBody: 'OK' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -344,9 +344,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('transform is a string', (done) => {
       collectRes.res.statusCode = 200;
       collectRes.generatorTemplate.transform =
-        'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
+        'return [{ name: "S1.S2|A1", value: "10" }, { name: "S1.S2|A2", value: "2" }]';
       const expected = [
-        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -357,9 +357,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('transform is a string, handles all status codes', (done) => {
       collectRes.res.statusCode = 404;
       collectRes.generatorTemplate.transform =
-        'return [{ name: "S1|A1", value: "10" }, { name: "S1|A2", value: "2" }]';
+        'return [{ name: "S1.S2|A1", value: "10" }, { name: "S1.S2|A2", value: "2" }]';
       const expected = [
-        { name: 'S1|A1', value: '10' }, { name: 'S1|A2', value: '2' },
+        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
@@ -379,14 +379,14 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     function defaultErrorSamples(statusCode, statusMessage) {
       return [
         {
-          name: 'S1|A1',
+          name: 'S1.S2|A1',
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
           relatedLinks: [],
         },
         {
-          name: 'S1|A2',
+          name: 'S1.S2|A2',
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,

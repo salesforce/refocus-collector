@@ -15,6 +15,7 @@ const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+const httpStatus = require('../constants').httpStatus;
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -50,14 +51,14 @@ function validateCollectResponse(cr) {
 
   // Invalid response: missing status code.
   if (!cr.res.hasOwnProperty('statusCode')) {
-    throw new errors.ValidationError(`Invalid response from ${cr.url}: missing HTTP status ` +
-      'code');
+    throw new errors.ValidationError(`Invalid response from ${cr.url}: `
+    + 'missing HTTP status code');
   }
 
   // Expecting response status code to be 3 digits.
   if (!/\d\d\d/.test(cr.res.statusCode)) {
-    throw new errors.ValidationError(`Invalid response from ${cr.url}: invalid HTTP status ` +
-      `code "${cr.res.statusCode}"`);
+    throw new errors.ValidationError(`Invalid response from ${cr.url}: `
+    + `invalid HTTP status code "${cr.res.statusCode}"`);
   }
 
 } // validateCollectResponse
@@ -100,11 +101,11 @@ function handleCollectResponse(collectResponse) {
        * The transform is *not* a string, so handle the response based on the
        * status code.
        */
-      const status = collectRes.res.statusCode.toString();
+      const status = collectRes.res.statusCode;
       let func;
 
       // the response was OK, so use the default transform
-      if (status === '200') {
+      if (status === httpStatus.OK) {
         func = collectRes.generatorTemplate.transform.transform;
       }
 
@@ -146,7 +147,6 @@ function handleCollectResponse(collectResponse) {
         }`);
         return enqueue(samplesToEnqueue);
       }
-
     }
   })
   .catch((err) => {
