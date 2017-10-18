@@ -39,25 +39,25 @@ function validateCollectResponse(cr) {
       '"handleCollectResponse" function must have a "name" attribute.');
   }
 
-  if (!cr.url) {
+  if (!cr.preparedUrl) {
     throw new errors.ValidationError('The argument passed to the ' +
-      '"handleCollectResponse" function must have a "url" attribute.');
+      '"handleCollectResponse" function must have a "preparedUrl" attribute.');
   }
 
   // No response.
   if (!cr.res) {
-    throw new errors.ValidationError(`No response from ${cr.url}`);
+    throw new errors.ValidationError(`No response from ${cr.preparedUrl}`);
   }
 
   // Invalid response: missing status code.
   if (!cr.res.hasOwnProperty('statusCode')) {
-    throw new errors.ValidationError(`Invalid response from ${cr.url}: `
+    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
     + 'missing HTTP status code');
   }
 
   // Expecting response status code to be 3 digits.
   if (!/\d\d\d/.test(cr.res.statusCode)) {
-    throw new errors.ValidationError(`Invalid response from ${cr.url}: `
+    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
     + `invalid HTTP status code "${cr.res.statusCode}"`);
   }
 
@@ -92,7 +92,7 @@ function handleCollectResponse(collectResponse) {
       const samplesToEnqueue = evalUtils.safeTransform(tr, args);
       logger.info(`{
         generator: ${collectRes.name},
-        url: ${collectRes.url},
+        url: ${collectRes.preparedUrl},
         numSamples: ${samplesToEnqueue.length},
       }`);
       return enqueue(samplesToEnqueue);
@@ -127,7 +127,7 @@ function handleCollectResponse(collectResponse) {
         const samplesToEnqueue = evalUtils.safeTransform(func, args);
         logger.info(`{
           generator: ${collectRes.name},
-          url: ${collectRes.url},
+          url: ${collectRes.preparedUrl},
           numSamples: ${samplesToEnqueue.length},
         }`);
         return enqueue(samplesToEnqueue);
@@ -136,12 +136,12 @@ function handleCollectResponse(collectResponse) {
          * If there is no transform designated for this HTTP status code, just
          * generate default error samples.
          */
-        const errorMessage = `${collectRes.url} returned HTTP status ` +
+        const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
           `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
         const samplesToEnqueue = errorSamples(collectRes, errorMessage);
         logger.info(`{
           generator: ${collectRes.name},
-          url: ${collectRes.url},
+          url: ${collectRes.preparedUrl},
           error: ${errorMessage},
           numSamples: ${samplesToEnqueue.length},
         }`);

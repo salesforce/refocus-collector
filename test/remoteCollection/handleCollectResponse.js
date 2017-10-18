@@ -111,7 +111,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('ok', (done) => {
       try {
-        validateCollectResponse({ res: { statusCode: 200 }, url: 'abc.com', name: 'Foo' });
+        validateCollectResponse({ res: { statusCode: 200 }, preparedUrl: 'abc.com', name: 'Foo' });
         done();
       } catch (err) {
         done(err);
@@ -231,7 +231,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         },
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-      url: 'abc.com',
+      preparedUrl: 'abc.com',
     };
 
     it('OK', (done) => {
