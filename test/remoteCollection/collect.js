@@ -228,11 +228,11 @@ describe('test/remoteCollection/collect.js >', () => {
               Authorization: 'abddr121345bb',
             },
             url: 'http://bart.gov.api/status',
+            bulk: true,
           },
           transform: 'return [{ name: "Fremont|Delay", value: "10" }, ' +
             '{ name: "UnionCity|Delay", value: "2" }]',
         },
-        bulk: true,
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
         aspects: [{ name: 'Delay', timeout: '1m' }],
       };

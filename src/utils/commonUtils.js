@@ -171,4 +171,16 @@ module.exports = {
     return crypted;
   }, // encrypt
 
+  /**
+   * Determine if the given Generator is set up for bulk collection
+   * @param  {Object} generator - A Generator object
+   * @returns {Boolean}
+   */
+  isBulk(generator) {
+    const gt = generator.generatorTemplate;
+    const connection = gt && gt.connection;
+    const bulk = connection && connection.bulk;
+    return Boolean(bulk);
+  }, // encrypt
+
 };
