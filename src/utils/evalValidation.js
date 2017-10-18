@@ -11,6 +11,7 @@
  */
 const debug = require('debug')('refocus-collector:evalUtils');
 const errors = require('../errors');
+const u = require('./commonUtils');
 
 function isObject(name, val) {
   debug('Entered evalValidation.isObject:', name, val);
@@ -27,6 +28,18 @@ function isObject(name, val) {
 
 module.exports = {
   isObject,
+
+  validateSubjectArgs(args) {
+    if (!args.subjects && !args.subject) {
+      throw new errors.ArgsError('Must include either "subjects" or "subject".');
+    } else if (args.subjects && !args.subject) {
+      return this.subjects(args.subjects);
+    } else if (!args.subjects && args.subject) {
+      return this.subject(args.subject);
+    } else if (args.subjects && args.subject) {
+      throw new errors.ArgsError('Must not include both "subjects" and "subject".');
+    }
+  },
 
   aspects: (aspects) => {
     debug('Entered evalValidation.aspects:', aspects);
@@ -75,4 +88,18 @@ module.exports = {
 
     return true;
   }, // subjects
+
+  subject: (subject) => {
+    debug('Entered evalValidation.subject:', subject);
+    if (!subject) {
+      throw new errors.ArgsError('Must include a "subject" attribute.');
+    }
+
+    isObject(`subject`, subject);
+    if (typeof subject.absolutePath !== 'string') {
+      throw new errors.ArgsError('"subject" attribute must be a valid subject.');
+    }
+
+    return true;
+  }, // subject
 };

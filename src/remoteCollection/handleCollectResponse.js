@@ -12,8 +12,10 @@
 const debug = require('debug')('refocus-collector:handleCollectResponse');
 const evalUtils = require('../utils/evalUtils');
 const errors = require('../errors');
+const errorSamples = require('./errorSamples');
 const logger = require('winston');
 const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+const httpStatus = require('../constants').httpStatus;
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -32,15 +34,33 @@ function validateCollectResponse(cr) {
       'null, and must not be an Array.');
   }
 
-  if (!cr.res) {
-    throw new errors.ValidationError('The argument passed to the ' +
-      '"handleCollectResponse" function must have a "res" attribute.');
-  }
-
   if (!cr.name) {
     throw new errors.ValidationError('The argument passed to the ' +
       '"handleCollectResponse" function must have a "name" attribute.');
   }
+
+  if (!cr.preparedUrl) {
+    throw new errors.ValidationError('The argument passed to the ' +
+      '"handleCollectResponse" function must have a "preparedUrl" attribute.');
+  }
+
+  // No response.
+  if (!cr.res) {
+    throw new errors.ValidationError(`No response from ${cr.preparedUrl}`);
+  }
+
+  // Invalid response: missing status code.
+  if (!cr.res.hasOwnProperty('statusCode')) {
+    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
+    + 'missing HTTP status code');
+  }
+
+  // Expecting response status code to be 3 digits.
+  if (!/\d\d\d/.test(cr.res.statusCode)) {
+    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
+    + `invalid HTTP status code "${cr.res.statusCode}"`);
+  }
+
 } // validateCollectResponse
 
 /**
@@ -60,23 +80,76 @@ function validateCollectResponse(cr) {
 function handleCollectResponse(collectResponse) {
   debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
-    try {
-      validateCollectResponse(collectRes);
-      const tr = collectRes.generatorTemplate.transform;
-      const t = Array.isArray(tr) ? tr.join('\n') : tr;
-      const transformedSamples = evalUtils.safeTransform(t, collectRes);
+    validateCollectResponse(collectRes);
+
+    /*
+     * If the transform is a string, then we use that function for all
+     * status codes.
+     */
+    const tr = collectRes.generatorTemplate.transform;
+    const args = evalUtils.prepareTransformArgs(collectRes);
+    if (typeof tr === 'string') { // match all status codes
+      const samplesToEnqueue = evalUtils.safeTransform(tr, args);
       logger.info(`{
         generator: ${collectRes.name},
-        numSamples: ${transformedSamples.length},
+        url: ${collectRes.preparedUrl},
+        numSamples: ${samplesToEnqueue.length},
       }`);
-      enqueue(transformedSamples);
-    } catch (err) {
-      debug(err);
-      logger.error('handleCollectResponse threw an error: ', err.name,
-        err.message);
-      return Promise.reject(err);
+      return enqueue(samplesToEnqueue);
+    } else {
+      /*
+       * The transform is *not* a string, so handle the response based on the
+       * status code.
+       */
+      const status = collectRes.res.statusCode;
+      let func;
+
+      // the response was OK, so use the default transform
+      if (status === httpStatus.OK) {
+        func = collectRes.generatorTemplate.transform.transform;
+      }
+
+      /*
+       * Check for a status code regex match which maps to a transform for
+       * error samples. Use the first one to match. If 200 is matched, it
+       * will override the default transform.
+       */
+      if (tr.errorHandlers) {
+        Object.keys(tr.errorHandlers).forEach((statusMatcher) => {
+          const re = new RegExp(statusMatcher);
+          if (re.test(status)) {
+            func = tr.errorHandlers[statusMatcher];
+          }
+        });
+      }
+
+      if (func) {
+        const samplesToEnqueue = evalUtils.safeTransform(func, args);
+        logger.info(`{
+          generator: ${collectRes.name},
+          url: ${collectRes.preparedUrl},
+          numSamples: ${samplesToEnqueue.length},
+        }`);
+        return enqueue(samplesToEnqueue);
+      } else {
+        /*
+         * If there is no transform designated for this HTTP status code, just
+         * generate default error samples.
+         */
+        const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
+          `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
+        const samplesToEnqueue = errorSamples(collectRes, errorMessage);
+        logger.info(`{
+          generator: ${collectRes.name},
+          url: ${collectRes.preparedUrl},
+          error: ${errorMessage},
+          numSamples: ${samplesToEnqueue.length},
+        }`);
+        return enqueue(samplesToEnqueue);
+      }
     }
-  }).catch((err) => {
+  })
+  .catch((err) => {
     debug(err);
     logger.error('handleCollectResponse threw an error: ', err.name,
       err.message);

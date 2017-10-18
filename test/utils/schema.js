@@ -67,7 +67,13 @@ describe('test/utils/schema.js >', () => {
 
     it('ok', (done) => {
       const sample = { name: 'sample1|aspName', value: '0' };
-      expect(() => v.validate(sample)).to.not.throw();
+      expect(v.validate(sample)).to.have.property('error', null);
+      done();
+    });
+
+    it('ok with .', (done) => {
+      const sample = { name: 'root.child|aspName', value: '0' };
+      expect(v.validate(sample)).to.have.property('error', null);
       done();
     });
 
