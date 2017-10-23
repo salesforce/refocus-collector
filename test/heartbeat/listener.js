@@ -44,6 +44,7 @@ describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
       heartbeatInterval: 50,
+      maxSamplesPerBulkRequest: 10,
     },
     generatorsAdded: [
       {
@@ -85,7 +86,10 @@ describe('test/heartbeat/listener.js >', () => {
   it('added generators should be added to the config and the repeat tracker ' +
     'should be setup', (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'Core_Trust2',
@@ -113,7 +117,10 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('updated generators should be updated in the config', (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'Core_Trust3',
@@ -157,7 +164,10 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('SGT with bulk= false should be handled', (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'Core_Trust_nonBulk_NA1_NA2',
@@ -187,7 +197,10 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('SGT update from bulk=true to bulk=false', (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'bulktrueToBulkFalse_1',
@@ -212,6 +225,10 @@ describe('test/heartbeat/listener.js >', () => {
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
     const updatedRes = {
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 50,
+      },
       generatorsUpdated: [
         {
           name: 'bulktrueToBulkFalse_1',
@@ -242,7 +259,10 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('SGT update from bulk=false to bulk=true', (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'bulktrueToBulkFalse_2',
@@ -268,6 +288,10 @@ describe('test/heartbeat/listener.js >', () => {
     expect(tracker.bulktrueToBulkFalse_2.NA1).not.equal(undefined);
     expect(tracker.bulktrueToBulkFalse_2.NA2).not.equal(undefined);
     const updatedRes = {
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsUpdated: [
         {
           name: 'bulktrueToBulkFalse_2',
@@ -297,7 +321,10 @@ describe('test/heartbeat/listener.js >', () => {
   it('deleted generators information should be deleted in the config',
   (done) => {
     const res = {
-      heartbeatInterval: 50,
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsAdded: [
         {
           name: 'ABC_DATA',
@@ -332,6 +359,10 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener.handleHeartbeatResponse(null, res);
     expect(updatedConfig.generators.ABC_DATA).to.not.equal(undefined);
     const resDel = {
+      collectorConfig: {
+        heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
+      },
       generatorsDeleted: [
         { name: 'ABC_DATA', },
       ],
@@ -350,6 +381,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatInterval: 50,
+        maxSamplesPerBulkRequest: 10,
       },
       generatorsAdded: {
         name: 'Fghijkl_Mnopq',
@@ -380,7 +412,10 @@ describe('test/heartbeat/listener.js >', () => {
     it('added generators with encrypted context attributed should be ' +
       'decrypted before the repeats are created', (done) => {
       const res = {
-        heartbeatInterval: 50,
+        collectorConfig: {
+          heartbeatInterval: 50,
+          maxSamplesPerBulkRequest: 10,
+        },
         generatorsAdded: [
           {
             name: 'Core_Trust2_With_Encryption',
@@ -429,7 +464,10 @@ describe('test/heartbeat/listener.js >', () => {
     it('updated generator context with encryption should be decrypted',
     (done) => {
       const res = {
-        heartbeatInterval: 50,
+        collectorConfig: {
+          heartbeatInterval: 50,
+          maxSamplesPerBulkRequest: 10,
+        },
         generatorsAdded: [
           {
             name: 'Core_Trust3_With_Encryption',
@@ -510,7 +548,10 @@ describe('test/heartbeat/listener.js >', () => {
     it('when context is updated from encryption = false to encryption = ' +
       'true, decryption should happen', (done) => {
       const res = {
-        heartbeatInterval: 50,
+        collectorConfig: {
+          heartbeatInterval: 50,
+          maxSamplesPerBulkRequest: 10,
+        },
         generatorsAdded: [
           {
             name: 'Core_Trust4_With_Encryption',

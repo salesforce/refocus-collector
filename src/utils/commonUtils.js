@@ -17,6 +17,7 @@ const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
+const sampleSchema = require('./schema').sample;
 
 module.exports = {
 
@@ -73,6 +74,22 @@ module.exports = {
     }
 
     return fileContents;
+  },
+
+  /**
+   * Validates the sample.
+   *
+   * @param {Object} sample - The sample to validate
+   * @returns {Object} the valid sample
+   * @throws {ValidationError} if the object does not look like a sample
+   */
+  validateSample(sample) {
+    const val = sampleSchema.validate(sample);
+    if (val.error) {
+      throw new errors.ValidationError(val.error.message);
+    }
+
+    return sample;
   },
 
   /**

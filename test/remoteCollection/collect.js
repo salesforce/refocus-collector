@@ -22,7 +22,6 @@ const handleCollectRes =
     .handleCollectResponse;
 const collect = require('../../src/remoteCollection/collect');
 const httpStatus = require('../../src/constants').httpStatus;
-const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
 
 describe('test/remoteCollection/collect.js >', () => {
   describe('collect >', () => {
@@ -209,54 +208,6 @@ describe('test/remoteCollection/collect.js >', () => {
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.errno).to.equal('ENOTFOUND');
-        done();
-      })
-      .catch(done);
-    });
-
-    it('handleCollectResponse should work with a good response from collect',
-    (done) => {
-      const remoteUrl = 'http://bart.gov.api/';
-      const generator = {
-        name: 'Generator0',
-        interval: 600,
-        aspects: [{ name: 'Delay', timeout: '1m' }],
-        ctx: {},
-        generatorTemplate: {
-          connection: {
-            headers: {
-              Authorization: 'abddr121345bb',
-            },
-            url: 'http://bart.gov.api/status',
-            bulk: true,
-          },
-          transform: 'return [{ name: "Fremont|Delay", value: "10" }, ' +
-            '{ name: "UnionCity|Delay", value: "2" }]',
-        },
-        subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
-        aspects: [{ name: 'Delay', timeout: '1m' }],
-      };
-      const remoteData = {
-        station: [{ name: 'Fremont|Delay', value: '10' },
-          { name: 'UnionCity|Delay', value: '2' },
-        ],
-      };
-      nock(remoteUrl)
-        .get('/status')
-        .reply(httpStatus.OK, remoteData);
-
-      nock(refocusUrl)
-        .post(bulkEndPoint, sampleArr)
-        .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
-
-      handleCollectRes(collect.collect(generator))
-      .then(() => {
-        expect(sampleQueueOps.sampleQueue.length).to.be.equal(2);
-        expect(sampleQueueOps.sampleQueue[0])
-          .to.eql({ name: 'Fremont|Delay', value: '10' });
-        expect(sampleQueueOps.sampleQueue[1])
-          .to.eql({ name: 'UnionCity|Delay', value: '2' });
-        sampleQueueOps.flush(100, tu.refocusInstance1);
         done();
       })
       .catch(done);

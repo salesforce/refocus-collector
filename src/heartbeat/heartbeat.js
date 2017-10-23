@@ -73,8 +73,8 @@ function sendHeartbeat(refocusInstanceObj) {
     };
 
     return buildMockResponse(generatorsDir)
-    .then(res => handleHeartbeatResponse(null, res))
-    .catch(err => handleHeartbeatResponse(err, null));
+    .then(res => handleHeartbeatResponse(null, res, refocusInstanceObj))
+    .catch(err => handleHeartbeatResponse(err, null, refocusInstanceObj));
 
     //TODO: send the real request and handle the response once the api can handle it
     //debug(`sendHeartbeat sending request. url: ${url} body: %o`, body);

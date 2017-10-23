@@ -14,11 +14,9 @@ const evalUtils = require('../utils/evalUtils');
 const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
-const sampleBufferedQueueModule =
-  require('../bufferedQueue/sampleBufferedQueue');
-const sampleBufferedQueue = sampleBufferedQueueModule.sampleBufferedQueue;
-const enqueue = require('../sampleQueue/sampleQueueOps').enqueue;
+const queueUtils = require('../utils/queueUtils');
 const httpStatus = require('../constants').httpStatus;
+const commonUtils = require('../utils/commonUtils');
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -98,7 +96,8 @@ function handleCollectResponse(collectResponse) {
         url: ${collectRes.preparedUrl},
         numSamples: ${samplesToEnqueue.length},
       }`);
-      sampleBufferedQueue.add(transformedSamples);
+      queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+        commonUtils.validateSample);
     } else {
       /*
        * The transform is *not* a string, so handle the response based on the
@@ -133,7 +132,8 @@ function handleCollectResponse(collectResponse) {
           url: ${collectRes.preparedUrl},
           numSamples: ${samplesToEnqueue.length},
         }`);
-        return enqueue(samplesToEnqueue);
+        queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+          commonUtils.validateSample);
       } else {
         /*
          * If there is no transform designated for this HTTP status code, just
@@ -148,7 +148,8 @@ function handleCollectResponse(collectResponse) {
           error: ${errorMessage},
           numSamples: ${samplesToEnqueue.length},
         }`);
-        sampleBufferedQueue.add(samplesToEnqueue);
+        queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+          commonUtils.validateSample);
       }
     }
   })

@@ -13,9 +13,8 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
-const sampleBufferedQueueModule =
-  require('../bufferedQueue/sampleBufferedQueue');
-const sampleBufferedQueue = sampleBufferedQueueModule.sampleBufferedQueue;
+const queueUtils = require('../utils/queueUtils');
+const httpUtils = require('../utils/httpUtils');
 
 /**
  * Handles the heartbeat response:
@@ -27,7 +26,7 @@ const sampleBufferedQueue = sampleBufferedQueueModule.sampleBufferedQueue;
  * @returns {Object} - config object. An error object is returned if this
  *  function is called with the error as the first argument.
  */
-function handleHeartbeatResponse(err, res) {
+function handleHeartbeatResponse(err, res, refocusInstanceObj=null) {
   debug('entered handleHeartbeatResponse');
   if (err) {
     logger.error('The handleHeartbeatResponse function was called with an ' +
@@ -36,15 +35,22 @@ function handleHeartbeatResponse(err, res) {
   }
 
   // queue generation
-  if (sampleBufferedQueue) {
-    sampleBufferedQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
-    sampleBufferedQueue._flushTimeout =
-      res.collectorConfig.sampleUpsertQueueTime;
+  // get queue
+  const bulkUpsertSampleQueue = queueUtils.getQueue('bulkUpsertSampleQueue');
+  if (bulkUpsertSampleQueue) {
+    if (res.collectorConfig) {
+      bulkUpsertSampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
+      bulkUpsertSampleQueue._flushTimeout =
+        res.collectorConfig.sampleUpsertQueueTime;
+    }
   } else {
     const config = configModule.getConfig();
-    sampleBufferedQueueModule.create('bulkUpsertSampleQueue',
+    queueUtils.createQueue('bulkUpsertSampleQueue',
       config.collectorConfig.maxSamplesPerBulkRequest,
       config.collectorConfig.sampleUpsertQueueTime,
+      false,
+      httpUtils.doBulkUpsert,
+      refocusInstanceObj
     );
   }
 
