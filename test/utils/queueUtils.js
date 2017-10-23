@@ -12,9 +12,14 @@
 const expect = require('chai').expect;
 const queueUtils = require('../../src/utils/queueUtils');
 const config = require('../../src/config/config');
+const errors = require('../../src/errors');
 
 function flushFunction(refocusObject, data) {
   return data;
+}
+
+function validateError(data) {
+  throw new errors.ValidationError('validateError');
 }
 
 describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
@@ -95,5 +100,16 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
     queueUtils.enqueueFromArray('test', [1, 2, 3, 4]);
     expect(queue.items.length).to.be.equal(4);
     return done();
+  });
+
+  it('Validation individual data error test', (done) => {
+    queueUtils.createQueue('test', 10, 300, false, flushFunction);
+    const queue = queueUtils.getQueue('test');
+    try {
+      queueUtils.enqueueFromArray('test', [1, 2, 3, 4], validateError);
+    } catch (err) {
+      expect(err.name).to.be.equal('ValidationError');
+      return done();
+    }
   });
 });

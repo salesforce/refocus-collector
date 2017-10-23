@@ -70,7 +70,7 @@ function enqueueFromArray(name, arrayData, validationFunction=null) {
     });
   } catch (err) {
     logger.error(`Enqueue failed: ${err}`);
-    throw new errors.ValidationError(err.error.message);
+    throw new errors.ValidationError(err.error);
   }
 }
 
