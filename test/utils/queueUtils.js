@@ -22,9 +22,17 @@ function validateError(data) {
   throw new errors.ValidationError('validateError');
 }
 
+const queueParams = {
+  name: 'test',
+  size: 100,
+  flushTimeout: 4000,
+  verbose: false,
+  flushFunction: flushFunction,
+};
+
 describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   it('Create queue', (done) => {
-    queueUtils.createQueue('test', 100, 4000, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     expect(queue._size).to.be.equal(100);
     expect(queue._flushTimeout).to.be.equal(4000);
@@ -32,7 +40,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Get queue', (done) => {
-    queueUtils.createQueue('test', 100, 4000, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     expect(queue._size).to.be.equal(100);
     expect(queue._flushTimeout).to.be.equal(4000);
@@ -40,7 +48,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Change the queue Size', (done) => {
-    queueUtils.createQueue('test', 100, 4000, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     expect(queue._size).to.be.equal(100);
     queue._size = 50;
@@ -50,7 +58,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Change the queue flush time', (done) => {
-    queueUtils.createQueue('test', 100, 4000, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     expect(queue._flushTimeout).to.be.equal(4000);
     queue._flushTimeout = 500;
@@ -60,8 +68,14 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Create two queue', (done) => {
-    queueUtils.createQueue('test', 100, 4000, false, flushFunction);
-    queueUtils.createQueue('test1', 100, 4000, false, flushFunction);
+    queueUtils.createQueue(queueParams);
+    queueUtils.createQueue({
+      name: 'test1',
+      size: 100,
+      flushTimeout: 3000,
+      verbose: false,
+      flushFunction: flushFunction,
+    });
     const queue = queueUtils.getQueue('test');
     const queue1 = queueUtils.getQueue('test1');
     expect(queue._size).to.be.equal(100);
@@ -70,7 +84,13 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Flush queue after queue size done', (done) => {
-    queueUtils.createQueue('test', 3, 4000, false, flushFunction);
+    queueUtils.createQueue({
+      name: 'test',
+      size: 3,
+      flushTimeout: 300,
+      verbose: false,
+      flushFunction: flushFunction,
+    });
     const queue = queueUtils.getQueue('test');
     queue.add(1);
     queue.add(2);
@@ -81,7 +101,13 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Flush queue after queue flushtimeout done', (done) => {
-    queueUtils.createQueue('test', 10, 300, false, flushFunction);
+    queueUtils.createQueue({
+      name: 'test',
+      size: 100,
+      flushTimeout: 300,
+      verbose: false,
+      flushFunction: flushFunction,
+    });
     const queue = queueUtils.getQueue('test');
     queue.add(1);
     queue.add(2);
@@ -95,7 +121,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Enqueue function test', (done) => {
-    queueUtils.createQueue('test', 10, 300, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     queueUtils.enqueueFromArray('test', [1, 2, 3, 4]);
     expect(queue.items.length).to.be.equal(4);
@@ -103,7 +129,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Validation individual data error test', (done) => {
-    queueUtils.createQueue('test', 10, 300, false, flushFunction);
+    queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
     try {
       queueUtils.enqueueFromArray('test', [1, 2, 3, 4], validateError);

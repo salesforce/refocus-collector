@@ -16,6 +16,7 @@ const errorSamples = require('./errorSamples');
 const logger = require('winston');
 const queueUtils = require('../utils/queueUtils');
 const httpStatus = require('../constants').httpStatus;
+const bulkUpsertSampleQueue = require('../constants').bulkUpsertSampleQueue;
 const commonUtils = require('../utils/commonUtils');
 
 /**
@@ -96,7 +97,7 @@ function handleCollectResponse(collectResponse) {
         url: ${collectRes.preparedUrl},
         numSamples: ${samplesToEnqueue.length},
       }`);
-      queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+      queueUtils.enqueueFromArray(bulkUpsertSampleQueue, samplesToEnqueue,
         commonUtils.validateSample);
     } else {
       /*
@@ -132,7 +133,7 @@ function handleCollectResponse(collectResponse) {
           url: ${collectRes.preparedUrl},
           numSamples: ${samplesToEnqueue.length},
         }`);
-        queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+        queueUtils.enqueueFromArray(bulkUpsertSampleQueue, samplesToEnqueue,
           commonUtils.validateSample);
       } else {
         /*
@@ -148,7 +149,7 @@ function handleCollectResponse(collectResponse) {
           error: ${errorMessage},
           numSamples: ${samplesToEnqueue.length},
         }`);
-        queueUtils.enqueueFromArray('bulkUpsertSampleQueue', samplesToEnqueue,
+        queueUtils.enqueueFromArray(bulkUpsertSampleQueue, samplesToEnqueue,
           commonUtils.validateSample);
       }
     }

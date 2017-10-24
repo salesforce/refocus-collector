@@ -15,6 +15,7 @@ const utils = require('./utils');
 const configModule = require('../config/config');
 const queueUtils = require('../utils/queueUtils');
 const httpUtils = require('../utils/httpUtils');
+const bulkUpsertSampleQueue = require('../constants').bulkUpsertSampleQueue;
 
 /**
  * Handles the heartbeat response:
@@ -36,22 +37,24 @@ function handleHeartbeatResponse(err, res, refocusInstanceObj=null) {
 
   // queue generation
   // get queue
-  const bulkUpsertSampleQueue = queueUtils.getQueue('bulkUpsertSampleQueue');
-  if (bulkUpsertSampleQueue) {
+  const _bulkUpsertSampleQueue = queueUtils.getQueue(bulkUpsertSampleQueue);
+  if (_bulkUpsertSampleQueue) {
     if (res.collectorConfig) {
-      bulkUpsertSampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
-      bulkUpsertSampleQueue._flushTimeout =
+      _bulkUpsertSampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
+      _bulkUpsertSampleQueue._flushTimeout =
         res.collectorConfig.sampleUpsertQueueTime;
     }
   } else {
     const config = configModule.getConfig();
-    queueUtils.createQueue('bulkUpsertSampleQueue',
-      config.collectorConfig.maxSamplesPerBulkRequest,
-      config.collectorConfig.sampleUpsertQueueTime,
-      false,
-      httpUtils.doBulkUpsert,
-      refocusInstanceObj
-    );
+    const queueParams = {
+      name: bulkUpsertSampleQueue,
+      size: config.collectorConfig.maxSamplesPerBulkRequest,
+      flushTimeout: config.collectorConfig.sampleUpsertQueueTime,
+      verbose: false,
+      flushFunction: httpUtils.doBulkUpsert,
+      refocusInstanceObj: refocusInstanceObj,
+    };
+    queueUtils.createQueue(queueParams);
   }
 
   if (res) {

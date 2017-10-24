@@ -9,7 +9,6 @@
 /**
  * src/utils/queueUtils.js
  */
-const debug = require('debug')('refocus-collector:queueUtils');
 const logger = require('winston');
 const Queue = require('buffered-queue');
 const errors = require('../errors');
@@ -19,25 +18,23 @@ const queueListObject = {};
 /**
  * Create Queue using Buffered Queue Package
  *
- * @param  {String} name          Name of Queue
- * @param  {Integer} size          Size of Queue
- * @param  {Integer} flshTimeout   Timeout time in millisecond
- * @param  {Boolean} verbose       Verbose flag for logging
- * @param  {Function} flushFunction Flush function when Queue flushes
+ * @param  {Object} queueParams    Queue Parameter Object
+ *                                 name, size, flushTimeout,
+ *                                 verbose, flushFunction,
+ *                                 refocusInstanceObj
  * @param  {Object}  refocusInstanceObj Refocus Instance Object to send Data
  */
-function createQueue(name, size, flushTimeout, verbose,
-  flushFunction, refocusInstanceObj=null) {
-  queueObject = new Queue(name, {
-    size: size,
-    flushTimeout: flushTimeout,
-    verbose: verbose,
+function createQueue(queueParams) {
+  queueObject = new Queue(queueParams.name, {
+    size: queueParams.size,
+    flushTimeout: queueParams.flushTimeout,
+    verbose: queueParams.verbose,
   });
 
-  queueListObject[name] = queueObject;
+  queueListObject[queueParams.name] = queueObject;
 
   queueObject.on('flush', (data, name) => {
-    flushFunction(refocusInstanceObj, data);
+    queueParams.flushFunction(queueParams.refocusInstanceObj, data);
   });
 }
 
@@ -59,7 +56,7 @@ function getQueue(name) {
  * @throws {ValidationError} if the object does not look like a sample
  */
 function enqueueFromArray(name, arrayData, validationFunction=null) {
-  queue = queueListObject[name];
+  const queue = queueListObject[name];
   try {
     arrayData.forEach((data) => {
       if (validationFunction) {
