@@ -9,6 +9,7 @@
 /**
  * src/utils/queueUtils.js
  */
+'use strict'; // eslint-disable-line strict
 const logger = require('winston');
 const Queue = require('buffered-queue');
 const errors = require('../errors');

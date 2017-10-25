@@ -9,6 +9,7 @@
 /**
  * src/utils/httpUtils.js
  */
+'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:httpUtils');
 const errors = require('../errors');
 const request = require('superagent');
