@@ -10,7 +10,6 @@
  * src/remoteCollection/handleCollectResponse.js
  */
 const debug = require('debug')('refocus-collector:handleCollectResponse');
-const evalUtils = require('../utils/evalUtils');
 const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
@@ -18,6 +17,7 @@ const queueUtils = require('../utils/queueUtils');
 const httpStatus = require('../constants').httpStatus;
 const bulkUpsertSampleQueue = require('../constants').bulkUpsertSampleQueue;
 const commonUtils = require('../utils/commonUtils');
+const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -62,8 +62,30 @@ function validateCollectResponse(cr) {
     throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
     + `invalid HTTP status code "${cr.res.statusCode}"`);
   }
-
 } // validateCollectResponse
+
+/**
+ * Prepare arguments to be passed to the transform function
+ * @param  {Object} generator - Generator object
+ * @throws {TransformError} - if transform function does not return an array
+ *  of zero or more samples
+ * @throws {ValidationError} - if any of the above mentioned check fails
+ */
+function prepareTransformArgs(generator) {
+  const args = {};
+
+  args.ctx = generator.ctx;
+  args.res = generator.res;
+  args.aspects = generator.aspects;
+
+  if (commonUtils.isBulk(generator)) {
+    args.subjects = generator.subjects;
+  } else {
+    args.subject = generator.subjects[0];
+  }
+
+  return args;
+}
 
 /**
  * Handles the response from the remote data source by calling the transform
@@ -89,9 +111,9 @@ function handleCollectResponse(collectResponse) {
      * status codes.
      */
     const tr = collectRes.generatorTemplate.transform;
-    const args = evalUtils.prepareTransformArgs(collectRes);
+    const args = prepareTransformArgs(collectRes);
     if (typeof tr === 'string') { // match all status codes
-      const samplesToEnqueue = evalUtils.safeTransform(tr, args);
+      const samplesToEnqueue = RefocusCollectorEval.safeTransform(tr, args);
       logger.info(`{
         generator: ${collectRes.name},
         url: ${collectRes.preparedUrl},
@@ -127,7 +149,7 @@ function handleCollectResponse(collectResponse) {
       }
 
       if (func) {
-        const samplesToEnqueue = evalUtils.safeTransform(func, args);
+        const samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
         logger.info(`{
           generator: ${collectRes.name},
           url: ${collectRes.preparedUrl},
@@ -165,4 +187,5 @@ function handleCollectResponse(collectResponse) {
 module.exports = {
   handleCollectResponse,
   validateCollectResponse, // export for testing only
+  prepareTransformArgs, // export for testing only
 };

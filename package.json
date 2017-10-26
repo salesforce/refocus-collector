@@ -30,6 +30,7 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
+    "@salesforce/refocus-collector-eval": "^1.2.0",
     "bluebird": "^3.5.0",
     "buffered-queue": "^0.1.4",
     "coveralls": "^2.13.1",

@@ -23,6 +23,7 @@ const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
+const prepareTransformArgs = hcr.prepareTransformArgs;
 const queueUtils = require('../../src/utils/queueUtils');
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
@@ -411,7 +412,44 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         },
       ];
     }
+  });
 
+  describe('prepareTransformArgs >', () => {
+    const generator = {
+      name: 'mockGenerator',
+      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      ctx: { a: 'a', b: 'b' },
+      res: { body: 'aaa' },
+      generatorTemplate: {
+        connection: {
+          bulk: true,
+        },
+      },
+    };
+
+    it('bulk', (done) => {
+      const args = prepareTransformArgs(generator);
+      expect(args).to.have.property('ctx', generator.ctx);
+      expect(args).to.have.property('res', generator.res);
+      expect(args).to.have.property('aspects', generator.aspects);
+      expect(args).to.have.property('subjects', generator.subjects);
+      expect(args).to.not.have.property('name');
+      expect(args).to.not.have.property('generatorTemplate');
+      done();
+    });
+
+    it('by subject', (done) => {
+      generator.generatorTemplate.connection.bulk = false;
+      const args = prepareTransformArgs(generator);
+      expect(args).to.have.property('ctx', generator.ctx);
+      expect(args).to.have.property('res', generator.res);
+      expect(args).to.have.property('aspects', generator.aspects);
+      expect(args).to.have.property('subject', generator.subjects[0]);
+      expect(args).to.not.have.property('name');
+      expect(args).to.not.have.property('generatorTemplate');
+      done();
+    });
   });
 });
 
