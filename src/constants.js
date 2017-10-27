@@ -32,6 +32,9 @@ module.exports = {
     SERVICE_UNAVAILABLE: 503,
   },
 
+  // Bulk upsert Sample Queue Name
+  bulkUpsertSampleQueue: 'bulkUpsertSampleQueue',
+
   // exported for the purpose of testing
   mockRegistryLocation: './test/config/testRegistry.json',
 

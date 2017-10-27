@@ -30,7 +30,6 @@ describe('test/commands/start >', () => {
   it('ok', (done) => {
     start.execute();
     expect(repeater.tracker).to.have.property('Heartbeat');
-    expect(repeater.tracker).to.have.property('SampleQueueFlush');
     done();
   });
 

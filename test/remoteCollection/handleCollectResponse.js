@@ -23,9 +23,10 @@ const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
-
+const queueUtils = require('../../src/utils/queueUtils');
 const httpStatus = require('../../src/constants').httpStatus;
-const sampleQueueOps = require('../../src/sampleQueue/sampleQueueOps');
+const configModule = require('../../src/config/config');
+const httpUtils = require('../../src/utils/httpUtils');
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('validateCollectResponse >', () => {
@@ -178,7 +179,22 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('handleCollectResponse', () => {
 
     let winstonInfoStub;
+    const refocusObject = {
+      url: refocusUrl,
+      token: 'abcdqwerty',
+      name: 'test',
+    };
+    const config = configModule.getConfig();
     before(() => {
+      queueUtils.createQueue('bulkUpsertSampleQueue',
+        config.collectorConfig.maxSamplesPerBulkRequest,
+        config.collectorConfig.sampleUpsertQueueTime,
+        false,
+        httpUtils.doBulkUpsert,
+        refocusObject
+      );
+
+      // console.log(queueUtils.getQueue('bulkUpsertSampleQueue'));
       // use nock to mock the response when flushing
       const sampleArr = [
         { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
@@ -193,7 +209,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     afterEach(() => {
       winstonInfoStub.reset();
-      sampleQueueOps.flush(100, tu.refocusInstance1);
+      queueUtils.getQueue('bulkUpsertSampleQueue').Items = [];
     });
 
     after(() => {
@@ -368,12 +384,13 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     function checkLogs(expected) {
-      expect(winston.info.calledTwice).to.be.true;
+      expect(winston.info.calledOnce).to.be.true;
       expect(winston.info.args[0][0]).contains('generator: mockGenerator');
       expect(winston.info.args[0][0]).contains(`numSamples: ${expected.length}`);
-      expect(sampleQueueOps.sampleQueue.length).to.be.equal(expected.length);
-      expect(sampleQueueOps.sampleQueue[0]).to.eql(expected[0]);
-      expect(sampleQueueOps.sampleQueue[1]).to.eql(expected[1]);
+      const queue = queueUtils.getQueue('bulkUpsertSampleQueue');
+      expect(queue.items.length).to.be.equal(expected.length);
+      expect(queue.items[0]).to.eql(expected[0]);
+      expect(queue.items[1]).to.eql(expected[1]);
     }
 
     function defaultErrorSamples(statusCode, statusMessage) {
