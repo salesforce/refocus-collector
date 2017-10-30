@@ -12,12 +12,10 @@
 
 const debug = require('debug')('refocus-collector:remoteCollection');
 const request = require('superagent');
-const logger = require('winston');
-const evalUtils = require('../utils/evalUtils');
 const urlUtils = require('./urlUtils');
 const errors = require('../errors');
-const configModule = require('../config/config');
 const constants = require('../constants');
+const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -42,7 +40,7 @@ function prepareUrl(generator) {
       subjects: generator.subjects,
     };
     const fbody = Array.isArray(toUrl) ? toUrl.join('\n') : toUrl;
-    url = evalUtils.safeToUrl(fbody, args);
+    url = RefocusCollectorEval.safeToUrl(fbody, args);
   } else {
     throw new errors.ValidationError('The generator template must provide ' +
       'either a connection.url attribute or a "toUrl" attribute.');
