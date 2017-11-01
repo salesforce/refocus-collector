@@ -16,6 +16,8 @@ const urlUtils = require('./urlUtils');
 const errors = require('../errors');
 const constants = require('../constants');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
+require('superagent-proxy')(request);
+const proxy = 'http://public0-proxy1-0-prd.data.sfdc.net:8080';
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -103,6 +105,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     // Remote request for fetching data.
     request
     .get(generator.preparedUrl)
+    .proxy(proxy)
     .set(headers)
     .end((err, res) => {
       if (err) {

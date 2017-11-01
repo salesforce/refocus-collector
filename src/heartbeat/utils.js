@@ -112,7 +112,7 @@ function addGenerator(res) {
 
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
-  const refocusInstance = config.refocusInstance;
+  const refocusInstance = config.registry.refocusInstances.sandbox;
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.

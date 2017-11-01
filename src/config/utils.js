@@ -89,7 +89,16 @@ function init(reg) {
     }
   }
 
-  conf.registry = r;
+  conf.registry = {
+    "name": "Refocus-Collector",
+    "refocusInstances": {
+      "sandbox": {
+        "name": "sandbox",
+        "url": "https://refocus-staging.internal.salesforce.com",
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbm5hbWUiOiJzaXRlcmVsaWFiaWxpdHlUb29sc0BzYWxlc2ZvcmNlLmNvbSIsInVzZXJuYW1lIjoic2l0ZXJlbGlhYmlsaXR5VG9vbHNAc2FsZXNmb3JjZS5jb20iLCJpYXQiOjE0ODUzMDIwOTJ9.2o_R-MyiD1gxyd6dlYnfilSmCTjJPHKsG9rs24x3Zek"
+      }
+    }
+  };
   debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init

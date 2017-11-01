@@ -74,7 +74,7 @@ function validateCollectResponse(cr) {
 function prepareTransformArgs(generator) {
   const args = {};
 
-  args.ctx = generator.ctx;
+  args.ctx = generator.context;
   args.res = generator.res;
   args.aspects = generator.aspects;
 

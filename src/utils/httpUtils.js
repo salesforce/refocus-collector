@@ -13,8 +13,10 @@
 const debug = require('debug')('refocus-collector:httpUtils');
 const errors = require('../errors');
 const request = require('superagent');
+require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');
+const proxy = 'http://public0-proxy1-0-prd.data.sfdc.net:8080';
 
 /**
  * Send the upsert and handle any errors in the response.
@@ -57,6 +59,7 @@ function doBulkUpsert(refocusInstance, arr) {
 
     request
     .post(upsertUrl)
+    .proxy(proxy)
     .send(arr)
     .set('Authorization', token)
     .set('Accept', 'application/json')
