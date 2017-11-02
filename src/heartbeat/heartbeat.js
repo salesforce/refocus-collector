@@ -29,36 +29,30 @@ let lastHeartbeatTime;
  * @returns {Request} - the request sent to the Refocus server
  * @throws {ValidationError} - if required config fields are missing
  */
-function sendHeartbeat(refocusInstanceObj) {
+function sendHeartbeat() {
   debug('Entered sendHeartbeat');
   let collectorName;
-  let refocusInstanceName;
   let baseUrl;
   let token;
   let path;
   let url;
   const timestamp = Date.now();
+  const config = configModule.getConfig();
 
   try {
-    //TODO: use the registry for this collector once command line args are setup
-    collectorName = configModule.getConfig().name;
+    collectorName = config.collectorConfig.collectorName;
+    baseUrl = config.collectorConfig.refocusUrl;
+    token = config.collectorConfig.collectorToken;
 
-    refocusInstanceName = refocusInstanceObj.name;
-    baseUrl = refocusInstanceObj.url;
-    token = refocusInstanceObj.token;
     path = `/v1/collectors/${collectorName}/heartbeat`;
     url = baseUrl + path;
 
-    if (baseUrl == null) {
-      throw new errors.ValidationError(
-        `No url in refocus instance for ${refocusInstanceName}`
-      );
-    }
-
-    if (token == null) {
-      throw new errors.ValidationError(
-        `No token in refocus instance for ${refocusInstanceName}`
-      );
+    if (collectorName == null) {
+      throw new errors.ValidationError('No collectorName in config');
+    } else if (baseUrl == null) {
+      throw new errors.ValidationError('No refocusUrl in config');
+    } else if (token == null) {
+      throw new errors.ValidationError('No collectorToken in config');
     }
 
     const existing = configModule.getConfig().collectorConfig;
@@ -73,8 +67,8 @@ function sendHeartbeat(refocusInstanceObj) {
     };
 
     return buildMockResponse(generatorsDir)
-    .then(res => handleHeartbeatResponse(null, res, refocusInstanceObj))
-    .catch(err => handleHeartbeatResponse(err, null, refocusInstanceObj));
+    .then(res => handleHeartbeatResponse(null, res))
+    .catch(err => handleHeartbeatResponse(err, null));
 
     //TODO: send the real request and handle the response once the api can handle it
     //debug(`sendHeartbeat sending request. url: ${url} body: %o`, body);
@@ -91,11 +85,7 @@ function sendHeartbeat(refocusInstanceObj) {
     //return req;
   }
   catch (err) {
-    if (!refocusInstanceObj) {
-      throw new errors.ValidationError('RefocusInstance Object is missing');
-    } else {
-      throw err;
-    }
+    throw err;
   }
 
 }

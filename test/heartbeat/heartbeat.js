@@ -276,17 +276,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end', (done) => {
     config.generators = {};
-    config.registry[refocusInstanceName] = {
-      url: url,
-      token: token,
-      name: 'Test',
-    };
-
-    const regObj = {
-      url: url,
-      token: token,
-      name: 'Test',
-    };
+    config.collectorConfig.collectorName = 'Test';
+    config.collectorConfig.refocusUrl = url;
+    config.collectorConfig.collectorToken = token;
 
     mock({
       './generators': {
@@ -295,7 +287,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       },
     });
 
-    heartbeat.sendHeartbeat(regObj)
+    heartbeat.sendHeartbeat()
     .then((ret) => {
       expect(ret).to.equal(config);
       expect(config.generators.generator1).to.exist;
@@ -306,17 +298,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end (error)', (done) => {
     config.generators = {};
-    config.registry.refocusInstances[refocusInstanceName] = {
-      url: url,
-      token: token,
-      name: 'Test',
-    };
-
-    const regObj = {
-      url: url,
-      token: token,
-      name: 'Test',
-    };
+    config.collectorConfig.collectorName = 'Test';
+    config.collectorConfig.refocusUrl = url;
+    config.collectorConfig.collectorToken = token;
 
     mock({
       './generators': {
@@ -325,7 +309,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       },
     });
 
-    heartbeat.sendHeartbeat(regObj)
+    heartbeat.sendHeartbeat()
     .then((ret) => {
       expect(ret).to.be.an.instanceof(errors.ValidationError);
       expect(config.generators.generator2).to.not.exist;
@@ -334,14 +318,12 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing token', (done) => {
-    const regObj = {
-      url: url,
-      token: null,
-      name: 'Test',
-    };
+    config.collectorConfig.collectorName = 'Test';
+    config.collectorConfig.refocusUrl = url;
+    delete config.collectorConfig.collectorToken;
 
     try {
-      heartbeat.sendHeartbeat(regObj);
+      heartbeat.sendHeartbeat();
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
@@ -349,14 +331,12 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - url null', (done) => {
-    const regObj = {
-      url: null,
-      token: token,
-      name: 'Test',
-    };
+    config.collectorConfig.collectorName = 'Test';
+    config.collectorConfig.refocusUrl = null;
+    config.collectorConfig.collectorToken = token;
 
     try {
-      heartbeat.sendHeartbeat(regObj);
+      heartbeat.sendHeartbeat();
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
@@ -365,28 +345,16 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing url', (done) => {
-    const regObj = {
-      token: token,
-      name: 'Test',
-    };
+    config.collectorConfig.collectorName = 'Test';
+    delete config.collectorConfig.refocusUrl;
+    config.collectorConfig.collectorToken = token;
 
     try {
-      heartbeat.sendHeartbeat(regObj);
+      heartbeat.sendHeartbeat();
     } catch (err) {
       expect(err.name).to.equal('ValidationError');
       done();
     }
   });
 
-  it('sendHeartbeat - empty refocus instance', (done) => {
-    config.registry = { refocusInstances: {} };
-    try {
-      heartbeat.sendHeartbeat(
-        config.registry.refocusInstances[refocusInstanceName]
-      );
-    } catch (err) {
-      expect(err.name).to.equal('ValidationError');
-      done();
-    }
-  });
 });

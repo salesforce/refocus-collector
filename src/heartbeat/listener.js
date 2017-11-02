@@ -27,7 +27,7 @@ const bulkUpsertSampleQueue = require('../constants').bulkUpsertSampleQueue;
  * @returns {Object} - config object. An error object is returned if this
  *  function is called with the error as the first argument.
  */
-function handleHeartbeatResponse(err, res, refocusInstanceObj=null) {
+function handleHeartbeatResponse(err, res) {
   debug('entered handleHeartbeatResponse');
   if (err) {
     logger.error('The handleHeartbeatResponse function was called with an ' +
@@ -52,7 +52,6 @@ function handleHeartbeatResponse(err, res, refocusInstanceObj=null) {
       flushTimeout: config.collectorConfig.sampleUpsertQueueTime,
       verbose: false,
       flushFunction: httpUtils.doBulkUpsert,
-      refocusInstanceObj: refocusInstanceObj,
     };
     queueUtils.createQueue(queueParams);
   }
