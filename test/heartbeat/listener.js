@@ -25,16 +25,13 @@ const encrypt = require('../../src/utils/commonUtils').encrypt;
 const constants = require('../../src/constants');
 
 describe('test/heartbeat/listener.js >', () => {
-  const refocusInstance = {
-    name: 'myRefocusInstance',
-    url: 'refocus.com',
-    token: 'collectortoken',
-  };
   before(() => {
     configModule.clearConfig();
     configModule.setRegistry(obj);
     const config = configModule.getConfig();
-    config.refocusInstance = refocusInstance;
+    config.collectorConfig.collectorName = 'collector1';
+    config.collectorConfig.refocusUrl = 'refocus.com';
+    config.collectorConfig.collectorToken = 'collectortoken';
   });
 
   after(() => {
@@ -407,7 +404,7 @@ describe('test/heartbeat/listener.js >', () => {
   describe('with encrypted context attributes', () => {
     const password = 'reallylongsecretpassword';
     const token = 'alphanumerictoken';
-    const secret = refocusInstance.token + hbResponse.timestamp;
+    const secret = 'collectortoken' + hbResponse.timestamp;
     const algorithm = constants.encryptionAlgorithm;
     it('added generators with encrypted context attributed should be ' +
       'decrypted before the repeats are created', (done) => {

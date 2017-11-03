@@ -180,19 +180,13 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('handleCollectResponse', () => {
 
     let winstonInfoStub;
-    const refocusObject = {
-      url: refocusUrl,
-      token: 'abcdqwerty',
-      name: 'test',
-    };
     const config = configModule.getConfig();
     before(() => {
       queueUtils.createQueue('bulkUpsertSampleQueue',
         config.collectorConfig.maxSamplesPerBulkRequest,
         config.collectorConfig.sampleUpsertQueueTime,
         false,
-        httpUtils.doBulkUpsert,
-        refocusObject
+        httpUtils.doBulkUpsert
       );
 
       // console.log(queueUtils.getQueue('bulkUpsertSampleQueue'));

@@ -22,8 +22,6 @@ const queueListObject = {};
  * @param  {Object} queueParams    Queue Parameter Object
  *                                 name, size, flushTimeout,
  *                                 verbose, flushFunction,
- *                                 refocusInstanceObj
- * @param  {Object}  refocusInstanceObj Refocus Instance Object to send Data
  */
 function createQueue(queueParams) {
   queueObject = new Queue(queueParams.name, {
@@ -35,7 +33,7 @@ function createQueue(queueParams) {
   queueListObject[queueParams.name] = queueObject;
 
   queueObject.on('flush', (data, name) => {
-    queueParams.flushFunction(queueParams.refocusInstanceObj, data);
+    queueParams.flushFunction(data);
   });
 }
 

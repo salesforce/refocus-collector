@@ -15,32 +15,34 @@ const errors = require('../errors');
 const request = require('superagent');
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');
+const configModule = require('../config/config');
 
 /**
  * Send the upsert and handle any errors in the response.
  *
- * @param {Object} refocusInstance contains Refocus url and token,
  * @param {Array} arr is the array of samples to upsert;
  * @throws {ValidationError} if argument(s) is missing,
  * or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
-function doBulkUpsert(refocusInstance, arr) {
-  const { url, token } = refocusInstance;
+function doBulkUpsert(arr) {
+  const config = configModule.getConfig();
+  const url = config.collectorConfig.refocusUrl;
+  const token = config.collectorConfig.collectorToken;
   return new Promise((resolve, reject) => {
     if (!url) {
-      // Throw error if url is not present in registry.
+      // Throw error if url is not present in config.
       debug('Error: refocus url not found. Supplied %s', url);
       reject(new errors.ValidationError(
-        'Refocus instance should have a url property.'
+        'config.collectorConfig should have a refocusUrl property.'
       ));
     }
 
     if (!token) {
-      // Throw error if token is not present in registry.
-      debug('Error: refocus url not found. Supplied %s', token);
+      // Throw error if token is not present in config.
+      debug('Error: refocus token not found. Supplied %s', token);
       reject(new errors.ValidationError(
-        'Refocus instance should have a token property.'
+        'config.collectorConfig should have a token property.'
       ));
     }
 

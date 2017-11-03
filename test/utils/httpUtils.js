@@ -15,20 +15,28 @@ const request = require('superagent');
 const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
 const httpStatus = require('../../src/constants').httpStatus;
+const configModule = require('../../src/config/config');
 
 describe('test/utils/httpUtils.js >', () => {
   const dummyStr = 'http://dummy.refocus.url';
   const dummyToken = '3245678754323356475654356758675435647qwertyrytu';
   const properRegistryObject = { url: dummyStr, token: dummyToken };
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
+  configModule.clearConfig();
+  configModule.setRegistry({});
 
   describe('doBulkUpsert >', () => {
 
     // clear stub
     after(mock.clearRoutes);
 
+    before(() => {
+      const config = configModule.getConfig();
+      config.collectorConfig.collectorToken = dummyToken;
+    });
+
     it('no url in refocus instance object, gives validation error', (done) => {
-      httpUtils.doBulkUpsert({ token: 'dummy' }, [])
+      httpUtils.doBulkUpsert([])
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -38,7 +46,9 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('no array input gives validation error', (done) => {
-      httpUtils.doBulkUpsert(properRegistryObject)
+      const config = configModule.getConfig();
+      config.collectorConfig.refocusUrl = dummyStr;
+      httpUtils.doBulkUpsert()
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -48,7 +58,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('array input of non-array type gives validation error', (done) => {
-      httpUtils.doBulkUpsert(properRegistryObject, dummyStr)
+      httpUtils.doBulkUpsert(dummyStr)
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -58,7 +68,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('no token in refocus instance object, gives validation error', (done) => {
-      httpUtils.doBulkUpsert(properRegistryObject)
+      httpUtils.doBulkUpsert()
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -74,7 +84,7 @@ describe('test/utils/httpUtils.js >', () => {
 
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
-      httpUtils.doBulkUpsert(properRegistryObject, [])
+      httpUtils.doBulkUpsert([])
       .then((object) => {
         expect(object.status).to.equal(httpStatus.OK);
         done();
@@ -87,7 +97,7 @@ describe('test/utils/httpUtils.js >', () => {
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath,
         (req) => req);
-      httpUtils.doBulkUpsert(properRegistryObject, sampleArr)
+      httpUtils.doBulkUpsert(sampleArr)
       .then((object) => {
 
         // due to how superagent-mocker works,
