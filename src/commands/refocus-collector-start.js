@@ -16,21 +16,30 @@ const logger = require('winston');
 const cmdStart = require('./start');
 
 program
-  .option('-n, --name <name>',
-    'Specify a name for the Refocus instance you are starting (required)')
+  .option('-n, --collectorName <collectorName>', 'The name of the collector to be started')
+  .option('-n, --refocusUrl <refocusUrl>', 'The url of the refocus instance this collector' +
+    ' will send to')
+.option('-n, --accessToken <accessToken>', 'A valid refocus token')
   .parse(process.argv);
 
-const name = program.name;
+const collectorName = program.collectorName || process.env.RC_COLLECTOR_NAME;
+const refocusUrl = program.refocusUrl || process.env.RC_REFOCUS_URL;
+const accessToken = program.accessToken || process.env.RC_ACCESS_TOKEN;
 
-if (!name || typeof (name) === 'function') {
-  logger.error('You must specify a name ' +
-    'for the Refocus instance you are starting.');
+if (!collectorName) {
+  logger.error('You must specify a collector name');
+  process.exit(1);
+} else if (!refocusUrl) {
+  logger.error('You must specify the url of the refocus instance');
+  process.exit(1);
+} else if (!accessToken) {
+  logger.error('You must specify an access token');
   process.exit(1);
 }
 
 try {
-  console.log('Start =>', name);
-  cmdStart.execute(name);
+  console.log('Start =>', collectorName, refocusUrl, accessToken);
+  cmdStart.execute(collectorName, refocusUrl, accessToken);
 } catch (err) {
   logger.error(err.message);
   logger.error(err);

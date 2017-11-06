@@ -17,10 +17,7 @@ const encrypt = require('../../src/utils/commonUtils').encrypt;
 const constants = require('../../src/constants');
 
 describe('test/heartbeat/utils.js >', () => {
-  const refocusInstance = {
-    name: 'stagingRefocusInstance',
-    token: 'longaphanumerictoken',
-  };
+  const token = 'longaphanumerictoken';
 
   const hbResponse = {
     collectorConfig: {
@@ -37,56 +34,56 @@ describe('test/heartbeat/utils.js >', () => {
       const ctx = null;
       const def = { a: { default: 'abc' } };
 
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse)).to
+      expect(hu.assignContext(ctx, def, token, hbResponse)).to
         .have.property('a', 'abc');
     });
 
     it('empty ctx OK', () => {
       const ctx = {};
       const def = { a: { default: 'abc' } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse))
+      expect(hu.assignContext(ctx, def, token, hbResponse))
         .to.have.property('a', 'abc');
     });
 
     it('undefined ctx OK', () => {
       const ctx = undefined;
       const def = { a: { default: 'abc' } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse))
+      expect(hu.assignContext(ctx, def, token, hbResponse))
         .to.have.property('a', 'abc');
     });
 
     it('def with default does not overwrite ctx if exists', () => {
       const ctx = { a: 'xxx' };
       const def = { a: { default: 'abc' } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse))
+      expect(hu.assignContext(ctx, def, token, hbResponse))
         .to.have.property('a', 'xxx');
     });
 
     it('def with no default has no effect', () => {
       const ctx = { a: 'xxx' };
       const def = { a: { description: 'This is "a"' } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse)).to
+      expect(hu.assignContext(ctx, def, token, hbResponse)).to
         .have.property('a', 'xxx');
     });
 
     it('def with empty default adds attribute to ctx', () => {
       const ctx = { };
       const def = { a: { default: '' } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse)).to
+      expect(hu.assignContext(ctx, def, token, hbResponse)).to
         .have.property('a', '');
     });
 
     it('def with null default adds attribute to ctx', () => {
       const ctx = { };
       const def = { a: { default: null } };
-      expect(hu.assignContext(ctx, def, refocusInstance, hbResponse)).to
+      expect(hu.assignContext(ctx, def, token, hbResponse)).to
         .have.property('a', null);
     });
 
     it('falsey def with falsey ctx should be ok', () => {
       const ctx = null;
       const def = null;
-      const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+      const _ctx = hu.assignContext(ctx, def, token, hbResponse);
       expect(_ctx).to.deep.equals({ });
     });
 
@@ -95,14 +92,13 @@ describe('test/heartbeat/utils.js >', () => {
         okStatus: 'OK',
       };
       const def = null;
-      const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+      const _ctx = hu.assignContext(ctx, def, token, hbResponse);
       expect(_ctx).to.deep.equals(ctx);
     });
 
     describe('with encrypted ctx attributes', () => {
       const password = 'reallylongsecretpassword';
-      const token = 'alphanumerictoken';
-      const secret = refocusInstance.token + hbResponse.timestamp;
+      const secret = token + hbResponse.timestamp;
       const algorithm = constants.encryptionAlgorithm;
       it('encrypted ctx attributes must be decrypted back', () => {
         const ctx = {
@@ -122,7 +118,7 @@ describe('test/heartbeat/utils.js >', () => {
           },
         };
 
-        const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+        const _ctx = hu.assignContext(ctx, def, token, hbResponse);
         expect(_ctx).to.deep.equals({ password, token, });
       });
 
@@ -145,7 +141,7 @@ describe('test/heartbeat/utils.js >', () => {
             encrypted: false,
           },
         };
-        const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+        const _ctx = hu.assignContext(ctx, def, token, hbResponse);
         expect(_ctx).to.deep.equals({ password, token, notASecret, });
       });
 
@@ -163,7 +159,7 @@ describe('test/heartbeat/utils.js >', () => {
             encrypted: false,
           },
         };
-        const _ctx = hu.assignContext(ctx, def, refocusInstance, hbResponse);
+        const _ctx = hu.assignContext(ctx, def, token, hbResponse);
         expect(_ctx).to.deep.equals({ });
       });
     });

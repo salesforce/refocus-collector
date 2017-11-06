@@ -14,7 +14,7 @@ const queueUtils = require('../../src/utils/queueUtils');
 const config = require('../../src/config/config');
 const errors = require('../../src/errors');
 
-function flushFunction(refocusObject, data) {
+function flushFunction(data) {
   return data;
 }
 

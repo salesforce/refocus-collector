@@ -44,13 +44,11 @@ function updateCollectorConfig(res) {
  *
  * @param {Object} ctx - The context from the generator
  * @param {Object} def - The contextDefinition from the generator template
- * @param {Object} refocusInstance - The refocus instance object, contaning the
- * instance name, the refocus collector token for this instance and the refocus
- * instance url
+ * @param {Object} collectorToken - The token for this collector
  * @param {Object} res - The heartbeat response object
  * @returns {Object} the context object with default values populated
  */
-function assignContext(ctx, def, refocusInstance, res) {
+function assignContext(ctx, def, collectorToken, res) {
   if (!ctx) {
     ctx = {};
   }
@@ -60,7 +58,6 @@ function assignContext(ctx, def, refocusInstance, res) {
   }
 
   const heartbeatTimestamp = res.timestamp;
-  const collectorToken = refocusInstance.token;
   const secret = collectorToken + heartbeatTimestamp;
 
   Object.keys(def).forEach((key) => {
@@ -112,14 +109,14 @@ function addGenerator(res) {
 
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
-  const refocusInstance = config.refocusInstance;
+  const token = config.collectorConfig.collectorToken;
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
           g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, refocusInstance, res);
+            g.generatorTemplate.contextDefinition, token, res);
         }
 
         config.generators[g.name] = g;
@@ -173,14 +170,14 @@ function updateGenerator(res) {
 
   // Get a fresh copy of collector config.
   const config = configModule.getConfig();
-  const refocusInstance = config.refocusInstance;
+  const token = config.collectorConfig.collectorToken;
   if (generators) {
     if (Array.isArray(generators)) {
       // Update the repeater for the generators and update the generator config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
           g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, refocusInstance, res);
+            g.generatorTemplate.contextDefinition, token, res);
         }
 
         Object.keys(g).forEach((key) => {

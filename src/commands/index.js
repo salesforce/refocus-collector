@@ -26,7 +26,8 @@ program
 .version(pj.version)
 .command('register --name <name> --url <url> --token <token>',
   'Register collector with an instance of Refocus')
-.command('start --name <name>', 'Start collector')
+.command('start --collectorName <name> --refocusUrl <url> --accessToken <token>',
+  'Start collector')
 .command('stop --name <name>', 'Stop collector')
 .command('status --name <name>', 'Show current status of collector')
 .command('deregister --name <name>', 'Deregister collector');
@@ -36,7 +37,8 @@ program.on('--help', () => {
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector register --name=test ' +
     '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
-  console.log('    $ refocus-collector start --name=test');
+  console.log('    $ refocus-collector start --collectorName=test ' +
+    '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
   console.log('    $ refocus-collector stop --name=test');
   console.log('    $ refocus-collector status --name=test');
   console.log('    $ refocus-collector deregister --name=test');
