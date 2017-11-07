@@ -13,7 +13,7 @@ const fs = require('fs');
 const conf = require('../src/config/config');
 const constants = require('../src/constants');
 conf.clearConfig();
-conf.setRegistry('./test/config/testRegistry.json');
+conf.initializeConfig();
 const config = conf.getConfig();
 const refocusInstance1 = {
   name: 'refocusInstance1',
@@ -31,18 +31,10 @@ function makeRegistryFile() {
       refocusInstance1,
     },
   };
-  fs.writeFile(constants.registryLocation,
-    JSON.stringify(expectedResult), 'utf8');
-}
-
-function removeRegistryFile(file=null) {
-  file = file ? file : constants.registryLocation;
-  fs.unlinkSync(file);
 }
 
 module.exports = {
   config,
   makeRegistryFile,
   refocusInstance1,
-  removeRegistryFile,
 };

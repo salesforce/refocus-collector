@@ -13,8 +13,6 @@
  */
 
 module.exports = {
-  // registry json file location
-  registryLocation: './registry.json',
 
   // bulk upsert path, use with refocus url
   bulkUpsertEndpoint: '/v1/samples/upsert/bulk',
@@ -34,9 +32,6 @@ module.exports = {
 
   // Bulk upsert Sample Queue Name
   bulkUpsertSampleQueue: 'bulkUpsertSampleQueue',
-
-  // exported for the purpose of testing
-  mockRegistryLocation: './test/config/testRegistry.json',
 
   // TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
   encryptionAlgorithm: 'aes-256-cbc',

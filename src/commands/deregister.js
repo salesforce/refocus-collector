@@ -9,23 +9,15 @@
 /**
  * src/commands/deregister.js
  *
- * Command execution for the "deregister" command. Primary responsibility is to
- * register the collector in registry file.
+ * Command execution for the "deregister" command.
  */
 const debug = require('debug')('refocus-collector:commands');
-const registryFile = require('../constants').registryLocation;
-const registryFileUtils = require('../utils/registryFileUtils');
-const configModule = require('../config/config');
 
 /**
- * The "deregister" command removes the entry into registry.json file.
- *
- * @throws TODO
+ * The "deregister" command logs the appropriate message.
  */
 function execute(name) {
   debug('Entered deregister.execute');
-  registryFileUtils.removeRefocusInstance(name, registryFile);
-  delete configModule.getConfig().registry.refocusInstances[name];
 } // execute
 
 module.exports = {

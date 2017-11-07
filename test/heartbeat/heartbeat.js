@@ -16,7 +16,7 @@ const expect = require('chai').expect;
 const errors = require('../../src/errors');
 const configModule = require('../../src/config/config');
 configModule.clearConfig();
-configModule.setRegistry({ refocusInstances: {} });
+configModule.initializeConfig();
 let config = configModule.getConfig();
 const heartbeat = require('../../src/heartbeat/heartbeat');
 
@@ -78,7 +78,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const refocusInstanceName = 'exampleRefocusInstance';
 
   before(() => {
-    configModule.setRegistry({ refocusInstances: {} });
+    configModule.initializeConfig();
     config = configModule.getConfig();
   });
 

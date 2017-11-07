@@ -120,7 +120,7 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     });
 
     it('getChangedMetadata() - no changes', (done) => {
-      config.setRegistry({});
+      config.initializeConfig();
       const existing = config.getConfig().collectorConfig;
       const current = {
         osInfo: existing.osInfo,
@@ -135,7 +135,7 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     });
 
     it('getChangedMetadata() - changes', (done) => {
-      config.setRegistry({});
+      config.initializeConfig();
       const existing = config.getConfig().collectorConfig;
       const osInfo = JSON.parse(JSON.stringify(existing.osInfo));
       const processInfo = JSON.parse(JSON.stringify(existing.processInfo));
