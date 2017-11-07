@@ -18,12 +18,11 @@ Prerequisite: NPM and Node.js
 
 ### Commands
 
-    register --url --token --name Register collector by name, refocus url and API token
-    start --name                  Start given collector
-    stop  --name                  Stop given collector
-    status  --name                Show status of collector
-    deregister  --name            Deregister given collector
-    help [cmd]                    Display help for [cmd]
+    start --collectorName --refocusUrl --accessToken  Start collector for name, refocus url and API token
+    stop  --name                                      Stop given collector
+    status  --name                                    Show status of collector
+    deregister  --name                                Deregister given collector
+    help [cmd]                                        Display help for [cmd]
 
   Options:
 
@@ -34,8 +33,7 @@ Prerequisite: NPM and Node.js
   Examples:
 
     $ refocus-collector --help
-    $ refocus-collector register --url=https://refocus.foo.com --token=eygduyguygijfdhkfjhkfdhg --name=PRD_Collector_12345
-    $ refocus-collector start --name=PRD_Collector_12345
+    $ refocus-collector start --collectorName=PRD_Collector_12345 --refocusUrl=https://refocus.foo.com --accessToken=eygduyguygijfdhkfjhkfdhg
     $ refocus-collector stop --name=PRD_Collector_12345
     $ refocus-collector status --name=PRD_Collector_12345
     $ refocus-collector deregister --name=PRD_Collector_12345
