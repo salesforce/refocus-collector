@@ -46,6 +46,7 @@ program.on('--help', () => {
 });
 
 try {
+  conf.setRegistry();
   program.parse(process.argv);
 } catch (err) {
   logger.error(`${err.message}\n\n${err}`);
