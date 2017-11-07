@@ -14,7 +14,7 @@ const tracker = repeater.tracker;
 const expect = require('chai').expect;
 
 describe('test/repeater/repeater.js >', () => {
-  describe('createGeneratorRepeater >', () => {
+  describe.skip('createGeneratorRepeater >', () => {
     it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',

@@ -13,7 +13,7 @@
  *
  * Main module for the refocus-collector.
  *
- * Load the registry and set up all the command-line options.
+ * Set up all the command-line options.
  */
 const program = require('commander');
 const logger = require('winston');
@@ -46,7 +46,6 @@ program.on('--help', () => {
 });
 
 try {
-  conf.setRegistry(constants.registryLocation);
   program.parse(process.argv);
 } catch (err) {
   logger.error(`${err.message}\n\n${err}`);

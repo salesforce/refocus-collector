@@ -9,14 +9,6 @@
 /**
  * test/heartbeat/listener.js
  */
-const obj = {
-  registry: {
-    collectorName1: {
-      url: 'http://www.xyz.com',
-      token: 'ewuifiekhfewfhsfhshjfjhfgewuih',
-    },
-  },
-};
 const configModule = require('../../src/config/config');
 const listener = require('../../src/heartbeat/listener');
 const tracker = require('../../src/repeater/repeater').tracker;
@@ -27,7 +19,7 @@ const constants = require('../../src/constants');
 describe('test/heartbeat/listener.js >', () => {
   before(() => {
     configModule.clearConfig();
-    configModule.setRegistry(obj);
+    configModule.setRegistry({});
     const config = configModule.getConfig();
     config.collectorConfig.collectorName = 'collector1';
     config.collectorConfig.refocusUrl = 'refocus.com';

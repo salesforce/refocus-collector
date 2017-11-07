@@ -14,8 +14,6 @@ const utils = require('../testUtils');
 const expect = require('chai').expect;
 
 describe('test/commands/deregister >', () => {
-  before(utils.makeRegistryFile);
-  after(utils.removeRegistryFile);
 
   // TODO: child process fails on travis with error
   // /bin/sh: 1: refocus-collector: not found

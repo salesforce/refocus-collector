@@ -14,46 +14,11 @@
 const debug = require('debug')('refocus-collector:config');
 const common = require('../utils/commonUtils');
 const errors = require('../errors');
-const registryFileUtils = require('../utils/registryFileUtils');
-const registrySchema = require('../utils/schema').registry;
-const refocusInstanceSchema = require('../utils/schema').refocusInstance;
 
 /**
- * Validate the refocus instances.
+ * Initialize the config object.
  *
- * @throws {ValidationError} - If registry entry missing "url" or "token"
- *  attribute
- */
-function validateRegistry(regObj) {
-  if (!regObj) {
-    throw new errors.ValidationError('No registry object');
-  }
-
-  const val = registrySchema.validate(regObj);
-  if (val.error) {
-    throw new errors.ValidationError(val.error.message);
-  }
-
-  for (const r in regObj.refocusInstances) {
-    if (regObj.refocusInstances.hasOwnProperty(r)) {
-      const res = refocusInstanceSchema.validate(regObj.refocusInstances[r]);
-      if (res.error) {
-        throw new errors.ValidationError(res.error.message);
-      }
-    }
-  }
-} // validateRegistry
-
-/**
- * Initialize the config object. If the "reg" argument is an object, it is
- * assigned as the config registry. If the "reg" argument is a string, treat
- * it is a file location and try to assign the file contents as the config
- * registry.
- *
- * @param {String|Object} reg - Registry object or location of registry file
  * @returns {Object} - Config object
- * @throws {ValidationError} - If registry is invalid.
- * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
  */
 function init(reg) {
   const conf = {
@@ -64,37 +29,15 @@ function init(reg) {
       sampleUpsertQueueTime: 5000, // in milliseconds
     },
     generators: {},
-    registry: {},
   };
 
   const metadata = common.getCurrentMetadata();
   Object.assign(conf.collectorConfig, metadata);
 
-  let r;
-  if (typeof reg === 'object') {
-    r = reg;
-  } else if (typeof reg === 'string') {
-    // Get file contents synchronously.
-    debug('Reading from file %s', reg);
-    let fileContents;
-    try {
-      fileContents = common.readFileSynchr(reg);
-    } catch (err) {
-      registryFileUtils.createRegistryFile(reg);
-    }
-
-    if (fileContents) {
-      r = JSON.parse(fileContents);
-      validateRegistry(r);
-    }
-  }
-
-  conf.registry = r;
   debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init
 
 module.exports = {
   init,
-  validateRegistry, // exported for testing only
 };
