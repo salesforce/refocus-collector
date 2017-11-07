@@ -16,9 +16,15 @@ const common = require('../utils/commonUtils');
 const errors = require('../errors');
 
 /**
- * Initialize the config object.
+ * Initialize the config object. If the "reg" argument is an object, it is
+ * assigned as the config registry. If the "reg" argument is a string, treat
+ * it is a file location and try to assign the file contents as the config
+ * registry.
  *
+ * @param {String|Object} reg - Registry object or location of registry file
  * @returns {Object} - Config object
+ * @throws {ValidationError} - If registry is invalid.
+ * @throws {ResourceNotFoundError} - Thrown by common.readFileSynchr
  */
 function init(reg) {
   const conf = {
@@ -29,11 +35,18 @@ function init(reg) {
       sampleUpsertQueueTime: 5000, // in milliseconds
     },
     generators: {},
+    registry: {},
   };
 
   const metadata = common.getCurrentMetadata();
   Object.assign(conf.collectorConfig, metadata);
 
+  let r;
+  if (typeof reg === 'object') {
+    r = reg;
+  }
+
+  conf.registry = r;
   debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init

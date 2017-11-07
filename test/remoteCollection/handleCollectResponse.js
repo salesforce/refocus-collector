@@ -16,7 +16,9 @@ const winston = require('winston');
 const mockRest = require('../mockedResponse');
 const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
 const tu = require('../testUtils');
-const refocusUrl = 'http://www.example.com';
+const refocusUrl = tu.config.registry.refocusInstances[
+  Object.keys(tu.config.registry.refocusInstances)[0]
+].url;
 const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
