@@ -27,7 +27,7 @@ const errors = require('../errors');
  */
 function execute(collectorName, refocusUrl, accessToken) {
   debug('Entered start.execute');
-  configModule.setRegistry();
+  configModule.initializeConfig();
   const config = configModule.getConfig();
   config.collectorConfig.collectorName = collectorName;
   config.collectorConfig.refocusUrl = refocusUrl;

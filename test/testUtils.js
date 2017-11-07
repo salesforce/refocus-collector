@@ -13,7 +13,7 @@ const fs = require('fs');
 const conf = require('../src/config/config');
 const constants = require('../src/constants');
 conf.clearConfig();
-conf.setRegistry({});
+conf.initializeConfig();
 const config = conf.getConfig();
 const refocusInstance1 = {
   name: 'refocusInstance1',

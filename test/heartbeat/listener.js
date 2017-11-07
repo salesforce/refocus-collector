@@ -19,7 +19,7 @@ const constants = require('../../src/constants');
 describe('test/heartbeat/listener.js >', () => {
   before(() => {
     configModule.clearConfig();
-    configModule.setRegistry({});
+    configModule.initializeConfig();
     const config = configModule.getConfig();
     config.collectorConfig.collectorName = 'collector1';
     config.collectorConfig.refocusUrl = 'refocus.com';

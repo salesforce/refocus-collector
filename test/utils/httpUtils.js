@@ -23,7 +23,7 @@ describe('test/utils/httpUtils.js >', () => {
   const properRegistryObject = { url: dummyStr, token: dummyToken };
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
   configModule.clearConfig();
-  configModule.setRegistry({});
+  configModule.initializeConfig();
 
   describe('doBulkUpsert >', () => {
 

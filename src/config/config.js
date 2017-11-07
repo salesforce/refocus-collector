@@ -30,15 +30,11 @@ function clearConfig() {
 } // clearConfig
 
 /**
- * Initialize the config object. If the "reg" argument is an object, it is
- * assigned as the config registry. If the "reg" argument is a string, treat
- * it is a file location and try to assign the file contents as the config
- * registry.
+ * Initialize the config object.
  *
- * @param {String|Object} reg - Registry object or location of registry file
  * @returns {Object} - Config object
  */
-function init(reg) {
+function getDefaultConfig() {
   const conf = {
     collectorConfig: {
       heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
@@ -47,36 +43,26 @@ function init(reg) {
       sampleUpsertQueueTime: 5000, // in milliseconds
     },
     generators: {},
-    registry: {},
   };
 
   const metadata = common.getCurrentMetadata();
   Object.assign(conf.collectorConfig, metadata);
 
-  let r;
-  if (typeof reg === 'object') {
-    r = reg;
-  }
-
-  conf.registry = r;
   debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init
 
 /**
- * Initialize the config object. If the "reg" argument is an object, it is
- * assigned as the config registry. If the "reg" argument is a string, treat
- * it is a file location and try to assign the file contents as the config
- * registry.
+ * Initialize the config object, if it has not been initialized.
  *
- * @param {String|Object} reg - Registry object or location of registry file
+ * @param {Object} reg - Registry object or location of registry file
  */
-function setRegistry(reg) {
+function initializeConfig() {
   if (!config) {
-    config = init(reg);
+    config = getDefaultConfig();
     debug('Initialized config: %o', config);
   }
-} // setRegistry
+} // initializeConfig
 
 /**
  * Returns the config object
@@ -87,7 +73,7 @@ function getConfig() {
 } // getConfig
 
 module.exports = {
-  setRegistry,
+  initializeConfig,
   getConfig,
   clearConfig, // exported for testing
 };

@@ -178,7 +178,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('handleCollectResponse', () => {
 
     let winstonInfoStub;
-    configModule.setRegistry({});
+    configModule.initializeConfig();
     const config = configModule.getConfig();
     before(() => {
       queueUtils.createQueue('bulkUpsertSampleQueue',
