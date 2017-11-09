@@ -47,8 +47,6 @@ function getDefaultConfig() {
 
   const metadata = common.getCurrentMetadata();
   Object.assign(conf.collectorConfig, metadata);
-
-  debug('Initialized config: %s', JSON.stringify(conf));
   return conf;
 } // init
 
