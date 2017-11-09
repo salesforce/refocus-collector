@@ -49,12 +49,4 @@ errors.create({
   parent: errors.SampleGeneratorTemplateError,
 });
 
-errors.create({
-  name: 'RegistrationError',
-  defaultMessage: 'Failed to register a new collector with the provided refocus instance',
-  defaultResponse: 'Make sure the provided refocusUrl and accessToken are correct',
-  status: 400,
-  parent: errors.CollectorError,
-});
-
 module.exports = errors;
