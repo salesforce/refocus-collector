@@ -1,8 +1,3 @@
----
-layout: docs
-title: Collectors
----
-
 
 #Introduction
 
@@ -15,7 +10,6 @@ Collectors are designed to tackle these issues and make it easier than ever to l
 
 A Collector is an out-of-the-box application (running outside of Refocus) which collects data from different data sources and sends Samples to Refocus. It does this by leveraging a user-provided config file called a “Sample Generator”.
 Most users will never have to maintain a collector (unless you choose to deploy your own), they'll write Sample Generators and send them to a shared Collector. 
-
 
 
 
