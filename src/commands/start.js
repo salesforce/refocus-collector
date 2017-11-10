@@ -56,7 +56,7 @@ function execute(collectorName, refocusUrl, accessToken) {
     debug('Exiting start.execute');
   })
   .catch((err) => {
-    logger.error('Failed to register a new collector with the provided refocus instance');
+    logger.error('Failed to start a new collector with the provided refocus instance');
     logger.error(`POST ${url} failed: ${err.status} ${err.message}`);
     logger.error('Make sure the provided refocusUrl and accessToken are correct');
   });
