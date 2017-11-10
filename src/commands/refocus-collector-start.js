@@ -37,10 +37,10 @@ if (!collectorName) {
   process.exit(1);
 }
 
-try {
-  console.log('Start =>', collectorName, refocusUrl, accessToken);
-  cmdStart.execute(collectorName, refocusUrl, accessToken);
-} catch (err) {
+console.log('Start =>', collectorName, refocusUrl, accessToken);
+cmdStart.execute(collectorName, refocusUrl, accessToken)
+.catch((err) => {
   logger.error(err.message);
-  logger.error(err);
-}
+  logger.error(err.explanation);
+  logger.error(err.response);
+});
