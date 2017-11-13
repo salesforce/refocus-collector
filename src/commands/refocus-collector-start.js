@@ -17,9 +17,9 @@ const cmdStart = require('./start');
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the collector to be started')
-  .option('-n, --refocusUrl <refocusUrl>', 'The url of the refocus instance this collector' +
+  .option('-u, --refocusUrl <refocusUrl>', 'The url of the refocus instance this collector' +
     ' will send to')
-  .option('-n, --accessToken <accessToken>', 'A valid refocus token')
+  .option('-t, --accessToken <accessToken>', 'A valid refocus token')
   .parse(process.argv);
 
 const collectorName = program.collectorName || process.env.RC_COLLECTOR_NAME;
