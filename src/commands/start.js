@@ -18,7 +18,6 @@ const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const request = require('superagent');
-const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 /**
  * The "start" command creates the heartbeat repeater.
