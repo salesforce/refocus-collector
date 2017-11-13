@@ -37,7 +37,7 @@ if (!collectorName) {
   process.exit(1);
 }
 
-console.log('Re-register =>', collectorName, refocusUrl, accessToken);
+console.log('Reregister =>', collectorName, refocusUrl, accessToken);
 const path = `/v1/collectors/${collectorName}/reregister`;
 const url = refocusUrl + path;
 
@@ -45,7 +45,7 @@ const url = refocusUrl + path;
 request.post(url)
   .set('Authorization', accessToken)
 .then(() => {
-  logger.info(`Collecter ${collectorName} is successfully re-registered.`);
+  logger.info(`Collecter ${collectorName} is successfully reregistered.`);
 })
 .catch((err) => {
   logger.error(err.message);

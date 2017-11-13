@@ -14,6 +14,7 @@
 const expect = require('chai').expect;
 const nock = require('nock');
 const fork = require('child_process').fork;
+const httpStatus = require('../../src/constants.js').httpStatus;
 
 describe('test/commands/reregister >', () => {
   const collectorName = 'collector1';
@@ -31,13 +32,13 @@ describe('test/commands/reregister >', () => {
       reqheaders: { authorization: accessToken },
     })
     .post('/v1/collectors/collector1/reregister')
-    .reply(201, { collectorToken });
+    .reply(httpStatus.OK, { collectorToken });
 
     nock(refocusUrl, {
       reqheaders: { authorization: invalidToken },
     })
     .post('/v1/collectors/collector1/reregister')
-    .reply(401);
+    .reply(httpStatus.UNAUTHORIZED);
   });
 
   it('ok', (done) => {

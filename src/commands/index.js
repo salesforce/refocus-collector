@@ -30,17 +30,17 @@ program
 .command('status --name <name>', 'Show current status of collector')
 .command('deregister --name <name>', 'Deregister collector')
 .command('reregister --collectorName <name> --refocusUrl <url> --accessToken <token>',
-  'Re-register collector');
+  'Reregister a collector which has been deregistered');
 
 program.on('--help', () => {
   console.log('  Examples:\n');
   console.log('    $ refocus-collector --help');
-  console.log('    $ refocus-collector start --name=test ' +
+  console.log('    $ refocus-collector start --collectorName=test ' +
     '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
   console.log('    $ refocus-collector stop --name=test');
   console.log('    $ refocus-collector status --name=test');
   console.log('    $ refocus-collector deregister --name=test');
-  console.log('    $ refocus-collector reregister --name=test ' +
+  console.log('    $ refocus-collector reregister --collectorName=test ' +
     '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
   console.log(figlet.textSync('Refocus Collector'));
 });
