@@ -7,13 +7,13 @@
  */
 
 /**
- * src/commands/refocus-collector-start.js
+ * src/commands/refocus-collector-reregister.js
  *
- * Calls the "start" command.
+ * Calls the "reregister" command.
  */
 const program = require('commander');
 const logger = require('winston');
-const cmdStart = require('./start');
+const request = require('superagent');
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the collector to be started')
@@ -37,8 +37,16 @@ if (!collectorName) {
   process.exit(1);
 }
 
-console.log('Start =>', collectorName, refocusUrl, accessToken);
-cmdStart.execute(collectorName, refocusUrl, accessToken)
+console.log('Re-register =>', collectorName, refocusUrl, accessToken);
+const path = `/v1/collectors/${collectorName}/reregister`;
+const url = refocusUrl + path;
+
+// Request to Refocus to re-register collector
+request.post(url)
+  .set('Authorization', accessToken)
+.then(() => {
+  logger.info(`Collecter ${collectorName} is successfully re-registered.`);
+})
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);
