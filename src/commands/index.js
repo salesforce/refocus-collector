@@ -36,12 +36,12 @@ program.on('--help', () => {
   console.log('  Examples:\n');
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector start --collectorName=test ' +
-    '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
+    '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
   console.log('    $ refocus-collector stop --name=test');
   console.log('    $ refocus-collector status --name=test');
   console.log('    $ refocus-collector deregister --name=test');
   console.log('    $ refocus-collector reregister --collectorName=test ' +
-    '--url=https://refocus.abczyx.com --token=eygduyguygijfdhkfjhkfdhg');
+    '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
   console.log(figlet.textSync('Refocus Collector'));
 });
 
