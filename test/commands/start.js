@@ -155,9 +155,10 @@ describe('test/commands/start >', () => {
       start.execute(collectorName, refocusUrl, invalidToken)
       .then(() => done('expecting error'))
       .catch((err) => {
-        expect(err.name).to.equal('RegistrationError');
+        expect(err.name).to.equal('CollectorStartError');
         expect(err.explanation).to.equal(
-          'POST /v1/collectors/collector1/start failed: Unauthorized');
+          'POST http://www.example.com/v1/collectors/collector1/start failed:' +
+          ' 401 Unauthorized');
         done();
       });
     });

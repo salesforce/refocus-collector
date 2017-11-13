@@ -56,7 +56,7 @@ function execute(collectorName, refocusUrl, accessToken) {
     debug('Exiting start.execute');
   })
   .catch((err) => {
-    throw new errors.RegistrationError('', `POST ${path} failed: ${err.message}`);
+    throw new errors.CollectorStartError('', `POST ${url} failed: ${err.status} ${err.message}`);
   });
 } // execute
 
