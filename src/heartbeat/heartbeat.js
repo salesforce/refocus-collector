@@ -40,9 +40,9 @@ function sendHeartbeat() {
   const config = configModule.getConfig();
 
   try {
-    collectorName = config.collectorConfig.collectorName;
-    baseUrl = config.collectorConfig.refocusUrl;
-    token = config.collectorConfig.collectorToken;
+    collectorName = config.name;
+    baseUrl = config.refocus.url;
+    token = config.refocus.collectorToken;
 
     path = `/v1/collectors/${collectorName}/heartbeat`;
     url = baseUrl + path;
@@ -55,7 +55,7 @@ function sendHeartbeat() {
       throw new errors.ValidationError('No collectorToken in config');
     }
 
-    const existing = configModule.getConfig().collectorConfig;
+    const existing = configModule.getConfig().metadata;
     const current = u.getCurrentMetadata();
     const changed = u.getChangedMetadata(existing, current);
     Object.assign(existing, current);
@@ -63,7 +63,7 @@ function sendHeartbeat() {
     const body = {
       logLines: [],
       timestamp: timestamp,
-      collectorConfig: changed,
+      refocus: changed,
     };
 
     return buildMockResponse(generatorsDir)
@@ -102,7 +102,7 @@ function buildMockResponse(generatorsDir) {
   debug(`buildMockResponse: ${generatorsDir}`);
 
   const parsedGenerators = {};
-  const collectorConfig = {};
+  const refocus = {};
   const generatorsAdded = [];
   const generatorsUpdated = [];
   const generatorsDeleted = [];
@@ -159,7 +159,7 @@ function buildMockResponse(generatorsDir) {
           lastHeartbeatTime = Date.now();
 
           const response = {
-            collectorConfig,
+            refocus,
             generatorsAdded,
             generatorsDeleted,
             generatorsUpdated,

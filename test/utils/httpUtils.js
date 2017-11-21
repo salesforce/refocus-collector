@@ -32,7 +32,7 @@ describe('test/utils/httpUtils.js >', () => {
 
     before(() => {
       const config = configModule.getConfig();
-      config.collectorConfig.collectorToken = dummyToken;
+      config.refocus.collectorToken = dummyToken;
     });
 
     it('no url in refocus instance object, gives validation error', (done) => {
@@ -47,7 +47,7 @@ describe('test/utils/httpUtils.js >', () => {
 
     it('no array input gives validation error', (done) => {
       const config = configModule.getConfig();
-      config.collectorConfig.refocusUrl = dummyStr;
+      config.refocus.url = dummyStr;
       httpUtils.doBulkUpsert()
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {

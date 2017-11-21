@@ -27,14 +27,14 @@ const configModule = require('../config/config');
  */
 function doBulkUpsert(arr) {
   const config = configModule.getConfig();
-  const url = config.collectorConfig.refocusUrl;
-  const token = config.collectorConfig.collectorToken;
+  const url = config.refocus.url;
+  const token = config.refocus.collectorToken;
   return new Promise((resolve, reject) => {
     if (!url) {
       // Throw error if url is not present in config.
       debug('Error: refocus url not found. Supplied %s', url);
       reject(new errors.ValidationError(
-        'config.collectorConfig should have a refocusUrl property.'
+        'config.refocus should have a url property.'
       ));
     }
 
@@ -42,7 +42,7 @@ function doBulkUpsert(arr) {
       // Throw error if token is not present in config.
       debug('Error: refocus token not found. Supplied %s', token);
       reject(new errors.ValidationError(
-        'config.collectorConfig should have a token property.'
+        'config.refocus should have a collectorToken property.'
       ));
     }
 

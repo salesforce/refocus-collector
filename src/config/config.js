@@ -36,17 +36,18 @@ function clearConfig() {
  */
 function getDefaultConfig() {
   const conf = {
-    collectorConfig: {
+    refocus: {
       heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
       maxSamplesPerBulkRequest: 100, // TODO remove me once it's coming from refocus
       // TODO remove me once it's coming from refocus
       sampleUpsertQueueTime: 5000, // in milliseconds
     },
     generators: {},
+    metadata: {},
   };
 
   const metadata = common.getCurrentMetadata();
-  Object.assign(conf.collectorConfig, metadata);
+  Object.assign(conf.metadata, metadata);
   return conf;
 } // init
 

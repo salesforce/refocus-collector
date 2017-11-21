@@ -28,15 +28,15 @@ function execute(collectorName, refocusUrl, accessToken) {
   debug('Entered start.execute');
   configModule.initializeConfig();
   const config = configModule.getConfig();
-  config.collectorConfig.collectorName = collectorName;
-  config.collectorConfig.refocusUrl = refocusUrl;
+  config.name = collectorName;
+  config.refocus.url = refocusUrl;
 
   const path = `/v1/collectors/${collectorName}/start`;
   const url = refocusUrl + path;
   return request.post(url)
   .set('Authorization', accessToken)
   .then((res) => {
-    config.collectorConfig.collectorToken = res.body.collectorToken;
+    config.refocus.collectorToken = res.body.collectorToken;
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper
@@ -44,8 +44,8 @@ function execute(collectorName, refocusUrl, accessToken) {
      */
     repeater.create({
       name: 'Heartbeat',
-      interval: config.collectorConfig.heartbeatInterval,
-      func: sendHeartbeat,
+      interval: config.refocus.heartbeatInterval,
+      func: () => sendHeartbeat(config.collector),
       onSuccess: debug,
       onFailure: debug,
       onProgress: debug,

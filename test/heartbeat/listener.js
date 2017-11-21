@@ -21,9 +21,9 @@ describe('test/heartbeat/listener.js >', () => {
     configModule.clearConfig();
     configModule.initializeConfig();
     const config = configModule.getConfig();
-    config.collectorConfig.collectorName = 'collector1';
-    config.collectorConfig.refocusUrl = 'refocus.com';
-    config.collectorConfig.collectorToken = 'collectortoken';
+    config.name = 'collector1';
+    config.refocus.url = 'refocus.com';
+    config.refocus.collectorToken = 'collectortoken';
   });
 
   after(() => {
@@ -67,7 +67,7 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('collector config should be updated', (done) => {
     const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
-    expect(updatedConfig.collectorConfig.heartbeatInterval)
+    expect(updatedConfig.refocus.heartbeatInterval)
       .to.equal(hbResponse.collectorConfig.heartbeatInterval);
     done();
   });
@@ -389,7 +389,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
     };
     const ret = listener.handleHeartbeatResponse(null, res);
-    expect(ret.collectorConfig.heartbeatInterval).to.equal(50);
+    expect(ret.refocus.heartbeatInterval).to.equal(50);
     done();
   });
 
