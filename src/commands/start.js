@@ -45,7 +45,7 @@ function execute(collectorName, refocusUrl, accessToken) {
     repeater.create({
       name: 'Heartbeat',
       interval: config.refocus.heartbeatInterval,
-      func: () => sendHeartbeat(config.collector),
+      func: () => sendHeartbeat,
       onSuccess: debug,
       onFailure: debug,
       onProgress: debug,
