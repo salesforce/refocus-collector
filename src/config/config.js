@@ -35,6 +35,60 @@ function clearConfig() {
  * @returns {Object} - Config object
  */
 function getDefaultConfig() {
+  /**
+   * Config Object
+   * @type {Object}
+   *
+   * {
+   *   // from command-line arg or env var
+   *   name: "[MY_COLLECTOR_NAME]",
+   *
+   *   refocus: {
+   *     // from command-line arg or env var
+   *     url: "[MY_REFOCUS_BASE_URL]",
+   *
+   *     // from POST /v1/collectors/start response
+   *     collectorToken: "[TOKEN]",
+   *
+   *     // from the "collectorConfig" attribute of the
+   *     // POST /v1/collectors/:key/heartbeat response
+   *     heartbeatInterval: [INTEGER],
+   *     maxSamplesPerBulkRequest: [INTEGER],
+   *     sampleUpsertQueueTime: [INTEGER],
+   *
+   *     // plus any other parameters returned in the "collectorConfig" attribute
+   *     // of the POST /v1/collectors/:key/heartbeat response
+   *   },
+   *
+   *   // written to the config before each heartbeat call
+   *   metadata: {
+   *     osInfo: {
+   *       arch: os.arch(),
+   *       hostname: os.hostname(),
+   *       platform: os.platform(),
+   *       release: os.release(),
+   *       type: os.type(),
+   *
+   *       username: os.userInfo().username,
+   *     },
+   *     processInfo: {
+   *       execPath: process.execPath,
+   *       memoryUsage: process.memoryUsage(),
+   *       uptime: process.uptime(),
+   *       version: process.version,
+   *       versions: process.versions,
+   *     },
+   *     version: require('../../package.json').version,
+   *   },
+   *
+   *   // from the POST /v1/collectors/:key/heartbeat response
+   *   generators: {
+   *     "[GENERATOR_NAME]": { ... },
+   *     ...
+   *   },
+   * }
+   */
+
   const conf = {
     refocus: {
       heartbeatInterval: 15000, // TODO remove me once it's coming from refocus
