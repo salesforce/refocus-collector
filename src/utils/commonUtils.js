@@ -17,7 +17,8 @@ const debug = require('debug')('refocus-collector:commonUtils');
 const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
-const sampleSchema = require('./schema').sample;
+const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
+const sampleSchema = RefocusCollectorEval.sampleSchema;
 
 module.exports = {
 
