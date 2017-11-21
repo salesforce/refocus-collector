@@ -143,9 +143,9 @@ describe('test/commands/start >', () => {
       start.execute(collectorName, refocusUrl, accessToken)
       .then(() => {
         const config = configModule.getConfig();
-        expect(config.collectorConfig.collectorName).to.equal(collectorName);
-        expect(config.collectorConfig.refocusUrl).to.equal(refocusUrl);
-        expect(config.collectorConfig.collectorToken).to.equal(collectorToken);
+        expect(config.name).to.equal(collectorName);
+        expect(config.refocus.url).to.equal(refocusUrl);
+        expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('Heartbeat');
         done();
       });

@@ -48,8 +48,8 @@ function handleHeartbeatResponse(err, res) {
     const config = configModule.getConfig();
     const queueParams = {
       name: bulkUpsertSampleQueue,
-      size: config.collectorConfig.maxSamplesPerBulkRequest,
-      flushTimeout: config.collectorConfig.sampleUpsertQueueTime,
+      size: config.refocus.maxSamplesPerBulkRequest,
+      flushTimeout: config.refocus.sampleUpsertQueueTime,
       verbose: false,
       flushFunction: httpUtils.doBulkUpsert,
     };
