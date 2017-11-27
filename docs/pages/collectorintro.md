@@ -1,19 +1,19 @@
-#Introduction
+# Introduction
 
 Refocus makes it easy for users to understand the real-time status of their systems. To date, achieving this has required users to develop API integrations in order to push Samples into Refocus. This process had a few limitations: it required developers to write API integrations, and, at times, meant teams had to operate an extra 'always-on' service. 
 
 Collectors are designed to tackle these issues and make it easier than ever to leverage all the capabilities of Refocus!
 
-#So, what is a Collector 
+# So, what is a Collector 
 
 A Collector is an out-of-the-box application (running outside of Refocus) which collects data from different data sources and sends Samples to Refocus. It does this by leveraging user-provided config files called *Sample Generators*.
 Most users will never have to maintain a collector (unless you choose to deploy your own), they'll just write Sample Generators.
 
-##Data pipeline with collectors
+## Data pipeline with collectors
 
 ![Collector using SG Diagram](../assets/CollectorDataflow.jpeg)
 
-#Tell me more about Sample Generators
+# Tell me more about Sample Generators
 
 To use a simple analogy, Collectors are akin to the *human* *body*, they do the manual heavy lifting, but everybody (and indeed every body!) needs a brain in order to tell it what to do - the Sample Generator is that *brain*. 
 
