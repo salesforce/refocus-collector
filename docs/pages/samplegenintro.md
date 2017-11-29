@@ -16,16 +16,13 @@ In this simple example the Generator Template returns an array of greetings that
 
 The result here is an array of greetings but in reality, transform functions will return an array of Samples which will be sent to your Refocus instance. 
 
-
-
 # Tell me more about Generator Templates
 
-A Generator Template provides a Sample Generator with Javascript code. This code is used to transform inputs returned by your data source into Samples. Generator Templates are created with a specific data source in mind.
+A Generator Template provides a Sample Generator with some Javascript code which transforms the response from your data source into Samples. Generator Templates are created with a specific data source in mind.
 
 For example, I could write a Generator Template that leverages the API of my favorite Bitcoin exchange, BitX! It'll expect input data in the format used by that exchange as well as a mapping from currency value to Refocus Samples status. Then it will convert the return values into Samples for Refocus. 
 
-Then let's say you want to track how your Bitcoin portfolio is performing in real time. You want Refocus to show 'Critical' if Bitcoin prices drop below $3000 and 'Ok' otherwise. You would create a Sample Generator that references my Template and provides a mapping from USD to Status as well as the URL for the BitX instance you want to query. Submit that to Refocus and you're done!
+Then let's say you want to track how your Bitcoin portfolio is performing in real time. You want Refocus to show 'Critical' if Bitcoin prices drop below $3000 and 'OK' otherwise. You would create a Sample Generator that references my Template and provides a mapping from USD to Status as well as the URL for the BitX instance you want to query. Submit that to Refocus and you're done!
 
-You don't need to know too much about how a Generator Template works - though you're free to inspect their source code.
+You don't need to know too much about how a Generator Template works, though you're free to inspect their source code.
 What's important is that you know how to leverage them to get your data into Refocus!
-
