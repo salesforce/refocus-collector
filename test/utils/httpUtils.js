@@ -16,6 +16,11 @@ const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
+const sinon = require('sinon');
+require('superagent-proxy')(request);
+const nock = require('nock');
+const bulkUpsertEndpoint = require('../../src/constants')
+                            .bulkUpsertEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
   const dummyStr = 'http://dummy.refocus.url';
@@ -110,6 +115,56 @@ describe('test/utils/httpUtils.js >', () => {
         done();
       })
       .catch(done);
+    });
+
+    it('ok, request use refocus proxy if set in config', (done) => {
+      const config = configModule.getConfig();
+      const refocusProxy = 'http://abcProxy.com';
+      config.refocus.proxy = refocusProxy;
+      config.refocus.url = dummyStr;
+
+      nock(dummyStr)
+        .post(bulkUpsertEndpoint)
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'post');
+      httpUtils.doBulkUpsert(sampleArr)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
+        spy.restore();
+        configModule.clearConfig();
+        configModule.initializeConfig();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        configModule.clearConfig();
+        configModule.initializeConfig();
+        done(err);
+      });
+    });
+
+    it('ok, request does not use refocus proxy if not set in config',
+    (done) => {
+      const config = configModule.getConfig();
+      config.refocus.url = dummyStr;
+      config.refocus.collectorToken = dummyToken;
+
+      nock(dummyStr)
+        .post(bulkUpsertEndpoint)
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'post');
+      httpUtils.doBulkUpsert(sampleArr)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+        spy.restore();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        done(err);
+      });
     });
   });
 });

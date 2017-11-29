@@ -22,6 +22,7 @@ describe('test/commands/reregister >', () => {
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const invalidToken = 'aaa';
   const collectorToken = 'zyxwvutsrqponmlkjihgfedcba';
+  const refocusProxy = 'http://abcproxy.com';
 
   const missingCollectorNameError = 'error: You must specify a collector name\n';
   const missingUrlError = 'error: You must specify the url of the refocus instance\n';
@@ -44,7 +45,7 @@ describe('test/commands/reregister >', () => {
   it('ok', (done) => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
-      '--accessToken', accessToken,
+      '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
     const opts = { silent: true };
     const reregister = fork('src/commands/refocus-collector-reregister.js', args, opts);
@@ -99,6 +100,19 @@ describe('test/commands/reregister >', () => {
     });
   });
 
+  it('ok, no refocusProxy', (done) => {
+    const args = [
+      '--collectorName', collectorName, '--refocusUrl', refocusUrl,
+      '--accessToken', accessToken,
+    ];
+    const opts = { silent: true };
+    const reregister = fork('src/commands/refocus-collector-reregister.js', args, opts);
+    reregister.on('close', (code) => {
+      expect(code).to.equal(0);
+      done();
+    });
+  });
+
   it('use environment variables if not specifed', (done) => {
     const args = [];
     const opts = {
@@ -107,6 +121,7 @@ describe('test/commands/reregister >', () => {
         RC_COLLECTOR_NAME: collectorName,
         RC_REFOCUS_URL: refocusUrl,
         RC_ACCESS_TOKEN: accessToken,
+        RC_REFOCUS_PROXY: refocusProxy,
       },
     };
     const reregister = fork('src/commands/refocus-collector-reregister.js', args, opts);
