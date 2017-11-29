@@ -32,9 +32,9 @@ function updateCollectorConfig(res) {
     debug('Heartbeat response collectorConfig to update', collectorConfig);
     debug('Collector config before updating', config);
     Object.keys(collectorConfig).forEach((key) => {
-      config.collectorConfig[key] = collectorConfig[key];
+      config.refocus[key] = collectorConfig[key];
     });
-    debug('Collector config after updating', config.collectorConfig);
+    debug('Collector config after updating', config.refocus);
   }
 } // updateCollectorConfig
 
@@ -109,7 +109,7 @@ function addGenerator(res) {
 
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
-  const token = config.collectorConfig.collectorToken;
+  const token = config.refocus.collectorToken;
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.
@@ -170,7 +170,7 @@ function updateGenerator(res) {
 
   // Get a fresh copy of collector config.
   const config = configModule.getConfig();
-  const token = config.collectorConfig.collectorToken;
+  const token = config.refocus.collectorToken;
   if (generators) {
     if (Array.isArray(generators)) {
       // Update the repeater for the generators and update the generator config.

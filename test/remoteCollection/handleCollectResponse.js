@@ -182,8 +182,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const config = configModule.getConfig();
     before(() => {
       queueUtils.createQueue('bulkUpsertSampleQueue',
-        config.collectorConfig.maxSamplesPerBulkRequest,
-        config.collectorConfig.sampleUpsertQueueTime,
+        config.refocus.maxSamplesPerBulkRequest,
+        config.refocus.sampleUpsertQueueTime,
         false,
         httpUtils.doBulkUpsert
       );
