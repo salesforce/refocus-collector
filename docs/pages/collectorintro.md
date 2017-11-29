@@ -27,7 +27,7 @@ Each Sample Generator provides a path to your target data source, a set of subje
 
 ![Collector using SG Diagram](../assets/SGDiagram.jpeg)
 
-As is illustrated, the transform code leverages user-provided value to context variables. Most users will never interact with the transform code instead they will select the code template that works for them (more on this later!) and provide the context variables that are required. 
+As is illustrated, the transform code leverages user-provided value to context variables. Most users will never interact with the transform code; instead, they will select the code template that works for them (more on this later!) and provide the context variables that are required. 
 
 
 Getting started with Refocus has never been easier! Write a Sample Generator, submit it to a Refocus instance and start visualizing!
