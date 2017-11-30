@@ -42,6 +42,7 @@ function getDefaultConfig() {
    * {
    *   // from command-line arg or env var
    *   name: "[MY_COLLECTOR_NAME]",
+   *   dataSourceProxy: "[DATASOURCE_PROXY]",
    *
    *   refocus: {
    *     // from command-line arg or env var
@@ -55,6 +56,9 @@ function getDefaultConfig() {
    *     heartbeatInterval: [INTEGER],
    *     maxSamplesPerBulkRequest: [INTEGER],
    *     sampleUpsertQueueTime: [INTEGER],
+   *
+   *     // optional proxy to be used for Refocus
+   *     proxy: "[REFOCUS_PROXY]",
    *
    *     // plus any other parameters returned in the "collectorConfig" attribute
    *     // of the POST /v1/collectors/:key/heartbeat response

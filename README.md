@@ -18,11 +18,23 @@ Prerequisite: NPM and Node.js
 
 ### Commands
 
-    start --collectorName --refocusUrl --accessToken  Start collector for name, refocus url and API token
-    stop  --name                                      Stop given collector
-    status  --name                                    Show status of collector
-    deregister  --name                                Deregister given collector
-    help [cmd]                                        Display help for [cmd]
+    Start collector for name, refocus url, API token, proxy for refocus and proxy for data source. refocusProxy and dataSourceProxy are optional arguments
+    start --collectorName --refocusUrl --accessToken --refocusProxy --dataSourceProxy
+
+    Stop given collector
+    stop  --name
+
+    Show status of collector                  
+    status  --name
+
+    Deregister given collector                 
+    deregister  --name
+
+    Reregister given collector. refocusProxy is an optional argument           
+    reregister  --collectorName --refocusUrl --accessToken --refocusProxy
+
+    Display help for [cmd]
+    help [cmd]
 
   Options:
 
@@ -33,7 +45,8 @@ Prerequisite: NPM and Node.js
   Examples:
 
     $ refocus-collector --help
-    $ refocus-collector start --collectorName=PRD_Collector_12345 --refocusUrl=https://refocus.foo.com --accessToken=eygduyguygijfdhkfjhkfdhg
+    $ refocus-collector start --collectorName=PRD_Collector_12345 --refocusUrl=https://refocus.foo.com --accessToken=eygduyguygijfdhkfjhkfdhg --refocusProxy=http://abcproxy.com --dataSourceProxy=http://xyzproxy.com
     $ refocus-collector stop --name=PRD_Collector_12345
     $ refocus-collector status --name=PRD_Collector_12345
     $ refocus-collector deregister --name=PRD_Collector_12345
+    $ refocus-collector reregister --collectorName=PRD_Collector_12345 --refocusUrl=https://refocus.foo.com --accessToken=eygduyguygijfdhkfjhkfdhg --refocusProxy=http://abcproxy.com
