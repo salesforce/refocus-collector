@@ -18,6 +18,7 @@ const cmdDeregister = require('./deregister');
 program
   .option('-n, --name <name>',
     'Specify a name for the Refocus instance you are deregistering (required)')
+  .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
   .parse(process.argv);
 
 const name = program.name;

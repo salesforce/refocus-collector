@@ -42,6 +42,7 @@ function getDefaultConfig() {
    * {
    *   // from command-line arg or env var
    *   name: "[MY_COLLECTOR_NAME]",
+   *   dataSourceProxy: "[DATASOURCE_PROXY]",
    *
    *   refocus: {
    *     // from command-line arg or env var
@@ -49,6 +50,9 @@ function getDefaultConfig() {
    *
    *     // from POST /v1/collectors/start response
    *     collectorToken: "[TOKEN]",
+
+   *     // optional proxy to be used for Refocus
+   *     proxy: "[REFOCUS_PROXY]",
    *
    *     // from the "collectorConfig" attribute of the
    *     // POST /v1/collectors/:key/heartbeat response
