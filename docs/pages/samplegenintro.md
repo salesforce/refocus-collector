@@ -18,7 +18,7 @@ The result here is an array of greetings but in reality, transform functions wil
 
 # Tell me more about Generator Templates
 
-A Generator Template provides a Sample Generator with Javascript code. This code is used to transform inputs returned by your data source into Samples. Generator Templates are created with a specific data source in mind.
+A Generator Template provides a Sample Generator with some Javascript code which transforms the response from your data source into Samples. Generator Templates are created with a specific data source in mind.
 
 For example, I could write a Generator Template that leverages the API of my favorite Bitcoin exchange, BitX! It'll expect input data in the format used by that exchange as well as a mapping from currency value to Refocus Samples status. Then it will convert the return values into Samples for Refocus. 
 
