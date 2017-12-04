@@ -26,10 +26,9 @@ const configModule = require('../config/config');
  * or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
-function doBulkUpsert(arr) {
+function doBulkUpsert(arr, userToken) {
   const config = configModule.getConfig();
   const url = config.refocus.url;
-  const token = config.refocus.collectorToken;
   return new Promise((resolve, reject) => {
     if (!url) {
       // Throw error if url is not present in config.
@@ -39,11 +38,11 @@ function doBulkUpsert(arr) {
       ));
     }
 
-    if (!token) {
-      // Throw error if token is not present in config.
-      debug('Error: refocus token not found. Supplied %s', token);
+    if (!userToken) {
+      // Throw error if user token not provided.
+      debug('Error: refocus user  not found. Supplied %s', userToken);
       reject(new errors.ValidationError(
-        'config.refocus should have a collectorToken property.'
+        'Added generators should have a token property.'
       ));
     }
 
@@ -61,7 +60,7 @@ function doBulkUpsert(arr) {
     const req = request
                 .post(upsertUrl)
                 .send(arr)
-                .set('Authorization', token)
+                .set('Authorization', userToken)
                 .set('Accept', 'application/json');
 
     if (config.refocus.proxy) {

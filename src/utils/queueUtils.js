@@ -33,7 +33,7 @@ function createQueue(queueParams) {
   queueListObject[queueParams.name] = queueObject;
 
   queueObject.on('flush', (data, name) => {
-    queueParams.flushFunction(data);
+    queueParams.flushFunction(data, queueParams.token);
   });
 }
 
