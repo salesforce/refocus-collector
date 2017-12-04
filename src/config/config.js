@@ -50,15 +50,15 @@ function getDefaultConfig() {
    *
    *     // from POST /v1/collectors/start response
    *     collectorToken: "[TOKEN]",
+
+   *     // optional proxy to be used for Refocus
+   *     proxy: "[REFOCUS_PROXY]",
    *
    *     // from the "collectorConfig" attribute of the
    *     // POST /v1/collectors/:key/heartbeat response
    *     heartbeatInterval: [INTEGER],
    *     maxSamplesPerBulkRequest: [INTEGER],
    *     sampleUpsertQueueTime: [INTEGER],
-   *
-   *     // optional proxy to be used for Refocus
-   *     proxy: "[REFOCUS_PROXY]",
    *
    *     // plus any other parameters returned in the "collectorConfig" attribute
    *     // of the POST /v1/collectors/:key/heartbeat response

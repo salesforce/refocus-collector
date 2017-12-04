@@ -22,13 +22,13 @@ Prerequisite: NPM and Node.js
     start --collectorName --refocusUrl --accessToken --refocusProxy --dataSourceProxy
 
     Stop given collector
-    stop  --name
+    stop  --name --refocusProxy
 
     Show status of collector                  
-    status  --name
+    status  --name --refocusProxy
 
     Deregister given collector                 
-    deregister  --name
+    deregister  --name --refocusProxy
 
     Reregister given collector. refocusProxy is an optional argument           
     reregister  --collectorName --refocusUrl --accessToken --refocusProxy
