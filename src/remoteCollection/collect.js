@@ -12,10 +12,12 @@
 
 const debug = require('debug')('refocus-collector:remoteCollection');
 const request = require('superagent');
+require('superagent-proxy')(request);
 const urlUtils = require('./urlUtils');
 const errors = require('../errors');
 const constants = require('../constants');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
+const configModule = require('../config/config');
 
 /**
  * Prepares url of the remote datasource either by expanding the url or by
@@ -101,10 +103,16 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     let headers = prepareHeaders(connection.headers, generator.context);
 
     // Remote request for fetching data.
-    request
-    .get(generator.preparedUrl)
-    .set(headers)
-    .end((err, res) => {
+    const req = request
+                .get(generator.preparedUrl)
+                .set(headers);
+
+    const config = configModule.getConfig();
+    if (config.dataSourceProxy) {
+      req.proxy(config.dataSourceProxy); // set proxy for following request
+    }
+
+    req.end((err, res) => {
       if (err) {
         /*
          * If error is 401 and token is present with simple oauth object

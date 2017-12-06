@@ -11,16 +11,22 @@
  */
 const expect = require('chai').expect;
 const nock = require('nock');
-const mockRest = require('../mockedResponse');
-const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
-const tu = require('../testUtils');
-const handleCollectRes =
-  require('../../src/remoteCollection/handleCollectResponse')
-    .handleCollectResponse;
 const collect = require('../../src/remoteCollection/collect');
 const httpStatus = require('../../src/constants').httpStatus;
+const configModule = require('../../src/config/config');
+const sinon = require('sinon');
+const request = require('superagent');
+require('superagent-proxy')(request);
 
 describe('test/remoteCollection/collect.js >', () => {
+  beforeEach(() => {
+    configModule.initializeConfig();
+  });
+
+  afterEach(() => {
+    configModule.clearConfig();
+  });
+
   describe('collect >', () => {
     const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
           { name: 'UnionCity|Delay', value: 2 },
@@ -208,6 +214,77 @@ describe('test/remoteCollection/collect.js >', () => {
         done();
       })
       .catch(done);
+    });
+
+    it('ok, request use data source proxy when set in config', (done) => {
+      const dataSourceProxy = 'http://abcProxy.com';
+      const config = configModule.getConfig();
+      config.dataSourceProxy = dataSourceProxy;
+
+      const remoteUrl = 'http://www.xyz.com/';
+      const generator = {
+        name: 'Generator0',
+        interval: 600,
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'remoteUrl' + '/status',
+          },
+        },
+      };
+
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'get');
+      collect.collect(generator)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
+        spy.restore();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        done(err);
+      });
+    });
+
+    it('ok, request does not use data source proxy if not set in config',
+    (done) => {
+      const remoteUrl = 'http://www.xyz.com/';
+      const generator = {
+        name: 'Generator0',
+        interval: 600,
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'remoteUrl' + '/status',
+          },
+        },
+      };
+
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'get');
+      collect.collect(generator)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+        spy.restore();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        done(err);
+      });
     });
   }); // collect
 

@@ -13,6 +13,7 @@
 const debug = require('debug')('refocus-collector:httpUtils');
 const errors = require('../errors');
 const request = require('superagent');
+require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');
 const configModule = require('../config/config');
@@ -57,12 +58,17 @@ function doBulkUpsert(arr) {
     const upsertUrl = url + bulkUpsertEndpoint;
     debug('Bulk upserting to: %s', upsertUrl);
 
-    request
-    .post(upsertUrl)
-    .send(arr)
-    .set('Authorization', token)
-    .set('Accept', 'application/json')
-    .end((err, res) => {
+    const req = request
+                .post(upsertUrl)
+                .send(arr)
+                .set('Authorization', token)
+                .set('Accept', 'application/json');
+
+    if (config.refocus.proxy) {
+      req.proxy(config.refocus.proxy); // set proxy for following request
+    }
+
+    req.end((err, res) => {
       if (err) {
         logger.error('bulkUpsert returned an error: %o', err);
         return reject(err);
