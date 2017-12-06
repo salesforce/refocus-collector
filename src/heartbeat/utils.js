@@ -14,6 +14,9 @@ const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const logger = require('winston');
 const commonUtils = require('../utils/commonUtils');
+const queueUtils = require('../utils/queueUtils');
+const httpUtils = require('../utils/httpUtils');
+const errors = require('../errors');
 
 // TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
 const encryptionAlgorithm = require('../constants').encryptionAlgorithm;
@@ -99,6 +102,57 @@ function setupRepeater(generator) {
 } // setupRepeater
 
 /**
+ * Create or update queue for sample generator
+ * @param  {String} qName - Queue name
+ * @param  {String} refocusUserToken - User token
+ * @param  {Object} res - The Heartbeat Response object
+ */
+function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
+  if (!qName) {
+    // Throw error if qName is not provided.
+    debug('Error: qName not found. Supplied %s', qName);
+    throw new errors.ValidationError(
+      'Queue name should be provided for queue creation.'
+    );
+  }
+
+  const _bulkUpsertSampleQueue = queueUtils.getQueue(qName); // get queue
+  if (_bulkUpsertSampleQueue) {
+    if (!res) {
+      // Throw error if heartbeat response is not provided.
+      debug('Error: res not found. Supplied %s', res);
+      throw new errors.ValidationError(
+        'Heartbeat response should be provided for queue creation.'
+      );
+    }
+
+    // update queue params
+    if (res.collectorConfig) {
+      if (res.collectorConfig.maxSamplesPerBulkRequest) {
+        _bulkUpsertSampleQueue._size = res.collectorConfig
+                                          .maxSamplesPerBulkRequest;
+      }
+
+      if (res.collectorConfig.sampleUpsertQueueTime) {
+        _bulkUpsertSampleQueue._flushTimeout =
+          res.collectorConfig.sampleUpsertQueueTime;
+      }
+    }
+  } else { // create queue
+    const config = configModule.getConfig();
+    const queueParams = {
+      name: qName,
+      size: config.refocus.maxSamplesPerBulkRequest,
+      flushTimeout: config.refocus.sampleUpsertQueueTime,
+      verbose: false,
+      flushFunction: httpUtils.doBulkUpsert,
+      token: refocusUserToken,
+    };
+    queueUtils.createQueue(queueParams);
+  }
+}
+
+/**
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
@@ -120,6 +174,9 @@ function addGenerator(res) {
         }
 
         config.generators[g.name] = g;
+
+        // queue name same as generator name
+        createOrUpdateGeneratorQueue(g.name, g.token, res);
         setupRepeater(g);
       });
 
@@ -207,4 +264,5 @@ module.exports = {
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,
+  createOrUpdateGeneratorQueue, // exporting for testing purposes only
 };

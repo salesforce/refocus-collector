@@ -13,9 +13,6 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
-const queueUtils = require('../utils/queueUtils');
-const httpUtils = require('../utils/httpUtils');
-const bulkUpsertSampleQueue = require('../constants').bulkUpsertSampleQueue;
 
 /**
  * Handles the heartbeat response:
@@ -33,27 +30,6 @@ function handleHeartbeatResponse(err, res) {
     logger.error('The handleHeartbeatResponse function was called with an ' +
       'error:', err);
     return err;
-  }
-
-  // queue generation
-  // get queue
-  const _bulkUpsertSampleQueue = queueUtils.getQueue(bulkUpsertSampleQueue);
-  if (_bulkUpsertSampleQueue) {
-    if (res.collectorConfig) {
-      _bulkUpsertSampleQueue._size = res.collectorConfig.maxSamplesPerBulkRequest;
-      _bulkUpsertSampleQueue._flushTimeout =
-        res.collectorConfig.sampleUpsertQueueTime;
-    }
-  } else {
-    const config = configModule.getConfig();
-    const queueParams = {
-      name: bulkUpsertSampleQueue,
-      size: config.refocus.maxSamplesPerBulkRequest,
-      flushTimeout: config.refocus.sampleUpsertQueueTime,
-      verbose: false,
-      flushFunction: httpUtils.doBulkUpsert,
-    };
-    queueUtils.createQueue(queueParams);
   }
 
   if (res) {
