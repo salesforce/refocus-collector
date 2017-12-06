@@ -276,9 +276,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end', (done) => {
     config.generators = {};
-    config.collectorConfig.collectorName = 'Test';
-    config.collectorConfig.refocusUrl = url;
-    config.collectorConfig.collectorToken = token;
+    config.name = 'Test';
+    config.refocus.url = url;
+    config.refocus.collectorToken = token;
 
     mock({
       './generators': {
@@ -298,9 +298,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('sendHeartbeat - end-to-end (error)', (done) => {
     config.generators = {};
-    config.collectorConfig.collectorName = 'Test';
-    config.collectorConfig.refocusUrl = url;
-    config.collectorConfig.collectorToken = token;
+    config.name = 'Test';
+    config.refocus.url = url;
+    config.refocus.collectorToken = token;
 
     mock({
       './generators': {
@@ -318,9 +318,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing token', (done) => {
-    config.collectorConfig.collectorName = 'Test';
-    config.collectorConfig.refocusUrl = url;
-    delete config.collectorConfig.collectorToken;
+    config.name = 'Test';
+    config.refocus.url = url;
+    delete config.refocus.collectorToken;
 
     try {
       heartbeat.sendHeartbeat();
@@ -331,9 +331,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - url null', (done) => {
-    config.collectorConfig.collectorName = 'Test';
-    config.collectorConfig.refocusUrl = null;
-    config.collectorConfig.collectorToken = token;
+    config.name = 'Test';
+    config.refocus.url = null;
+    config.refocus.collectorToken = token;
 
     try {
       heartbeat.sendHeartbeat();
@@ -345,9 +345,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('sendHeartbeat - missing url', (done) => {
-    config.collectorConfig.collectorName = 'Test';
-    delete config.collectorConfig.refocusUrl;
-    config.collectorConfig.collectorToken = token;
+    config.name = 'Test';
+    delete config.refocus.url;
+    config.refocus.collectorToken = token;
 
     try {
       heartbeat.sendHeartbeat();

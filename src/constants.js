@@ -30,9 +30,6 @@ module.exports = {
     SERVICE_UNAVAILABLE: 503,
   },
 
-  // Bulk upsert Sample Queue Name
-  bulkUpsertSampleQueue: 'bulkUpsertSampleQueue',
-
   // TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
   encryptionAlgorithm: 'aes-256-cbc',
 

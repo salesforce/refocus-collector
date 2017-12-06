@@ -16,6 +16,11 @@ const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
+const sinon = require('sinon');
+require('superagent-proxy')(request);
+const nock = require('nock');
+const bulkUpsertEndpoint = require('../../src/constants')
+                            .bulkUpsertEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
   const dummyStr = 'http://dummy.refocus.url';
@@ -26,17 +31,18 @@ describe('test/utils/httpUtils.js >', () => {
   configModule.initializeConfig();
 
   describe('doBulkUpsert >', () => {
+    const dummyUserToken = 'some-user-token-string-asfdfhsdjf';
 
     // clear stub
     after(mock.clearRoutes);
 
     before(() => {
       const config = configModule.getConfig();
-      config.collectorConfig.collectorToken = dummyToken;
+      config.refocus.collectorToken = dummyToken;
     });
 
     it('no url in refocus instance object, gives validation error', (done) => {
-      httpUtils.doBulkUpsert([])
+      httpUtils.doBulkUpsert([], dummyUserToken)
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -47,7 +53,7 @@ describe('test/utils/httpUtils.js >', () => {
 
     it('no array input gives validation error', (done) => {
       const config = configModule.getConfig();
-      config.collectorConfig.refocusUrl = dummyStr;
+      config.refocus.url = dummyStr;
       httpUtils.doBulkUpsert()
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
@@ -58,7 +64,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('array input of non-array type gives validation error', (done) => {
-      httpUtils.doBulkUpsert(dummyStr)
+      httpUtils.doBulkUpsert(dummyStr, dummyUserToken)
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -67,8 +73,8 @@ describe('test/utils/httpUtils.js >', () => {
       });
     });
 
-    it('no token in refocus instance object, gives validation error', (done) => {
-      httpUtils.doBulkUpsert()
+    it('no user token, gives validation error', (done) => {
+      httpUtils.doBulkUpsert([])
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -84,7 +90,7 @@ describe('test/utils/httpUtils.js >', () => {
 
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
-      httpUtils.doBulkUpsert([])
+      httpUtils.doBulkUpsert([], dummyUserToken)
       .then((object) => {
         expect(object.status).to.equal(httpStatus.OK);
         done();
@@ -97,7 +103,7 @@ describe('test/utils/httpUtils.js >', () => {
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath,
         (req) => req);
-      httpUtils.doBulkUpsert(sampleArr)
+      httpUtils.doBulkUpsert(sampleArr, dummyUserToken)
       .then((object) => {
 
         // due to how superagent-mocker works,
@@ -110,6 +116,56 @@ describe('test/utils/httpUtils.js >', () => {
         done();
       })
       .catch(done);
+    });
+
+    it('ok, request use refocus proxy if set in config', (done) => {
+      const config = configModule.getConfig();
+      const refocusProxy = 'http://abcProxy.com';
+      config.refocus.proxy = refocusProxy;
+      config.refocus.url = dummyStr;
+
+      nock(dummyStr)
+        .post(bulkUpsertEndpoint)
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'post');
+      httpUtils.doBulkUpsert(sampleArr, dummyUserToken)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
+        spy.restore();
+        configModule.clearConfig();
+        configModule.initializeConfig();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        configModule.clearConfig();
+        configModule.initializeConfig();
+        done(err);
+      });
+    });
+
+    it('ok, request does not use refocus proxy if not set in config',
+    (done) => {
+      const config = configModule.getConfig();
+      config.refocus.url = dummyStr;
+      config.refocus.collectorToken = dummyToken;
+
+      nock(dummyStr)
+        .post(bulkUpsertEndpoint)
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      const spy = sinon.spy(request, 'post');
+      httpUtils.doBulkUpsert(sampleArr, dummyUserToken)
+      .then(() => {
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+        spy.restore();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        done(err);
+      });
     });
   });
 });

@@ -176,19 +176,20 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   });
 
   describe('handleCollectResponse', () => {
-
+    const generatorName = 'mockGenerator';
     let winstonInfoStub;
     configModule.initializeConfig();
     const config = configModule.getConfig();
     before(() => {
-      queueUtils.createQueue('bulkUpsertSampleQueue',
-        config.collectorConfig.maxSamplesPerBulkRequest,
-        config.collectorConfig.sampleUpsertQueueTime,
-        false,
-        httpUtils.doBulkUpsert
-      );
+      const qParams = {
+        name: generatorName,
+        size: config.refocus.maxSamplesPerBulkRequest,
+        flushTimeout: config.refocus.sampleUpsertQueueTime,
+        verbose: false,
+        flushFunction: httpUtils.doBulkUpsert,
+      };
+      queueUtils.createQueue(qParams);
 
-      // console.log(queueUtils.getQueue('bulkUpsertSampleQueue'));
       // use nock to mock the response when flushing
       const sampleArr = [
         { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
@@ -203,7 +204,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     afterEach(() => {
       winstonInfoStub.reset();
-      queueUtils.getQueue('bulkUpsertSampleQueue').Items = [];
+      queueUtils.getQueue(generatorName).Items = [];
     });
 
     after(() => {
@@ -212,7 +213,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     const collectRes = {
-      name: 'mockGenerator',
+      name: generatorName,
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       ctx: {},
       res: {
@@ -381,7 +382,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(winston.info.calledOnce).to.be.true;
       expect(winston.info.args[0][0]).contains('generator: mockGenerator');
       expect(winston.info.args[0][0]).contains(`numSamples: ${expected.length}`);
-      const queue = queueUtils.getQueue('bulkUpsertSampleQueue');
+      const queue = queueUtils.getQueue(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
       expect(queue.items[0]).to.eql(expected[0]);
       expect(queue.items[1]).to.eql(expected[1]);

@@ -11,7 +11,6 @@
  */
 const expect = require('chai').expect;
 const queueUtils = require('../../src/utils/queueUtils');
-const config = require('../../src/config/config');
 const errors = require('../../src/errors');
 
 function flushFunction(data) {
@@ -116,6 +115,35 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
 
     setTimeout(() => {
       expect(queue.items.length).to.be.equal(0);
+      return done();
+    }, 400);
+  });
+
+  it('Flush queue, check that token is passed correctly to the function',
+  (done) => {
+    const tokenStr = 'some-random-token-string-dfasdfdasfdsfds';
+    let flushResult = {};
+    queueUtils.createQueue({
+      name: 'test',
+      size: 100,
+      flushTimeout: 300,
+      verbose: false,
+      flushFunction: (data, token) => {
+        flushResult = { data, token };
+        return flushResult;
+      },
+
+      token: tokenStr,
+    });
+    const queue = queueUtils.getQueue('test');
+    queue.add(1);
+    queue.add(2);
+    queue.add(3);
+    queue.add(4);
+
+    setTimeout(() => {
+      expect(queue.items.length).to.be.equal(0);
+      expect(flushResult.token).to.be.equal(tokenStr);
       return done();
     }, 400);
   });

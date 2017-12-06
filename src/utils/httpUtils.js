@@ -13,6 +13,7 @@
 const debug = require('debug')('refocus-collector:httpUtils');
 const errors = require('../errors');
 const request = require('superagent');
+require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');
 const configModule = require('../config/config');
@@ -25,24 +26,23 @@ const configModule = require('../config/config');
  * or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
-function doBulkUpsert(arr) {
+function doBulkUpsert(arr, userToken) {
   const config = configModule.getConfig();
-  const url = config.collectorConfig.refocusUrl;
-  const token = config.collectorConfig.collectorToken;
+  const url = config.refocus.url;
   return new Promise((resolve, reject) => {
     if (!url) {
       // Throw error if url is not present in config.
       debug('Error: refocus url not found. Supplied %s', url);
       reject(new errors.ValidationError(
-        'config.collectorConfig should have a refocusUrl property.'
+        'config.refocus should have a url property.'
       ));
     }
 
-    if (!token) {
-      // Throw error if token is not present in config.
-      debug('Error: refocus token not found. Supplied %s', token);
+    if (!userToken) {
+      // Throw error if user token not provided.
+      debug('Error: refocus user  not found. Supplied %s', userToken);
       reject(new errors.ValidationError(
-        'config.collectorConfig should have a token property.'
+        'Added generators should have a token property.'
       ));
     }
 
@@ -57,12 +57,17 @@ function doBulkUpsert(arr) {
     const upsertUrl = url + bulkUpsertEndpoint;
     debug('Bulk upserting to: %s', upsertUrl);
 
-    request
-    .post(upsertUrl)
-    .send(arr)
-    .set('Authorization', token)
-    .set('Accept', 'application/json')
-    .end((err, res) => {
+    const req = request
+                .post(upsertUrl)
+                .send(arr)
+                .set('Authorization', userToken)
+                .set('Accept', 'application/json');
+
+    if (config.refocus.proxy) {
+      req.proxy(config.refocus.proxy); // set proxy for following request
+    }
+
+    req.end((err, res) => {
       if (err) {
         logger.error('bulkUpsert returned an error: %o', err);
         return reject(err);

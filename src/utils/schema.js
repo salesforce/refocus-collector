@@ -24,20 +24,6 @@ const repeater = Joi.object().keys({
   funcName: Joi.string(),
 });
 
-const sample = Joi.object().keys({
-  name: Joi.string().regex(/^[0-9A-Za-z_.\\-]{1,4096}\|[0-9A-Za-z_\\-]{1,60}$/)
-    .required(),
-  messageBody: Joi.string().max(4096),
-  messageCode: Joi.string().max(5),
-  relatedLinks: Joi.array().items(
-    Joi.object().keys({
-      name: Joi.string().regex(/^[0-9A-Za-z_\\ -]{1,25}$/).required(),
-      url: Joi.string().min(1).max(4096).required(),
-    })
-  ),
-  value: Joi.string().max(255),
-});
-
 const refocusInstance = Joi.object().keys({
   name: Joi.string().max(60),
   url: Joi.string().regex(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g).required(),  // jscs:ignore maximumLineLength
@@ -46,6 +32,5 @@ const refocusInstance = Joi.object().keys({
 
 module.exports = {
   repeater,
-  sample,
   refocusInstance,
 };

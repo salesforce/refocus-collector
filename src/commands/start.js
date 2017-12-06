@@ -18,26 +18,38 @@ const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const request = require('superagent');
-const httpUtils = require('../utils/httpUtils');
+require('superagent-proxy')(request);
 const errors = require('../errors');
 /**
  * The "start" command creates the heartbeat repeater.
  *
  * @throws TODO
  */
-function execute(collectorName, refocusUrl, accessToken) {
+function execute(collectorName, refocusUrl, accessToken, rcProxy) {
   debug('Entered start.execute');
   configModule.initializeConfig();
   const config = configModule.getConfig();
-  config.collectorConfig.collectorName = collectorName;
-  config.collectorConfig.refocusUrl = refocusUrl;
+  config.name = collectorName;
+  config.refocus.url = refocusUrl;
+
+  if (rcProxy.dataSourceProxy) {   // set data proxy in config
+    config.dataSourceProxy = rcProxy.dataSourceProxy;
+  }
 
   const path = `/v1/collectors/${collectorName}/start`;
   const url = refocusUrl + path;
-  return request.post(url)
-  .set('Authorization', accessToken)
-  .then((res) => {
-    config.collectorConfig.collectorToken = res.body.collectorToken;
+
+  const req = request.post(url)
+              .set('Authorization', accessToken);
+
+  const refocusProxy = rcProxy.refocusProxy;
+  if (refocusProxy) {
+    config.refocus.proxy = refocusProxy; // set refocus proxy in config
+    req.proxy(refocusProxy); // set proxy for following request
+  }
+
+  return req.then((res) => {
+    config.refocus.collectorToken = res.body.collectorToken;
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper
@@ -45,7 +57,7 @@ function execute(collectorName, refocusUrl, accessToken) {
      */
     repeater.create({
       name: 'Heartbeat',
-      interval: config.collectorConfig.heartbeatInterval,
+      interval: config.refocus.heartbeatInterval,
       func: sendHeartbeat,
       onSuccess: debug,
       onFailure: debug,
@@ -56,7 +68,7 @@ function execute(collectorName, refocusUrl, accessToken) {
     debug('Exiting start.execute');
   })
   .catch((err) => {
-    throw new errors.RegistrationError('', `POST ${path} failed: ${err.message}`);
+    throw new errors.CollectorStartError('', `POST ${url} failed: ${err.status} ${err.message}`);
   });
 } // execute
 
