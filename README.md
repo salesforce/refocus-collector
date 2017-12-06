@@ -50,3 +50,7 @@ Prerequisite: NPM and Node.js
     $ refocus-collector status --name=PRD_Collector_12345
     $ refocus-collector deregister --name=PRD_Collector_12345
     $ refocus-collector reregister --collectorName=PRD_Collector_12345 --refocusUrl=https://refocus.foo.com --accessToken=eygduyguygijfdhkfjhkfdhg --refocusProxy=http://abcproxy.com
+
+-----
+
+[Introduction to Sample Generators](docs/pages/collectorintro.md)
