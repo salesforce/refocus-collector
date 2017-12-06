@@ -12,7 +12,7 @@ Collectors are meant to be shared so if there are already a couple of Collectors
 
 ## Data Pipeline with Collectors
 
-![Collector using SG Diagram](../assets/CollectorDataflow.jpeg)
+![Collector using SG Diagram](../assets/CollectorDataflow.jpg)
 
 # Tell me more about Sample Generators
 
@@ -20,11 +20,11 @@ To use a simple analogy, Collectors are akin to the *human* *body*, they do the 
 
 Sample Generators can run on any Collector (as long as the Collector has access to the remote data source(s). Changes to a Sample Generator don't require any admin intervention--no application deploys or restarts or anything like that--so it's fast and easy to get your data into Refocus.
 
-![Collector using SG Diagram](../assets/CollectorSGDiagram.jpeg)
+![Collector using SG Diagram](../assets/CollectorSGDiagram.jpg)
 
 Each Sample Generator provides a path to your target data source, a set of subjects and aspects that you want to send samples for, and other context variables used by the transform code to generate samples.
 
-![Collector using SG Diagram](../assets/SGDiagram.jpeg)
+![Collector using SG Diagram](../assets/SGDiagram.jpg)
 
 As illustrated above, the transform code uses context variables you provide in your Sample Generator. Just select the right Sample Generator Template for your data source and specify *your* context data. 
 
