@@ -46,9 +46,10 @@ describe('test/remoteCollection/collect.js >', () => {
             },
             url: 'http://bart.gov.api/status',
           },
-          transform:
-          'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subject: { absolutePath: 'EastBay' },
       };
@@ -94,9 +95,10 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'http://www.xyz.com/status',
             simple_oauth: 'ownerPassword',
           },
-          transform:
-          'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subject: { absolutePath: 'EastBay' },
         simple_oauth: {
@@ -305,8 +307,10 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'http://{{host}}/status',
             bulk: true,
           },
-          transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
       };
@@ -327,8 +331,10 @@ describe('test/remoteCollection/collect.js >', () => {
             bulk: true,
             toUrl: 'return "http://bart.gov.api/status";',
           },
-          transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
       };
@@ -348,8 +354,10 @@ describe('test/remoteCollection/collect.js >', () => {
             },
             bulk: true,
           },
-          transform: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subjects: [{ absolutePath: 'Fremont' }, { absolutePath: 'UnionCity' }],
       };

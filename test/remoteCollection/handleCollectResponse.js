@@ -125,7 +125,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       context: {},
       res: {},
       generatorTemplate: {
-        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        transform: {
+          default: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        },
       },
     };
     handleCollectResponse(Promise.resolve(obj))
@@ -143,7 +145,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       res: {},
       subject: { absolutePath: 'abc' },
       generatorTemplate: {
-        transform: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        transform: {
+          default: 'return [{ name: "Foo" }, { name: "Bar" }]',
+        },
       },
     };
     handleCollectResponse(Promise.resolve(obj))
@@ -161,8 +165,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       context: {},
       subject: { absolutePath: 'S1.S2' },
       generatorTemplate: {
-        transform:
-         'return [{ name: "S1.S2|A1", value: 10 }, { name: "S1.S2|A2", value: 2 }]',
+        transform: {
+          default: 'return [{ name: "S1.S2|A1", value: 10 }, ' +
+            '{ name: "S1.S2|A2", value: 2 }]',
+        },
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
     };
@@ -175,7 +181,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     .catch(done);
   });
 
-  describe('handleCollectResponse', () => {
+  describe('handleCollectResponse >', () => {
     const generatorName = 'mockGenerator';
     let winstonInfoStub;
     configModule.initializeConfig();
@@ -229,15 +235,15 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           bulk: true,
         },
         transform: {
-          transform: 'return [{ name: "S1.S2|A1", value: "10" },'
-          + ' { name: "S1.S2|A2", value: "2" }]',
+          default: 'return [{ name: "S1.S2|A1", value: "10" },' +
+            ' { name: "S1.S2|A2", value: "2" }]',
           errorHandlers: {
             404: 'return [{ name: "S1.S2|A1", messageBody: "NOT FOUND" },'
-            + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
+              + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
             '40[13]': 'return [{ name: "S1.S2|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
-            + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+              + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
             '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
-            + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
+              + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
           },
         },
       },
@@ -352,36 +358,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       .catch(done);
     });
 
-    it('transform is a string', (done) => {
-      collectRes.res.statusCode = 200;
-      collectRes.generatorTemplate.transform =
-        'return [{ name: "S1.S2|A1", value: "10" }, { name: "S1.S2|A2", value: "2" }]';
-      const expected = [
-        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
-
-    it('transform is a string, handles all status codes', (done) => {
-      collectRes.res.statusCode = 404;
-      collectRes.generatorTemplate.transform =
-        'return [{ name: "S1.S2|A1", value: "10" }, { name: "S1.S2|A2", value: "2" }]';
-      const expected = [
-        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
-
     function checkLogs(expected) {
       expect(winston.info.calledOnce).to.be.true;
       expect(winston.info.args[0][0]).contains('generator: mockGenerator');
-      expect(winston.info.args[0][0]).contains(`numSamples: ${expected.length}`);
+      expect(winston.info.args[0][0])
+        .contains(`numSamples: ${expected.length}`);
       const queue = queueUtils.getQueue(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
       expect(queue.items[0]).to.eql(expected[0]);
