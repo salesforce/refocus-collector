@@ -42,14 +42,6 @@ errors.create({
 });
 
 errors.create({
-  name: 'TemplateVariableSubstitutionError',
-  defaultExplanation: 'Invalid template for variable substitution.',
-  defaultResponse: 'Invalid template for variable substitution.',
-  status: 400,
-  parent: errors.SampleGeneratorTemplateError,
-});
-
-errors.create({
   name: 'RegistrationError',
   defaultMessage: 'Failed to register a new collector with the provided refocus instance',
   defaultResponse: 'Make sure the provided refocusUrl and accessToken are correct',
