@@ -16,7 +16,7 @@ require('superagent-proxy')(request);
 const urlUtils = require('./urlUtils');
 const errors = require('../errors');
 const constants = require('../constants');
-const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
+const rce = require('@salesforce/refocus-collector-eval');
 const configModule = require('../config/config');
 
 /**
@@ -86,8 +86,11 @@ function prepareHeaders(headers, ctx) {
  */
 function sendRemoteRequest(generator, connection, simpleOauth=null) {
   return new Promise((resolve) => {
+    const { ctx, aspects, subjects } = generator;
+
     // Add the url to the generator so the handler has access to it later.
-    generator.preparedUrl = prepareUrl(generator);
+    generator.preparedUrl = rce.prepareUrl(ctx, aspects, subjects, connection);
+    const preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
 
     // If token is present then add token to request header.
     if (generator.token) {
@@ -100,12 +103,10 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       }
     }
 
-    let headers = prepareHeaders(connection.headers, generator.context);
-
     // Remote request for fetching data.
     const req = request
                 .get(generator.preparedUrl)
-                .set(headers);
+                .set(preparedHeaders);
 
     const config = configModule.getConfig();
     if (config.dataSourceProxy) {
@@ -180,6 +181,4 @@ function collect(generator) {
 
 module.exports = {
   collect,
-  prepareHeaders, // export for testing
-  prepareUrl, // export for testing
 };
