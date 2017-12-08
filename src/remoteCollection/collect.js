@@ -13,69 +13,9 @@
 const debug = require('debug')('refocus-collector:remoteCollection');
 const request = require('superagent');
 require('superagent-proxy')(request);
-const urlUtils = require('./urlUtils');
-const errors = require('../errors');
 const constants = require('../constants');
 const rce = require('@salesforce/refocus-collector-eval');
 const configModule = require('../config/config');
-
-/**
- * Prepares url of the remote datasource either by expanding the url or by
- * calling the toUrl function specified in the generator template.
- *
- * @param {Object} generator - The generator object
- * @returns {String} - Url to the remote datasource
- * @throws {ValidationError} if generator template does not provide url or
- *  toUrl
- */
-function prepareUrl(generator) {
-  debug('prepareUrl', generator);
-  let url;
-  const toUrl = generator.generatorTemplate.connection.toUrl;
-  if (generator.generatorTemplate.connection.url) {
-    url = urlUtils.expand(generator.generatorTemplate.connection.url,
-      generator.context);
-  } else if (toUrl) {
-    const args = {
-      aspects: generator.aspects,
-      ctx: generator.context,
-      subjects: generator.subjects,
-    };
-    const fbody = Array.isArray(toUrl) ? toUrl.join('\n') : toUrl;
-    url = RefocusCollectorEval.safeToUrl(fbody, args);
-  } else {
-    throw new errors.ValidationError('The generator template must provide ' +
-      'either a connection.url attribute or a "toUrl" attribute.');
-  }
-
-  debug('prepareUrl returning %s', url);
-  return url;
-} // prepareUrl
-
-/**
- * Prepares the headers to send by expanding the connection headers specified
- * by the generator template.
- *
- * @param {Object} headers - The headers from generator template connection
- *  specification
- * @param {Object} context - The context from the generator
- * @returns {Object} - the headers object
- */
-function prepareHeaders(headers, ctx) {
-  debug('prepareHeaders', headers, ctx);
-  const retval = {
-    Accept: 'application/json', // default
-  };
-  if (headers && typeof headers === 'object') {
-    const hkeys = Object.keys(headers);
-    hkeys.forEach((key) => {
-      retval[key] = urlUtils.expand(headers[key], ctx);
-    });
-  }
-
-  debug('exiting prepareHeaders', retval);
-  return retval;
-} // prepareHeaders
 
 /**
  * Send Remote request to get data as per the configurations.
