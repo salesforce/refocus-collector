@@ -29,7 +29,7 @@ describe('test/remoteCollection/collect.js >', () => {
 
   describe('collect >', () => {
     const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
-          { name: 'UnionCity|Delay', value: 2 },
+      { name: 'UnionCity|Delay', value: 2 },
     ];
 
     it('collect should return a response with "res" attribute that is ' +
