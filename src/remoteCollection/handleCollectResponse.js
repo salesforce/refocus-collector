@@ -104,82 +104,40 @@ function handleCollectResponse(collectResponse) {
   debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
     validateCollectResponse(collectRes);
-
-    /*
-     * If the transform is a string, then we use that function for all
-     * status codes.
-     */
     const tr = collectRes.generatorTemplate.transform;
     const args = prepareTransformArgs(collectRes);
-    if (typeof tr === 'string') { // match all status codes
-      const samplesToEnqueue = RefocusCollectorEval.safeTransform(tr, args);
+    const status = collectRes.res.statusCode;
+
+    /*
+     * Figure out which transform function to use based on response status, or
+     * if there is no transform designated for this HTTP status code and the
+     * status is NOT one of the "OK" (2xx) statuses, generate "default" error
+     * samples.
+     */
+    const func = RefocusCollectorEval.getTransformFunction(tr, status);
+    let samplesToEnqueue = [];
+    if (func) {
+      samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
       logger.info(`{
         generator: ${collectRes.name},
         url: ${collectRes.preparedUrl},
         numSamples: ${samplesToEnqueue.length},
       }`);
-
-      // queue name same as generator name
-      queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
-        commonUtils.validateSample);
     } else {
-      /*
-       * The transform is *not* a string, so handle the response based on the
-       * status code.
-       */
-      const status = collectRes.res.statusCode;
-      let func;
-
-      // the response was OK, so use the default transform
-      if (status === httpStatus.OK) {
-        func = collectRes.generatorTemplate.transform.transform;
-      }
-
-      /*
-       * Check for a status code regex match which maps to a transform for
-       * error samples. Use the first one to match. If 200 is matched, it
-       * will override the default transform.
-       */
-      if (tr.errorHandlers) {
-        Object.keys(tr.errorHandlers).forEach((statusMatcher) => {
-          const re = new RegExp(statusMatcher);
-          if (re.test(status)) {
-            func = tr.errorHandlers[statusMatcher];
-          }
-        });
-      }
-
-      if (func) {
-        const samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
-        logger.info(`{
-          generator: ${collectRes.name},
-          url: ${collectRes.preparedUrl},
-          numSamples: ${samplesToEnqueue.length},
-        }`);
-
-        // queue name same as generator name
-        queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
-          commonUtils.validateSample);
-      } else {
-        /*
-         * If there is no transform designated for this HTTP status code, just
-         * generate default error samples.
-         */
-        const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
-          `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
-        const samplesToEnqueue = errorSamples(collectRes, errorMessage);
-        logger.info(`{
-          generator: ${collectRes.name},
-          url: ${collectRes.preparedUrl},
-          error: ${errorMessage},
-          numSamples: ${samplesToEnqueue.length},
-        }`);
-
-        // queue name same as generator name
-        queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
-          commonUtils.validateSample);
-      }
+      const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
+        `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
+      samplesToEnqueue = errorSamples(collectRes, errorMessage);
+      logger.info(`{
+        generator: ${collectRes.name},
+        url: ${collectRes.preparedUrl},
+        error: ${errorMessage},
+        numSamples: ${samplesToEnqueue.length},
+      }`);
     }
+
+    // Enqueue using the sample generator name as the queue name.
+    queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
+      commonUtils.validateSample);
   })
   .catch((err) => {
     debug(err);
