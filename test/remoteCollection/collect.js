@@ -29,7 +29,7 @@ describe('test/remoteCollection/collect.js >', () => {
 
   describe('collect >', () => {
     const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
-          { name: 'UnionCity|Delay', value: 2 },
+      { name: 'UnionCity|Delay', value: 2 },
     ];
 
     it('collect should return a response with "res" attribute that is ' +
@@ -46,9 +46,10 @@ describe('test/remoteCollection/collect.js >', () => {
             },
             url: 'http://bart.gov.api/status',
           },
-          transform:
-          'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subject: { absolutePath: 'EastBay' },
       };
@@ -94,9 +95,10 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'http://www.xyz.com/status',
             simple_oauth: 'ownerPassword',
           },
-          transform:
-          'return [{ name: "Fremont|Delay", value: 10 }, ' +
-            '{ name: "UnionCity|Delay", value: 2 }]',
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
         },
         subject: { absolutePath: 'EastBay' },
         simple_oauth: {
