@@ -30,7 +30,6 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
 
     // Add the url to the generator so the handler has access to it later.
     generator.preparedUrl = rce.prepareUrl(ctx, aspects, subjects, connection);
-    const preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
 
     // If token is present then add token to request header.
     if (generator.token) {
@@ -42,6 +41,8 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
         connection.headers.Authorization = accessToken;
       }
     }
+
+    const preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
 
     // Remote request for fetching data.
     const req = request

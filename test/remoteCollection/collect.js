@@ -156,7 +156,8 @@ describe('test/remoteCollection/collect.js >', () => {
           .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
 
         done();
-      });
+      })
+      .catch(done);
     });
 
     it('SERVER ERROR: bad responses from collect should also be a part of ' +
