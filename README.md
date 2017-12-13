@@ -24,13 +24,13 @@ Prerequisite: NPM and Node.js
     Stop given collector
     stop  --name --refocusProxy
 
-    Show status of collector                  
+    Show status of collector
     status  --name --refocusProxy
 
-    Deregister given collector                 
+    Deregister given collector
     deregister  --name --refocusProxy
 
-    Reregister given collector. refocusProxy is an optional argument           
+    Reregister given collector. refocusProxy is an optional argument
     reregister  --collectorName --refocusUrl --accessToken --refocusProxy
 
     Display help for [cmd]
@@ -53,4 +53,6 @@ Prerequisite: NPM and Node.js
 
 -----
 
-[Introduction to Sample Generators](docs/pages/collectorintro.md)
+[Introduction to Collectors](docs/pages/collectorintro.md)
+[Introduction to Sample Generators](docs/pages/samplegenintro.md)
+
