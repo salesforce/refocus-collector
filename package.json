@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
-    "@salesforce/refocus-collector-eval": "^1.5.0",
+    "@salesforce/refocus-collector-eval": "^1.7.0",
     "bluebird": "^3.5.0",
     "buffered-queue": "^0.1.4",
     "coveralls": "^2.13.1",
@@ -45,7 +45,7 @@
     "path": "^0.12.7",
     "repeat": "0.0.6",
     "simple-oauth2": "^1.5.0",
-    "superagent": "^3.5.2",
+    "superagent": "^3.8.2",
     "superagent-mocker": "^0.5.2",
     "superagent-proxy": "^1.0.2",
     "validator": "^7.1.0",

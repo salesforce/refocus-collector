@@ -61,6 +61,15 @@ function validateCollectResponse(cr) {
     throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
     + `invalid HTTP status code "${cr.res.statusCode}"`);
   }
+
+  try {
+    // Response "Content-Type" header matches request "Accept" header?
+    RefocusCollectorEval.validateResponseType(cr.preparedHeaders,
+      cr.res.headers);
+  } catch (err) {
+    throw new errors.ValidationError(err.message);
+  }
+
 } // validateCollectResponse
 
 /**
