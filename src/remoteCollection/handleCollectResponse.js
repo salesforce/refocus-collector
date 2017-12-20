@@ -64,6 +64,7 @@ function validateCollectResponse(cr) {
 
   try {
     // Response "Content-Type" header matches request "Accept" header?
+    debug('validateCollectResponse', cr.preparedHeaders, cr.res.headers);
     RefocusCollectorEval.validateResponseType(cr.preparedHeaders,
       cr.res.headers);
   } catch (err) {
@@ -73,19 +74,19 @@ function validateCollectResponse(cr) {
 } // validateCollectResponse
 
 /**
- * Prepare arguments to be passed to the transform function
+ * Prepare arguments to be passed to the transform function.
+ *
  * @param  {Object} generator - Generator object
  * @throws {TransformError} - if transform function does not return an array
  *  of zero or more samples
  * @throws {ValidationError} - if any of the above mentioned check fails
  */
 function prepareTransformArgs(generator) {
-  const args = {};
-
-  args.ctx = generator.ctx;
-  args.res = generator.res;
-  args.aspects = generator.aspects;
-
+  const args = {
+    ctx: generator.context,
+    res: generator.res,
+    aspects: generator.aspects,
+  };
   if (commonUtils.isBulk(generator)) {
     args.subjects = generator.subjects;
   } else {
@@ -93,7 +94,7 @@ function prepareTransformArgs(generator) {
   }
 
   return args;
-}
+} // prepareTransformArgs
 
 /**
  * Handles the response from the remote data source by calling the transform

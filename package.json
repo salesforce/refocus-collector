@@ -30,7 +30,7 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
-    "@salesforce/refocus-collector-eval": "^1.7.0",
+    "@salesforce/refocus-collector-eval": "^1.7.1",
     "bluebird": "^3.5.0",
     "buffered-queue": "^0.1.4",
     "coveralls": "^2.13.1",
@@ -41,7 +41,7 @@
     "istanbul": "^0.4.5",
     "joi": "^10.6.0",
     "just-template": "^1.1.22",
-    "nock": "^9.1.4",
+    "nock": "^9.1.5",
     "path": "^0.12.7",
     "repeat": "0.0.6",
     "simple-oauth2": "^1.5.0",
