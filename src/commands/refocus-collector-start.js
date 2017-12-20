@@ -31,16 +31,16 @@ const accessToken = program.accessToken || process.env.RC_ACCESS_TOKEN;
 // refocusProxy and dataSourceProxy are optional args
 const refocusProxy = program.refocusProxy || process.env.RC_REFOCUS_PROXY;
 const dataSourceProxy = program.dataSourceProxy ||
-                          process.env.RC_DATA_SOURCE_PROXY;
+  process.env.RC_DATA_SOURCE_PROXY;
 
 if (!collectorName) {
-  logger.error('You must specify a collector name');
+  logger.error('You must specify a collector name.');
   process.exit(1);
 } else if (!refocusUrl) {
-  logger.error('You must specify the url of the refocus instance');
+  logger.error('You must specify the url of the refocus instance.');
   process.exit(1);
 } else if (!accessToken) {
-  logger.error('You must specify an access token');
+  logger.error('You must specify an access token.');
   process.exit(1);
 }
 

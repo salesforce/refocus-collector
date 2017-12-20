@@ -31,19 +31,18 @@ let lastHeartbeatTime;
  */
 function sendHeartbeat() {
   debug('Entered sendHeartbeat');
+  const timestamp = Date.now();
+  const config = configModule.getConfig();
+  debug('sendHeartbeat config.refocus', config.refocus);
   let collectorName;
   let baseUrl;
   let token;
   let path;
   let url;
-  const timestamp = Date.now();
-  const config = configModule.getConfig();
-
   try {
     collectorName = config.name;
     baseUrl = config.refocus.url;
     token = config.refocus.collectorToken;
-
     path = `/v1/collectors/${collectorName}/heartbeat`;
     url = baseUrl + path;
 

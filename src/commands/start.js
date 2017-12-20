@@ -20,6 +20,9 @@ const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const request = require('superagent');
 require('superagent-proxy')(request);
 const errors = require('../errors');
+const COLLECTOR_START_PATH = '/v1/collectors/start';
+const package = require('../../package.json');
+
 /**
  * The "start" command creates the heartbeat repeater.
  *
@@ -32,16 +35,14 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
   config.name = collectorName;
   config.refocus.url = refocusUrl;
 
-  if (rcProxy.dataSourceProxy) {   // set data proxy in config
+  if (rcProxy.dataSourceProxy) { // set data proxy in config
     config.dataSourceProxy = rcProxy.dataSourceProxy;
   }
 
-  const path = `/v1/collectors/${collectorName}/start`;
-  const url = refocusUrl + path;
-
+  const url = refocusUrl + COLLECTOR_START_PATH;
   const req = request.post(url)
-              .set('Authorization', accessToken);
-
+    .send({ name: collectorName, version: package.version })
+    .set('Authorization', accessToken);
   const refocusProxy = rcProxy.refocusProxy;
   if (refocusProxy) {
     config.refocus.proxy = refocusProxy; // set refocus proxy in config
@@ -49,7 +50,8 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
   }
 
   return req.then((res) => {
-    config.refocus.collectorToken = res.body.collectorToken;
+    debug('start execute response body', res.body);
+    config.refocus.collectorToken = res.body.token;
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper
