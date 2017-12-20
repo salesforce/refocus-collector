@@ -40,7 +40,7 @@ function doBulkUpsert(arr, userToken) {
 
     if (!userToken) {
       // Throw error if user token not provided.
-      debug('Error: refocus user  not found. Supplied %s', userToken);
+      debug('Error: refocus user not found. Supplied %s', userToken);
       reject(new errors.ValidationError(
         'Added generators should have a token property.'
       ));

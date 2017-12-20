@@ -74,9 +74,9 @@ function assignContext(ctx, def, collectorToken, res) {
     }
   });
 
-  debug('assignContextDefaults returning', ctx);
+  debug('assignContext returning', ctx);
   return ctx;
-} // assignContextDefaults
+} // assignContext
 
 /**
  * Creates a repeater based on the bulk attribute of the of the generator
@@ -241,9 +241,9 @@ function updateGenerator(res) {
           config.generators[g.name][key] = g[key];
         });
 
-        /**
-         * repeats cannot be updated. The old repeats needs to be stopped
-         * before creating new repeats.
+        /*
+         * Repeaters cannot be updated. The old repeaters needs to be stopped
+         * before creating new repeaters.
          */
         repeater.stop(g.name);
         setupRepeater(g);

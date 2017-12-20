@@ -256,7 +256,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const collectRes = {
       name: generatorName,
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-      ctx: {},
+      context: {},
       res: {
         statusCode: 200,
         statusMessage: 'MOCK STATUS MESSAGE',
@@ -429,7 +429,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       name: 'mockGenerator',
       subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-      ctx: { a: 'a', b: 'b' },
+      context: { a: 'a', b: 'b' },
       res: { body: 'aaa' },
       generatorTemplate: {
         connection: {
@@ -440,7 +440,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('bulk', (done) => {
       const args = prepareTransformArgs(generator);
-      expect(args).to.have.property('ctx', generator.ctx);
+      expect(args).to.have.property('ctx', generator.context);
       expect(args).to.have.property('res', generator.res);
       expect(args).to.have.property('aspects', generator.aspects);
       expect(args).to.have.property('subjects', generator.subjects);
@@ -452,7 +452,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('by subject', (done) => {
       generator.generatorTemplate.connection.bulk = false;
       const args = prepareTransformArgs(generator);
-      expect(args).to.have.property('ctx', generator.ctx);
+      expect(args).to.have.property('ctx', generator.context);
       expect(args).to.have.property('res', generator.res);
       expect(args).to.have.property('aspects', generator.aspects);
       expect(args).to.have.property('subject', generator.subjects[0]);
@@ -462,4 +462,3 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 });
-

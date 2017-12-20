@@ -26,10 +26,11 @@ const configModule = require('../config/config');
  */
 function sendRemoteRequest(generator, connection, simpleOauth=null) {
   return new Promise((resolve) => {
-    const { ctx, aspects, subjects } = generator;
+    const { context, aspects, subjects } = generator;
 
     // Add the url to the generator so the handler has access to it later.
-    generator.preparedUrl = rce.prepareUrl(ctx, aspects, subjects, connection);
+    generator.preparedUrl =
+      rce.prepareUrl(context, aspects, subjects, connection);
 
     // If token is present then add token to request header.
     if (generator.token) {
@@ -44,7 +45,8 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
 
     // Add the prepared headers to the generator so the handler has access to
     // them later for validation.
-    generator.preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
+    generator.preparedHeaders =
+      rce.prepareHeaders(connection.headers, context);
 
     // Remote request for fetching data.
     const req = request
