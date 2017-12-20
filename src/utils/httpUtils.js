@@ -58,10 +58,10 @@ function doBulkUpsert(arr, userToken) {
     debug('Bulk upserting to: %s', upsertUrl);
 
     const req = request
-                .post(upsertUrl)
-                .send(arr)
-                .set('Authorization', userToken)
-                .set('Accept', 'application/json');
+      .post(upsertUrl)
+      .send(arr)
+      .set('Authorization', userToken)
+      .set('Accept', 'application/json');
 
     if (config.refocus.proxy) {
       req.proxy(config.refocus.proxy); // set proxy for following request

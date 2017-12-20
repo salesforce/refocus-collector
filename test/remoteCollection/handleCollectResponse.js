@@ -100,8 +100,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     it('error if invalid status code', (done) => {
+      const cr = { res: { statusCode: 4 }, url: 'abc.com', name: 'Foo' };
       try {
-        validateCollectResponse({ res: { statusCode: 4 }, url: 'abc.com', name: 'Foo' });
+        validateCollectResponse(cr);
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
@@ -110,11 +111,45 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     it('ok', (done) => {
+      const cr = {
+        res: { statusCode: 200 },
+        preparedUrl: 'abc.com',
+        name: 'Foo',
+        generatorTemplate: {
+          connection: {},
+        },
+      };
       try {
-        validateCollectResponse({ res: { statusCode: 200 }, preparedUrl: 'abc.com', name: 'Foo' });
+        validateCollectResponse(cr);
         done();
       } catch (err) {
         done(err);
+      }
+    });
+
+    it('error if invalid content type', (done) => {
+      const cr = {
+        res: {
+          statusCode: 200,
+          headers: {
+            'content-type': 'text/xml',
+          },
+        },
+        preparedUrl: 'abc.com',
+        name: 'Foo',
+        preparedHeaders: {
+          Accept: 'application/json',
+        },
+      };
+      try {
+        validateCollectResponse(cr);
+        done(new Error('Expecting error'));
+      } catch (err) {
+        console.log(err);
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message',
+          'Accept application/json but got text/xml');
+        done();
       }
     });
   });

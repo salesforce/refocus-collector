@@ -42,12 +42,14 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       }
     }
 
-    const preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
+    // Add the prepared headers to the generator so the handler has access to
+    // them later for validation.
+    generator.preparedHeaders = rce.prepareHeaders(connection.headers, ctx);
 
     // Remote request for fetching data.
     const req = request
-                .get(generator.preparedUrl)
-                .set(preparedHeaders);
+      .get(generator.preparedUrl)
+      .set(generator.preparedHeaders);
 
     const config = configModule.getConfig();
     if (config.dataSourceProxy) {
