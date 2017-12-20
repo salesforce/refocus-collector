@@ -30,25 +30,27 @@ describe('test/commands/start >', () => {
   const refocusProxy = 'http://abcproxy.com';
   const dataSourceProxy = 'http://xyzproxy.com';
 
-  const missingCollectorNameError = 'error: You must specify a collector name\n';
-  const missingUrlError = 'error: You must specify the url of the refocus instance\n';
-  const missingTokenError = 'error: You must specify an access token\n';
+  const missingCollectorNameError = 'error: You must specify a collector name.\n';
+  const missingUrlError = 'error: You must specify the url of the refocus instance.\n';
+  const missingTokenError = 'error: You must specify an access token.\n';
 
   before(() => {
     nock(refocusUrl, {
       reqheaders: { authorization: accessToken },
     })
-    .post('/v1/collectors/collector1/start')
-    .reply(201, { collectorToken });
+    .post('/v1/collectors/start',
+      { name: 'collector1', version: '1.0.0' })
+    .reply(201, { token: collectorToken });
 
     nock(refocusUrl, {
       reqheaders: { authorization: invalidToken },
     })
-    .post('/v1/collectors/collector1/start')
+    .post('/v1/collectors/start',
+      { name: 'collector1', version: '1.0.0' })
     .reply(401);
   });
 
-  describe('from command line', () => {
+  describe('from command line >', () => {
     it('ok', (done) => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
@@ -160,11 +162,12 @@ describe('test/commands/start >', () => {
     });
   });
 
-  describe('execute directly', () => {
+  describe('execute directly >', () => {
     it('ok, no proxy', (done) => {
       start.execute(collectorName, refocusUrl, accessToken, {})
       .then(() => {
         const config = configModule.getConfig();
+        console.log(config.name, config.refocus, repeater.tracker);
         expect(config.name).to.equal(collectorName);
         expect(config.refocus.url).to.equal(refocusUrl);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
@@ -181,8 +184,8 @@ describe('test/commands/start >', () => {
       .catch((err) => {
         expect(err.name).to.equal('CollectorStartError');
         expect(err.explanation).to.equal(
-          'POST http://www.example.com/v1/collectors/collector1/start failed:' +
-          ' 401 Unauthorized');
+          'POST http://www.example.com/v1/collectors/start failed: ' +
+          '401 Unauthorized');
         done();
       });
     });
@@ -191,8 +194,9 @@ describe('test/commands/start >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/collector1/start')
-      .reply(201, { collectorToken });
+      .post('/v1/collectors/start',
+        { name: 'collector1', version: '1.0.0' })
+      .reply(201, { token: collectorToken });
 
       start.execute(
         collectorName, refocusUrl, accessToken,
@@ -216,8 +220,8 @@ describe('test/commands/start >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/collector1/start')
-      .reply(201, { collectorToken });
+      .post('/v1/collectors/start', { name: 'collector1', version: '1.0.0' })
+      .reply(201, { token: collectorToken });
 
       const spy = sinon.spy(request, 'post');
       start.execute(
@@ -240,8 +244,8 @@ describe('test/commands/start >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/collector1/start')
-      .reply(201, { collectorToken });
+      .post('/v1/collectors/start', { name: 'collector1', version: '1.0.0' })
+      .reply(201, { token: collectorToken });
 
       const spy = sinon.spy(request, 'post');
       start.execute(
