@@ -16,12 +16,12 @@ const logger = require('winston');
 const cmdDeregister = require('./deregister');
 
 program
-  .option('-n, --name <name>',
+  .option('-n, --collectorName <name>',
     'Specify a name for the Refocus instance you are deregistering (required)')
   .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
   .parse(process.argv);
 
-const name = program.name;
+const name = program.collectorName;
 
 if (!name || typeof (name) === 'function') {
   logger.error('You must specify a name ' +

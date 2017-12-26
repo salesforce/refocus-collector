@@ -26,9 +26,9 @@ program
 .version(pj.version)
 .command('start --collectorName <name> --refocusUrl <url> --accessToken <token>',
   'Start collector')
-.command('stop --name <name>', 'Stop collector')
-.command('status --name <name>', 'Show current status of collector')
-.command('deregister --name <name>', 'Deregister collector')
+.command('stop --collectorName <name>', 'Stop collector')
+.command('status --collectorName <name>', 'Show current status of collector')
+.command('deregister --collectorName <name>', 'Deregister collector')
 .command('reregister --collectorName <name> --refocusUrl <url> --accessToken <token>',
   'Reregister a collector which has been deregistered');
 
@@ -37,9 +37,9 @@ program.on('--help', () => {
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector start --collectorName=test ' +
     '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
-  console.log('    $ refocus-collector stop --name=test');
-  console.log('    $ refocus-collector status --name=test');
-  console.log('    $ refocus-collector deregister --name=test');
+  console.log('    $ refocus-collector stop --collectorName=test');
+  console.log('    $ refocus-collector status --collectorName=test');
+  console.log('    $ refocus-collector deregister --collectorName=test');
   console.log('    $ refocus-collector reregister --collectorName=test ' +
     '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
   console.log(figlet.textSync('Refocus Collector'));
