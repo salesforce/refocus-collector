@@ -18,9 +18,6 @@ const queueUtils = require('../utils/queueUtils');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 
-// TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
-const encryptionAlgorithm = require('../constants').encryptionAlgorithm;
-
 /**
  * Update the "collectorConfig" attribute of the config.
  *
@@ -70,7 +67,7 @@ function assignContext(ctx, def, collectorToken, res) {
 
     if (ctx.hasOwnProperty(key) && def.hasOwnProperty(key) &&
       def[key].encrypted) {
-      ctx[key] = commonUtils.decrypt(ctx[key], secret, encryptionAlgorithm);
+      ctx[key] = commonUtils.decrypt(ctx[key], secret, res.encryptionAlgorithm);
     }
   });
 

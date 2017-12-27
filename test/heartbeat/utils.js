@@ -14,11 +14,10 @@
 const expect = require('chai').expect;
 const hu = require('../../src/heartbeat/utils');
 const encrypt = require('../../src/utils/commonUtils').encrypt;
-const constants = require('../../src/constants');
 const qUtils = require('../../src/utils/queueUtils');
 const configModule = require('../../src/config/config');
 const repeater = require('../../src/repeater/repeater');
-
+const encryptionAlgorithm = 'aes-256-cbc';
 describe('test/heartbeat/utils.js >', () => {
   const token = 'longaphanumerictoken';
 
@@ -26,6 +25,7 @@ describe('test/heartbeat/utils.js >', () => {
     collectorConfig: {
       heartbeatInterval: 50,
     },
+    encryptionAlgorithm,
     timestamp: Date.now(),
     generatorsAdded: [],
     generatorsUpdated: [],
@@ -102,11 +102,10 @@ describe('test/heartbeat/utils.js >', () => {
     describe('with encrypted ctx attributes', () => {
       const password = 'reallylongsecretpassword';
       const secret = token + hbResponse.timestamp;
-      const algorithm = constants.encryptionAlgorithm;
       it('encrypted ctx attributes must be decrypted back', () => {
         const ctx = {
-          password: encrypt(password, secret, algorithm),
-          token: encrypt(token, secret, algorithm),
+          password: encrypt(password, secret, encryptionAlgorithm),
+          token: encrypt(token, secret, encryptionAlgorithm),
         };
 
         const def = {
@@ -128,8 +127,8 @@ describe('test/heartbeat/utils.js >', () => {
       it('unencrypted ctx attributes should not be effected', () => {
         const notASecret = 'somenotsecretValue';
         const ctx = {
-          password: encrypt(password, secret, algorithm),
-          token: encrypt(token, secret, algorithm),
+          password: encrypt(password, secret, encryptionAlgorithm),
+          token: encrypt(token, secret, encryptionAlgorithm),
           notASecret,
         };
 
