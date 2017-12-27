@@ -30,9 +30,6 @@ module.exports = {
     SERVICE_UNAVAILABLE: 503,
   },
 
-  // TODO: use the encryptionAlgorithm sent by refocus in the heartbeat response
-  encryptionAlgorithm: 'aes-256-cbc',
-
   // generators directory location
   // TODO - remove once we're getting generators from Refocus
   generatorsDir: './generators',

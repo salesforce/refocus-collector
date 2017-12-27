@@ -14,8 +14,7 @@ const listener = require('../../src/heartbeat/listener');
 const tracker = require('../../src/repeater/repeater').tracker;
 const expect = require('chai').expect;
 const encrypt = require('../../src/utils/commonUtils').encrypt;
-const constants = require('../../src/constants');
-
+const encryptionAlgorithm = 'aes-256-cbc';
 describe('test/heartbeat/listener.js >', () => {
   before(() => {
     configModule.clearConfig();
@@ -35,6 +34,7 @@ describe('test/heartbeat/listener.js >', () => {
       heartbeatInterval: 50,
       maxSamplesPerBulkRequest: 10,
     },
+    encryptionAlgorithm,
     generatorsAdded: [
       {
         name: 'Core_Trust1',
@@ -397,7 +397,6 @@ describe('test/heartbeat/listener.js >', () => {
     const password = 'reallylongsecretpassword';
     const token = 'alphanumerictoken';
     const secret = 'collectortoken' + hbResponse.timestamp;
-    const algorithm = constants.encryptionAlgorithm;
     it('added generators with encrypted context attributed should be ' +
       'decrypted before the repeats are created', (done) => {
       const res = {
@@ -405,6 +404,7 @@ describe('test/heartbeat/listener.js >', () => {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
         },
+        encryptionAlgorithm,
         generatorsAdded: [
           {
             name: 'Core_Trust2_With_Encryption',
@@ -430,8 +430,8 @@ describe('test/heartbeat/listener.js >', () => {
             subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
             context: {
               baseUrl: 'https://example.api',
-              password: encrypt(password, secret, algorithm),
-              token: encrypt(token, secret, algorithm),
+              password: encrypt(password, secret, encryptionAlgorithm),
+              token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
             interval: 6000,
@@ -457,6 +457,7 @@ describe('test/heartbeat/listener.js >', () => {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
         },
+        encryptionAlgorithm,
         generatorsAdded: [
           {
             name: 'Core_Trust3_With_Encryption',
@@ -482,8 +483,8 @@ describe('test/heartbeat/listener.js >', () => {
             subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
             context: {
               baseUrl: 'https://example.api',
-              password: encrypt(password, secret, algorithm),
-              token: encrypt(token, secret, algorithm),
+              password: encrypt(password, secret, encryptionAlgorithm),
+              token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
             interval: 6000,
@@ -518,8 +519,8 @@ describe('test/heartbeat/listener.js >', () => {
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: {
             baseUrl: 'https://example.api.v2',
-            password: encrypt(newPassword, secret, algorithm),
-            token: encrypt(newToken, secret, algorithm),
+            password: encrypt(newPassword, secret, encryptionAlgorithm),
+            token: encrypt(newToken, secret, encryptionAlgorithm),
           },
           collectors: [{ name: 'agent2' }],
           interval: 6000,
@@ -541,6 +542,7 @@ describe('test/heartbeat/listener.js >', () => {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
         },
+        encryptionAlgorithm,
         generatorsAdded: [
           {
             name: 'Core_Trust4_With_Encryption',
@@ -566,8 +568,8 @@ describe('test/heartbeat/listener.js >', () => {
             subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
             context: {
               baseUrl: 'https://example.api',
-              password: encrypt(password, secret, algorithm),
-              token: encrypt(token, secret, algorithm),
+              password: encrypt(password, secret, encryptionAlgorithm),
+              token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
             interval: 6000,
@@ -603,7 +605,7 @@ describe('test/heartbeat/listener.js >', () => {
           context: {
             baseUrl: 'https://example.api.v2',
             password: newPassword,
-            token: encrypt(newToken, secret, algorithm),
+            token: encrypt(newToken, secret, encryptionAlgorithm),
           },
           collectors: [{ name: 'agent2' }],
           interval: 6000,
