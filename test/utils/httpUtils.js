@@ -28,7 +28,6 @@ describe('test/utils/httpUtils.js >', () => {
   const properRegistryObject = { url: dummyStr, token: dummyToken };
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
   configModule.clearConfig();
-  configModule.initializeConfig();
 
   describe('doBulkUpsert >', () => {
     const dummyUserToken = 'some-user-token-string-asfdfhsdjf';
@@ -36,10 +35,13 @@ describe('test/utils/httpUtils.js >', () => {
     // clear stub
     after(mock.clearRoutes);
 
-    before(() => {
+    beforeEach(() => {
+      configModule.initializeConfig();
       const config = configModule.getConfig();
       config.refocus.collectorToken = dummyToken;
     });
+
+    after(() => configModule.clearConfig());
 
     it('no url in refocus instance object, gives validation error', (done) => {
       httpUtils.doBulkUpsert([], dummyUserToken)

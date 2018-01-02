@@ -163,6 +163,8 @@ describe('test/commands/start >', () => {
   });
 
   describe('execute directly >', () => {
+    after(() => configModule.clearConfig());
+
     it('ok, no proxy', (done) => {
       start.execute(collectorName, refocusUrl, accessToken, {})
       .then(() => {
