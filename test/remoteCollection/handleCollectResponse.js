@@ -251,6 +251,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     after(() => {
       // restore winston stub
       winstonInfoStub.restore();
+      configModule.clearConfig();
     });
 
     const collectRes = {

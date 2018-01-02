@@ -180,6 +180,8 @@ describe('test/heartbeat/utils.js >', () => {
       repeater.stop(genName2);
     });
 
+    after(() => configModule.clearConfig());
+
     it('different queues are created for different generators', (done) => {
       const heartbeatResp = {
         collectorConfig: {
