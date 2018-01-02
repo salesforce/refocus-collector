@@ -24,8 +24,8 @@ const handleCollectResponse = hcr.handleCollectResponse;
 const prepareTransformArgs = hcr.prepareTransformArgs;
 const queueUtils = require('../../src/utils/queueUtils');
 const httpStatus = require('../../src/constants').httpStatus;
-const configModule = require('../../src/config/config');
 const httpUtils = require('../../src/utils/httpUtils');
+const configModule = require('../../src/config/config');
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('validateCollectResponse >', () => {
@@ -145,7 +145,6 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         validateCollectResponse(cr);
         done(new Error('Expecting error'));
       } catch (err) {
-        console.log(err);
         expect(err).to.have.property('name', 'ValidationError');
         expect(err).to.have.property('message',
           'Accept application/json but got text/xml');
@@ -218,41 +217,17 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
   describe('handleCollectResponse >', () => {
     const generatorName = 'mockGenerator';
-    let winstonInfoStub;
-    configModule.initializeConfig();
-    const config = configModule.getConfig();
-    before(() => {
-      const qParams = {
-        name: generatorName,
-        size: config.refocus.maxSamplesPerBulkRequest,
-        flushTimeout: config.refocus.sampleUpsertQueueTime,
-        verbose: false,
-        flushFunction: httpUtils.doBulkUpsert,
-      };
-      queueUtils.createQueue(qParams);
+    const relatedLinks = [{
+        name: 'Sample Generator',
+        url: 'http://www.example.com/generators/mockGenerator',
+      }, {
+        name: 'Refocus Collector',
+        url: 'http://www.example.com/collectors/collectorName',
+      },
+    ];
 
-      // use nock to mock the response when flushing
-      const sampleArr = [
-        { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
-      ];
-      nock(refocusUrl)
-      .post(bulkEndPoint, sampleArr)
-      .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
-
-      // stub winston info to test the logs
-      winstonInfoStub = sinon.stub(winston, 'info');
-    });
-
-    afterEach(() => {
-      winstonInfoStub.reset();
-      queueUtils.getQueue(generatorName).Items = [];
-    });
-
-    after(() => {
-      // restore winston stub
-      winstonInfoStub.restore();
-    });
-
+    // stub winston info to test the logs
+    let winstonInfoStub = sinon.stub(winston, 'info');
     const collectRes = {
       name: generatorName,
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
@@ -286,112 +261,280 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       preparedUrl: 'abc.com',
     };
 
-    it('OK', (done) => {
-      collectRes.res.statusCode = 200;
-      const expected = [
-        { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+    before(() => {
+      configModule.initializeConfig();
+      const config = configModule.getConfig();
+      config.refocus.url = refocusUrl;
+      config.name = 'collectorName';
+
+      const qParams = {
+        name: generatorName,
+        size: config.refocus.maxSamplesPerBulkRequest,
+        flushTimeout: config.refocus.sampleUpsertQueueTime,
+        verbose: false,
+        flushFunction: httpUtils.doBulkUpsert,
+      };
+      queueUtils.createQueue(qParams);
     });
 
-    it('error handler match - 404', (done) => {
-      collectRes.res.statusCode = 404;
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'NOT FOUND' },
-        { name: 'S1.S2|A2', messageBody: 'NOT FOUND' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+    afterEach(() => {
+      nock.cleanAll();
+      winstonInfoStub.reset();
+      queueUtils.getQueue(generatorName).Items = [];
     });
 
-    it('error handler match - 401', (done) => {
-      collectRes.res.statusCode = 401;
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-        { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+    after(() => {
+      // restore winston stub
+      winstonInfoStub.restore();
+      configModule.clearConfig();
     });
 
-    it('error handler match - 403', (done) => {
-      collectRes.res.statusCode = 403;
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-        { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+    describe('nock with relatedLinks', () => {
+      const collectResCopy = JSON.parse(JSON.stringify(collectRes));
+
+      // use nock to mock the response when flushing
+      function nockResponse(sampleArr) {
+        nock(refocusUrl)
+        .post(bulkEndPoint, sampleArr)
+        .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
+      }
+
+      it('replace generator and collector relatedLinks', (done) => {
+        collectResCopy.res.statusCode = 200;
+        const sampleArr = [
+          {
+            name: 'S1.S2|A1',
+            value: '10',
+            relatedLinks: [{
+              name: 'Sample Generator',
+              url: refocusUrl,
+            },
+            ],
+          }, {
+            name: 'S1.S2|A2',
+            value: '20',
+            relatedLinks: [{
+              name: 'Refocus Collector',
+              url: refocusUrl,
+            },
+            ],
+          },
+        ];
+        collectResCopy.generatorTemplate.transform.default = 'return ' +
+          JSON.stringify(sampleArr);
+        const expected = JSON.parse(JSON.stringify(sampleArr));
+        expected[0].relatedLinks = relatedLinks;
+        expected[1].relatedLinks = relatedLinks;
+
+        nockResponse(sampleArr);
+        handleCollectResponse(Promise.resolve(collectResCopy))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('does NOT replace non-generator, collector relatedLinks', (done) => {
+        collectResCopy.res.statusCode = 200;
+        const originalRelatedLinks = [{
+          name: 'new',
+          url: refocusUrl,
+        },
+        ];
+        const allRelatedLinks = relatedLinks.concat(originalRelatedLinks);
+        const sampleArr = [
+          {
+            name: 'S1.S2|A1',
+            value: '20',
+            relatedLinks: originalRelatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            value: '40',
+            relatedLinks: originalRelatedLinks,
+          },
+        ];
+        collectResCopy.generatorTemplate.transform.default = 'return ' +
+          JSON.stringify(sampleArr);
+        const expected = JSON.parse(JSON.stringify(sampleArr));
+        expected[0].relatedLinks = allRelatedLinks;
+        expected[1].relatedLinks = allRelatedLinks;
+
+        nockResponse(sampleArr);
+        handleCollectResponse(Promise.resolve(collectResCopy))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
     });
 
-    it('error handler match - 500', (done) => {
-      collectRes.res.statusCode = 500;
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
-        { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+    describe('nock without relatedLinks', () => {
+      before(() => {
+        const sampleArr = [
+          { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
+        ];
+
+        // use nock to mock the response when flushing
+        nock(refocusUrl)
+        .post(bulkEndPoint, sampleArr)
+        .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
+      });
+
+      it('OK, new relatedLinks', (done) => {
+        collectRes.res.statusCode = 200;
+        const expected = [
+          {
+            name: 'S1.S2|A1',
+            value: '10',
+            relatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            value: '2',
+            relatedLinks,
+          },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - 404', (done) => {
+        collectRes.res.statusCode = 404;
+        const expected = [
+          { name: 'S1.S2|A1', messageBody: 'NOT FOUND', relatedLinks },
+          { name: 'S1.S2|A2', messageBody: 'NOT FOUND', relatedLinks },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - 401', (done) => {
+        collectRes.res.statusCode = 401;
+        const expected = [{
+            name: 'S1.S2|A1',
+            messageBody: 'UNAUTHORIZED OR FORBIDDEN',
+            relatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            messageBody: 'UNAUTHORIZED OR FORBIDDEN',
+            relatedLinks,
+          },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - 403', (done) => {
+        collectRes.res.statusCode = 403;
+        const expected = [{
+            name: 'S1.S2|A1',
+            messageBody: 'UNAUTHORIZED OR FORBIDDEN',
+            relatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            messageBody: 'UNAUTHORIZED OR FORBIDDEN',
+            relatedLinks,
+          },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - 500', (done) => {
+        collectRes.res.statusCode = 500;
+        const expected = [{
+            name: 'S1.S2|A1',
+            messageBody: 'SERVER ERROR',
+            relatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            messageBody: 'SERVER ERROR',
+            relatedLinks,
+          },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - 503', (done) => {
+        collectRes.res.statusCode = 503;
+        const expected = [{
+            name: 'S1.S2|A1',
+            messageBody: 'SERVER ERROR',
+            relatedLinks,
+          }, {
+            name: 'S1.S2|A2',
+            messageBody: 'SERVER ERROR',
+            relatedLinks,
+          },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('error handler match - override 200', (done) => {
+        collectRes.res.statusCode = 200;
+        collectRes.generatorTemplate.transform.errorHandlers['200'] =
+          'return [{ name: "S1.S2|A1", messageBody: "OK" },'
+          + ' { name: "S1.S2|A2", messageBody: "OK" }]';
+        const expected = [
+          { name: 'S1.S2|A1', messageBody: 'OK', relatedLinks },
+          { name: 'S1.S2|A2', messageBody: 'OK', relatedLinks },
+        ];
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('no match - default error handler', (done) => {
+        collectRes.res.statusCode = 400;
+        collectRes.res.statusMessage = 'MOCK 400';
+        const expected = defaultErrorSamples(400, 'MOCK 400');
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
+
+      it('no error handlers - default error handler', (done) => {
+        collectRes.generatorTemplate.transform.errorHandlers = {};
+        collectRes.res.statusCode = 404;
+        collectRes.res.statusMessage = 'MOCK 404';
+        const expected = defaultErrorSamples(404, 'MOCK 404');
+        handleCollectResponse(Promise.resolve(collectRes))
+        .then(() => checkLogs(expected))
+        .then(done)
+        .catch(done);
+      });
     });
 
-    it('error handler match - 503', (done) => {
-      collectRes.res.statusCode = 503;
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
-        { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
+    /**
+     * Check for equality without relatedLinks.
+     * Check for order-neutral equality of relatedLinks.
+     *
+     * @param {Object} actualObject
+     * @param {Object} expectedObject
+     */
+    function checkObject(actualObject, expectedObject) {
+      expect(actualObject.relatedLinks.length).to.equal(expectedObject.relatedLinks.length);
+      actualObject.relatedLinks.forEach((object) => {
+        expect(expectedObject.relatedLinks).to.contain(object);
+      });
 
-    it('error handler match - override 200', (done) => {
-      collectRes.res.statusCode = 200;
-      collectRes.generatorTemplate.transform.errorHandlers['200'] =
-        'return [{ name: "S1.S2|A1", messageBody: "OK" },'
-        + ' { name: "S1.S2|A2", messageBody: "OK" }]';
-      const expected = [
-        { name: 'S1.S2|A1', messageBody: 'OK' },
-        { name: 'S1.S2|A2', messageBody: 'OK' },
-      ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
-
-    it('no match - default error handler', (done) => {
-      collectRes.res.statusCode = 400;
-      collectRes.res.statusMessage = 'MOCK 400';
-      const expected = defaultErrorSamples(400, 'MOCK 400');
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
-
-    it('no error handlers - default error handler', (done) => {
-      collectRes.generatorTemplate.transform.errorHandlers = {};
-      collectRes.res.statusCode = 404;
-      collectRes.res.statusMessage = 'MOCK 404';
-      const expected = defaultErrorSamples(404, 'MOCK 404');
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
-    });
+      delete actualObject.relatedLinks;
+      delete expectedObject.relatedLinks;
+      expect(actualObject).to.eql(expectedObject);
+    }
 
     function checkLogs(expected) {
       expect(winston.info.calledOnce).to.be.true;
@@ -400,8 +543,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .contains(`numSamples: ${expected.length}`);
       const queue = queueUtils.getQueue(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
-      expect(queue.items[0]).to.eql(expected[0]);
-      expect(queue.items[1]).to.eql(expected[1]);
+
+      queue.items.forEach((object, index) => {
+        checkObject(object, expected[index]);
+      });
     }
 
     function defaultErrorSamples(statusCode, statusMessage) {
@@ -411,14 +556,14 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
-          relatedLinks: [],
+          relatedLinks,
         },
         {
           name: 'S1.S2|A2',
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
-          relatedLinks: [],
+          relatedLinks,
         },
       ];
     }

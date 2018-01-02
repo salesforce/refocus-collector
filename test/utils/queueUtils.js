@@ -12,6 +12,8 @@
 const expect = require('chai').expect;
 const queueUtils = require('../../src/utils/queueUtils');
 const errors = require('../../src/errors');
+const configModule = require('../../src/config/config');
+const refocusUrl = 'http://www.example.com';
 
 function flushFunction(data) {
   return data;
@@ -30,6 +32,13 @@ const queueParams = {
 };
 
 describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
+  before(() => {
+    configModule.clearConfig();
+    configModule.initializeConfig();
+  });
+
+  after(() => configModule.clearConfig());
+
   it('Create queue', (done) => {
     queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
@@ -148,10 +157,23 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
     }, 400);
   });
 
-  it('Enqueue function test', (done) => {
+  it('Enqueue function test, new relatedLinks', (done) => {
+    const config = configModule.getConfig();
+    config.refocus.url = refocusUrl;
+    config.name = 'collectorName';
+    const samplesArr = [{
+      name: 'B|A1', value: '1',
+    }, {
+      name: 'B|A2', value: '1',
+    }, {
+      name: 'B|A3', value: '1',
+    }, {
+      name: 'B|A4', value: '1',
+    },
+    ];
     queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
-    queueUtils.enqueueFromArray('test', [1, 2, 3, 4]);
+    queueUtils.enqueueFromArray('test', samplesArr);
     expect(queue.items.length).to.be.equal(4);
     return done();
   });
