@@ -330,6 +330,29 @@ describe('test/repeater/repeater.js >', () => {
     });
   });
 
+  describe('stopAllRepeat >', () => {
+    it('OK even when tracker is empty', (done) => {
+      const _tracker = repeater.stopAllRepeat();
+      expect(_tracker).to.deep.equal({});
+      done();
+    });
+
+    it('OK with tracker tracking repeats', (done) => {
+      function stub() {}
+
+      const def = {
+        name: 'Generators_To_Stop',
+        interval: 1,
+        func: stub,
+      };
+
+      repeater.create(def);
+      const _tracker = repeater.stopAllRepeat();
+      expect(_tracker).to.deep.equal({});
+      done();
+    });
+  });
+
   describe('validateDefinition >', () => {
     it('OK', (done) => {
       repeater.create({ name: 'Gen', interval: 10, func: () => {} });

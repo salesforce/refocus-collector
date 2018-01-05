@@ -83,6 +83,29 @@ function onFailure(err) {
 } // onFailure
 
 /**
+ * Stops all the repeats tracked in the repeat tracker and clears them from the
+ * tracker.
+ * @returns {Object} The tracker object tracking all the repeats
+ */
+function stopAllRepeat() {
+  Object.keys(tracker).forEach((key) => {
+    if (tracker[key].stop) {
+      tracker[key].stop();
+    } else {
+      Object.keys(tracker[key]).forEach((nestedKey) => {
+        if (tracker[key][nestedKey].stop) {
+          tracker[key][nestedKey].stop();
+        }
+      });
+    }
+
+    delete tracker[key];
+  });
+
+  return tracker;
+} // stopAllRepeat
+
+/**
  * Stops the named repeater and deletes it from the tracker.
  *
  * @param {String} name - Name of the repeat
@@ -195,7 +218,8 @@ function createGeneratorRepeater(generator) {
 module.exports = {
   create,
   createGeneratorRepeater,
-  tracker, // export for testing only
+  tracker,
   stop,
   validateDefinition, // export for testing only
+  stopAllRepeat,
 };

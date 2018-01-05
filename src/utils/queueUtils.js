@@ -71,6 +71,7 @@ function enqueueFromArray(name, arrayData, validationFunction=null) {
 }
 
 module.exports = {
+  queueListObject,
   createQueue,
   getQueue,
   enqueueFromArray,

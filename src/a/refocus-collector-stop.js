@@ -7,17 +7,16 @@
  */
 
 /**
- * src/commands/refocus-collector-deregister.js
+ * src/commands/refocus-collector-stop.js
  *
- * Executes the "deregister" command.
+ * Calls the "stop" command.
  */
 const program = require('commander');
 const logger = require('winston');
-const cmdDeregister = require('./deregister');
 
 program
   .option('-n, --collectorName <name>',
-    'Specify a name for the Refocus instance you are deregistering (required)')
+    'Specify a name for the Refocus instance you are stopping (required)')
   .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
   .parse(process.argv);
 
@@ -25,13 +24,12 @@ const name = program.collectorName;
 
 if (!name || typeof (name) === 'function') {
   logger.error('You must specify a name ' +
-    'for the Refocus instance you are deregistering.');
+    'for the Refocus instance you are stopping.');
   process.exit(1);
 }
 
 try {
-  console.log('Deregister =>', name);
-  cmdDeregister.execute(name);
+  console.log('Stop ??=>', name);
 } catch (err) {
   logger.error(err.message);
   logger.error(err);

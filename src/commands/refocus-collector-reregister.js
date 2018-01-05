@@ -9,7 +9,7 @@
 /**
  * src/commands/refocus-collector-reregister.js
  *
- * Calls the "reregister" command.
+ * Executes the "reregister" command.
  */
 const program = require('commander');
 const logger = require('winston');

@@ -10,7 +10,6 @@
  * test/commands/deregister.js
  */
 'use strict';
-const utils = require('../testUtils');
 const expect = require('chai').expect;
 
 describe('test/commands/deregister >', () => {

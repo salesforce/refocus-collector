@@ -18,7 +18,6 @@
 const program = require('commander');
 const logger = require('winston');
 const figlet = require('figlet');
-const constants = require('../constants');
 const conf = require('../config/config');
 const pj = require('../../package.json');
 
@@ -37,7 +36,7 @@ program.on('--help', () => {
   console.log('    $ refocus-collector --help');
   console.log('    $ refocus-collector start --collectorName=test ' +
     '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijfdhkfjhkfdhg');
-  console.log('    $ refocus-collector stop --collectorName=test');
+  console.log('    $ refocus-collector1 stop --collectorName=test');
   console.log('    $ refocus-collector status --collectorName=test');
   console.log('    $ refocus-collector deregister --collectorName=test');
   console.log('    $ refocus-collector reregister --collectorName=test ' +

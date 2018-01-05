@@ -9,28 +9,20 @@
 /**
  * src/commands/refocus-collector-stop.js
  *
- * Calls the "stop" command.
+ * Executes the "stop" command.
  */
 const program = require('commander');
 const logger = require('winston');
+const cmdStart = require('./stop');
 
 program
-  .option('-n, --collectorName <name>',
-    'Specify a name for the Refocus instance you are stopping (required)')
-  .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
+  .option('-f, --force', 'Stop the collector without flushing the samples')
   .parse(process.argv);
 
-const name = program.collectorName;
-
-if (!name || typeof (name) === 'function') {
-  logger.error('You must specify a name ' +
-    'for the Refocus instance you are stopping.');
-  process.exit(1);
-}
-
-try {
-  console.log('Stop =>', name);
-} catch (err) {
+cmdStart.execute(program.force)
+.catch((err) => {
   logger.error(err.message);
-  logger.error(err);
-}
+  logger.error(err.explanation);
+  logger.error(err.response);
+});
+
