@@ -9,15 +9,17 @@
 /**
  * test/utils/queueUtils.js
  */
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const queueUtils = require('../../src/utils/queueUtils');
 const errors = require('../../src/errors');
+const configModule = require('../../src/config/config');
 
 function flushFunction(data) {
   return data;
 }
 
-function validateError(data) {
+function validateError() {
   throw new errors.ValidationError('validateError');
 }
 
@@ -26,10 +28,19 @@ const queueParams = {
   size: 100,
   flushTimeout: 4000,
   verbose: false,
-  flushFunction: flushFunction,
+  flushFunction,
 };
 
 describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
+  before(() => {
+    /*
+     * clear and initialize the config to avoid any errors while flushing all
+     * buffered queue objects
+     */
+    configModule.clearConfig();
+    configModule.initializeConfig();
+  });
+
   it('Create queue', (done) => {
     queueUtils.createQueue(queueParams);
     const queue = queueUtils.getQueue('test');
@@ -73,12 +84,43 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
       size: 100,
       flushTimeout: 3000,
       verbose: false,
-      flushFunction: flushFunction,
+      flushFunction,
     });
     const queue = queueUtils.getQueue('test');
     const queue1 = queueUtils.getQueue('test1');
     expect(queue._size).to.be.equal(100);
     expect(queue1._size).to.be.equal(100);
+    return done();
+  });
+
+  it('flush all buffered queue objects', (done) => {
+    const firstQueue = queueUtils.createQueue({
+      name: 'firstQueue',
+      size: 100,
+      flushTimeout: 3000,
+      verbose: false,
+      flushFunction,
+    });
+
+    const secondQueue = queueUtils.createQueue({
+      name: 'secondQueue',
+      size: 100,
+      flushTimeout: 3000,
+      verbose: false,
+      flushFunction,
+    });
+
+    const dataArray = ['1', '2', '3'];
+    queueUtils.enqueueFromArray('firstQueue', dataArray);
+    queueUtils.enqueueFromArray('secondQueue', dataArray);
+    expect(firstQueue.Items).deep.equal(dataArray);
+    expect(secondQueue.Items).deep.equal(dataArray);
+
+    // call flush all
+    queueUtils.flushAllBufferedQueues();
+
+    expect(firstQueue.Items).deep.equal([]);
+    expect(secondQueue.Items).deep.equal([]);
     return done();
   });
 
@@ -88,7 +130,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
       size: 3,
       flushTimeout: 300,
       verbose: false,
-      flushFunction: flushFunction,
+      flushFunction,
     });
     const queue = queueUtils.getQueue('test');
     queue.add(1);
@@ -105,7 +147,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
       size: 100,
       flushTimeout: 300,
       verbose: false,
-      flushFunction: flushFunction,
+      flushFunction,
     });
     const queue = queueUtils.getQueue('test');
     queue.add(1);
@@ -158,7 +200,6 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
 
   it('Validation individual data error test', (done) => {
     queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
     try {
       queueUtils.enqueueFromArray('test', [1, 2, 3, 4], validateError);
     } catch (err) {

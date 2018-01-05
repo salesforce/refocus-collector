@@ -55,39 +55,30 @@ function sendStopRequest() {
 }
 
 /**
- * Flushes the buffered queue that has been created for each of the generator
- */
-function flushEnqueuedSamples() {
-  Object.keys(queueUtils.queueListObject).forEach((bq) => {
-    queueUtils.queueListObject[bq].onFlush();
-  });
-}
-
-/**
  * Calling execute does the following
  * . Stops all the generator repeat
  * . Flushes the buffered queue for each of the generator if force termination
  *    is not requested
  * . Sends a POST request to change the status of the collector to stop in the
  *   refocus server.
- * @param {Boolean} forceTerminate Set to true if we need to flush
+ * @param {Boolean} forceTerminate - Set to true if we need to flush
  *  @returns {Object} Response of the stop collector endpoint.
  */
 function execute(forceTerminate) {
-  debug('Entered start.execute');
+  debug('Entered stop.execute');
 
   repeater.stopAllRepeat();
 
   // do not flush when force termination is requested
   if (!forceTerminate) {
-    flushEnqueuedSamples();
+    queueUtils.flushAllBufferedQueues();
   }
 
   return sendStopRequest();
+  debug('Exited stop.execute');
   process.exit();
 } // execute
 
 module.exports = {
   execute,
-  flushEnqueuedSamples,
 };
