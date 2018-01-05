@@ -14,12 +14,20 @@
 const program = require('commander');
 const logger = require('winston');
 const cmdStart = require('./stop');
+const debug = require('debug')('refocus-collector:commands');
 
 program
   .option('-f, --force', 'Stop the collector without flushing the samples')
   .parse(process.argv);
 
+debug('About to enter stop.execute');
 cmdStart.execute(program.force)
+.then(() => {
+  debug('Exiting stop.execute');
+
+  // exit the process finally
+  process.exit();
+})
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);

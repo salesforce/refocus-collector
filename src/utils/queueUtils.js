@@ -13,6 +13,7 @@
 const logger = require('winston');
 const Queue = require('buffered-queue');
 const errors = require('../errors');
+const debug = require('debug')('refocus-collector:commonUtils');
 let queueObject;
 const queueListObject = {};
 
@@ -25,6 +26,7 @@ const queueListObject = {};
  * @returns {Object} The created buffered queue object
  */
 function createQueue(queueParams) {
+  debug('Entered queueUtils.createQueue', queueParams);
   queueObject = new Queue(queueParams.name, {
     size: queueParams.size,
     flushTimeout: queueParams.flushTimeout,
