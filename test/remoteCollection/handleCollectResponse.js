@@ -217,15 +217,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
   describe('handleCollectResponse >', () => {
     const generatorName = 'mockGenerator';
-    const relatedLinks = [{
-        name: 'Sample Generator',
-        url: 'http://www.example.com/generators/mockGenerator',
-      }, {
-        name: 'Refocus Collector',
-        url: 'http://www.example.com/collectors/collectorName',
-      },
-    ];
-
+    
     // stub winston info to test the logs
     let winstonInfoStub = sinon.stub(winston, 'info');
     const collectRes = {
