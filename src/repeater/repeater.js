@@ -88,6 +88,7 @@ function onFailure(err) {
  * @returns {Object} The tracker object tracking all the repeats
  */
 function stopAllRepeat() {
+  debug('Entered repeater.stopAllRepeat');
   Object.keys(tracker).forEach((key) => {
     if (tracker[key].stop) {
       tracker[key].stop();
