@@ -26,6 +26,7 @@ const collectorToken = 'zyxwvutsrqponmlkjihgfedcba';
 const refocusProxy = 'http://refocusproxy.com';
 const dataSourceProxy = 'http://datasourceproxy.com';
 const httpStatus = require('../../src/constants.js').httpStatus;
+const queueUtils = require('../../src/utils/queueUtils');
 
 beforeEach((done) => {
   nock(refocusUrl, {
@@ -61,6 +62,7 @@ describe('test/commands/stop >', () => {
   });
 
   it('stop without proxy', (done) => {
+    const spy = sinon.spy(queueUtils, 'flushAllBufferedQueues');
     start.execute(collectorName, refocusUrl, accessToken, {})
     .then(() => {
       // make sure start created the repeat
@@ -70,13 +72,39 @@ describe('test/commands/stop >', () => {
     .then((res) => {
       expect(res.status).to.equal(httpStatus.OK);
       expect(repeater.tracker.heartbeat).to.equal(undefined);
-      repeater.stopAllRepeat();
+
+      // make sure that flushAllBufferedQueues was called
+      expect(spy.calledOnce).to.equal(true);
+      spy.restore();
       done();
     })
     .catch((err) => done(err));
   });
 
   it('stop with proxy', (done) => {
+    const spy = sinon.spy(queueUtils, 'flushAllBufferedQueues');
+    start.execute(collectorName, refocusUrl, accessToken,
+      { refocusProxy, dataSourceProxy }
+    )
+    .then(() => {
+      // make sure start created the repeat
+      expect(repeater.tracker.heartbeat).to.be.an('object');
+    })
+    .then(() => stop.execute())
+    .then((res) => {
+      expect(res.status).to.equal(httpStatus.OK);
+      expect(repeater.tracker.heartbeat).to.equal(undefined);
+
+      // make sure that flushAllBufferedQueues was called
+      expect(spy.calledOnce).to.equal(true);
+      spy.restore();
+      done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('force stop, flush should not be called', (done) => {
+    const spy = sinon.spy(queueUtils, 'flushAllBufferedQueues');
     start.execute(collectorName, refocusUrl, accessToken,
       { refocusProxy, dataSourceProxy }
     )
@@ -88,23 +116,10 @@ describe('test/commands/stop >', () => {
     .then((res) => {
       expect(res.status).to.equal(httpStatus.OK);
       expect(repeater.tracker.heartbeat).to.equal(undefined);
-      done();
-    })
-    .catch((err) => done(err));
-  });
 
-  it('force stop, flush should not be called', (done) => {
-    start.execute(collectorName, refocusUrl, accessToken,
-      { refocusProxy, dataSourceProxy }
-    )
-    .then(() => {
-      // make sure start created the repeat
-      expect(repeater.tracker.heartbeat).to.be.an('object');
-    })
-    .then(() => stop.execute())
-    .then((res) => {
-      expect(res.status).to.equal(httpStatus.OK);
-      expect(repeater.tracker.heartbeat).to.equal(undefined);
+      // make sure that "flushAllBufferedQueues" was not called
+      expect(spy.calledOnce).to.equal(false);
+      spy.restore();
       done();
     })
     .catch((err) => done(err));
