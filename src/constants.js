@@ -33,4 +33,5 @@ module.exports = {
   // generators directory location
   // TODO - remove once we're getting generators from Refocus
   generatorsDir: './generators',
+  heartbeatRepeatName: 'heartbeat',
 };

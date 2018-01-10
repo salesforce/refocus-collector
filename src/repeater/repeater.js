@@ -17,6 +17,7 @@ const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
+const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const u = require('../utils/commonUtils');
 
 /**
@@ -24,7 +25,6 @@ const u = require('../utils/commonUtils');
  * The tracker object looks like this:
  *  {
  *    'heartbeat': repeatHandle,
- *    'sampleQueueFlush': repeatHandle,
  *    'generator1' : { // when bulk is true
  *      _bulk: repeatHandle,
  *    }
@@ -83,54 +83,89 @@ function onFailure(err) {
 } // onFailure
 
 /**
- * Stops all the repeats tracked in the repeat tracker and clears them from the
- * tracker.
- * @returns {Object} The tracker object tracking all the repeats
+ * Changes the state of a repeater, given the repeater name and its new state.
+ * For example to pause a repeater named "foo", call
+ * changedRepatState(foo, pause).
+ * @param {String} name - Name of the repeat
+ * @param {String} newState - New start of the repeat
  */
-function stopAllRepeat() {
-  debug('Entered repeater.stopAllRepeat');
-  Object.keys(tracker).forEach((key) => {
-    if (tracker[key].stop) {
-      tracker[key].stop();
-    } else {
-      Object.keys(tracker[key]).forEach((nestedKey) => {
-        if (tracker[key][nestedKey].stop) {
-          tracker[key][nestedKey].stop();
-        }
-      });
-    }
+function changeRepeatState(name, newState) {
+  if (!name || !tracker[name]) {
+    throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
+  }
 
-    delete tracker[key];
-  });
-
-  return tracker;
-} // stopAllRepeat
+  if (tracker[name][newState]) {
+    tracker[name][newState]();
+  } else {
+    Object.keys(tracker[name]).forEach((prop) => {
+      if (tracker[name][prop][newState]) {
+        tracker[name][prop][newState]();
+      }
+    });
+  }
+} // changeRepeatState
 
 /**
  * Stops the named repeater and deletes it from the tracker.
  *
  * @param {String} name - Name of the repeat
  * @throws {ValidationError} If "obj" does not have a name attribute.
- * @throws {ResourceNotFoundError} If the repeat identified by obj.name is not
- * found in the tracker.
  */
 function stop(name) {
-  if (!name || !tracker[name]) {
-    throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
-  }
-
-  if (tracker[name].stop) {
-    tracker[name].stop();
-  } else {
-    Object.keys(tracker[name]).forEach((prop) => {
-      tracker[name][prop].stop();
-      delete tracker[name][prop];
-    });
-  }
-
+  changeRepeatState(name, 'stop');
   delete tracker[name];
-  logger.info(`Stopped repeater identified by: ${name}`);
+  logger.info(`Stopped the repeater identified by: ${name}`);
 } // stop
+
+/**
+ * Stops all the repeats tracked in the repeat tracker and clears them from the
+ * tracker.
+ * @returns {Object} The tracker object tracking all the repeats
+ */
+function stopAllRepeat() {
+  debug('Entered repeater.stopAllRepeat');
+  Object.keys(tracker).forEach(stop);
+
+  return tracker;
+} // stopAllRepeat
+
+/**
+ * Pauses the repeater, given its name
+ * @param  {String} name - Name of the repeat
+ */
+function pause(name) {
+  changeRepeatState(name, 'pause');
+  logger.info(`Paused the repeater identified by: ${name}`);
+} // pause
+
+/**
+ * Pauses all the generator repeates.
+ * @returns {Object} The tracker object tracking all the repeats
+ */
+function pauseGenerators() {
+  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
+    .forEach(pause);
+  return tracker;
+} // pauseGenerators
+
+/**
+ * Resumes a paused repeater, given its name
+ * @param  {String} name - Name of the repeat
+ */
+function resume(name) {
+  changeRepeatState(name, 'resume');
+  logger.info(`Resumed the repeater identified by: ${name}`);
+} // resume
+
+/**
+ * Pauses all the generator repeates.
+ * @returns {Object} The tracker object tracking all the repeats
+ */
+function resumeGenerators() {
+  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
+    .forEach(resume);
+  return tracker;
+} // resumeGenerators
 
 /**
  * Validate the repeater definition.
@@ -219,8 +254,12 @@ function createGeneratorRepeater(generator) {
 module.exports = {
   create,
   createGeneratorRepeater,
+  pause,
+  pauseGenerators,
+  resume,
   tracker,
+  resumeGenerators,
   stop,
-  validateDefinition, // export for testing only
   stopAllRepeat,
+  validateDefinition, // export for testing only
 };

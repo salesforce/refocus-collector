@@ -353,6 +353,96 @@ describe('test/repeater/repeater.js >', () => {
     });
   });
 
+  describe('pause and resume >', () => {
+    it('OK even when tracker is empty', (done) => {
+      let _tracker = repeater.pauseGenerators();
+      expect(_tracker).to.deep.equal({});
+      _tracker = repeater.resumeGenerators();
+      expect(_tracker).to.deep.equal({});
+      done();
+    });
+
+    it('pause and resume should pause and resume the task function ' +
+      'passed in', (done) => {
+      let count1 = 0;
+      let count2 = 0;
+      function stub1() {
+        count1++;
+      }
+
+      function stub2() {
+        count2++;
+      }
+
+      repeater.create({
+        name: 'Generator_Pause_Resume_1',
+        interval: 15,
+        func: stub1,
+      });
+
+      repeater.create({
+        name: 'Generator_Pause_Resume_2',
+        interval: 15,
+        func: stub2,
+      });
+
+      let count1BeforePause;
+      let count2BeforePause;
+      setTimeout(() => {
+        // proves start was called and the task was executed
+        expect(count1).to.be.at.least(1);
+        expect(count2).to.be.at.least(1);
+
+        count1BeforePause = count1;
+        count2BeforePause = count2;
+
+        // pause the repeat
+        repeater.pauseGenerators();
+      }, 30);
+
+      setTimeout(() => {
+        // proves that the repeat did not run after it was paused
+        expect(count1).to.equal(count1BeforePause);
+        expect(count2).to.equal(count2BeforePause);
+
+        // resume repeat
+        repeater.resumeGenerators();
+      }, 60);
+
+      setTimeout(() => {
+        // proves that calling resume, resumes the task
+        expect(count1).to.be.above(count1BeforePause);
+        expect(count2).to.be.above(count2BeforePause);
+
+        repeater.stopAllRepeat();
+
+        return done();
+      }, 90);
+    });
+
+    it('pauseGenerators should not affect the heartbeat repeat', (done) => {
+      let count = 0;
+      function stub() {
+        count++;
+      }
+
+      repeater.create({
+        name: 'heartbeat',
+        interval: 1,
+        func: stub,
+      });
+      repeater.pauseGenerators();
+      setTimeout(() => {
+        // proves that pause did not effect the heartbeat repeat
+        expect(count).to.be.above(0);
+
+        repeater.stopAllRepeat();
+
+        return done();
+      }, 25);
+    });
+  });
+
   describe('validateDefinition >', () => {
     it('OK', (done) => {
       repeater.create({ name: 'Gen', interval: 10, func: () => {} });
@@ -362,7 +452,7 @@ describe('test/repeater/repeater.js >', () => {
     it('missing func', (done) => {
       try {
         repeater.create({ name: 'Gen', interval: 10 });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -375,7 +465,7 @@ describe('test/repeater/repeater.js >', () => {
     it('wrong typeof func', (done) => {
       try {
         repeater.create({ name: 'Gen', interval: 10, func: 'Hello!' });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -388,7 +478,7 @@ describe('test/repeater/repeater.js >', () => {
     it('missing name', (done) => {
       try {
         repeater.create({ interval: 10, func: () => {} });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -401,7 +491,7 @@ describe('test/repeater/repeater.js >', () => {
     it('wrong typeof name', (done) => {
       try {
         repeater.create({ name: 123, interval: 10, func: () => {} });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -414,7 +504,7 @@ describe('test/repeater/repeater.js >', () => {
     it('missing interval', (done) => {
       try {
         repeater.create({ name: 'Gen', func: () => {} });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -427,7 +517,7 @@ describe('test/repeater/repeater.js >', () => {
     it('wrong typeof interval', (done) => {
       try {
         repeater.create({ name: 'Gen', interval: '10', func: () => {} });
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -442,8 +532,7 @@ describe('test/repeater/repeater.js >', () => {
 
       try {
         repeater.create(def);
-        repeater.create(def);
-        done('Expecting ValidationError');
+        return done('Expecting ValidationError');
       } catch (err) {
         if (err.name === 'ValidationError' &&
           err.message === 'Duplicate repeater name violation: Gen') {
@@ -451,6 +540,50 @@ describe('test/repeater/repeater.js >', () => {
         }
 
         return done(err);
+      }
+    });
+
+    it('pausing a repeat without a name', (done) => {
+      try {
+        repeater.pause();
+        return done('Expecting ResourceNotFoundError');
+      } catch (err) {
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.message).to.contain('not found');
+        return done();
+      }
+    });
+
+    it('pausing a non existing repeat', (done) => {
+      try {
+        repeater.pause('Non_Existing_Repeat');
+        return done('Expecting ResourceNotFoundError');
+      } catch (err) {
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.message).to.contain('not found');
+        return done();
+      }
+    });
+
+    it('resuming a repeat without a name', (done) => {
+      try {
+        repeater.resume();
+        return done('Expecting ResourceNotFoundError');
+      } catch (err) {
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.message).to.contain('not found');
+        return done();
+      }
+    });
+
+    it('resuming a non existing repeat', (done) => {
+      try {
+        repeater.resume('Non_Existing_Repeat');
+        return done('Expecting ResourceNotFoundError');
+      } catch (err) {
+        expect(err.name).to.equal('ResourceNotFoundError');
+        expect(err.message).to.contain('not found');
+        return done();
       }
     });
   });
