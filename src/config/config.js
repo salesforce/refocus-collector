@@ -110,15 +110,13 @@ function getDefaultConfig() {
 } // init
 
 /**
- * Initialize the config object, if it has not been initialized.
+ * Initialize the config object.
  *
  * @param {Object} reg - Registry object or location of registry file
  */
 function initializeConfig() {
-  if (!config) {
-    config = getDefaultConfig();
-    debug('Initialized config: %o', config);
-  }
+  config = getDefaultConfig();
+  debug('Initialized config: %o', config);
 } // initializeConfig
 
 /**

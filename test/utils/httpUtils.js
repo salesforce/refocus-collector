@@ -89,6 +89,8 @@ describe('test/utils/httpUtils.js >', () => {
     // failed bulkUpsert response
 
     it('empty array is ok', (done) => {
+      const config = configModule.getConfig();
+      config.refocus.url = dummyStr;
 
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
@@ -101,6 +103,8 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('array of samples is returned', (done) => {
+      const config = configModule.getConfig();
+      config.refocus.url = dummyStr;
 
       // TODO: change to nock, stub response
       mock.post(properRegistryObject.url + bulkUpsertPath,

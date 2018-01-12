@@ -50,6 +50,12 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
     req.proxy(refocusProxy); // set proxy for following request
   }
 
+  /*
+   * freeze the attributes of config.refocus added by the start command
+   * to avoid any accidentals edits/deletes to it.
+   */
+  Object.keys(config.refocus).forEach(Object.freeze);
+
   return req.then((res) => {
     debug('start execute response body', res.body);
     config.refocus.collectorToken = res.body.token;

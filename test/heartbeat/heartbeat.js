@@ -9,31 +9,53 @@
 /**
  * test/heartbeat/heartbeat.js
  */
-'use strict';
-
-const mock = require('mock-fs');
+'use strict'; // eslint-disable-line strict
+const nock = require('nock');
 const expect = require('chai').expect;
-const errors = require('../../src/errors');
 const configModule = require('../../src/config/config');
-configModule.clearConfig();
-configModule.initializeConfig();
-let config = configModule.getConfig();
 const heartbeat = require('../../src/heartbeat/heartbeat');
+const httpStatus = require('../../src/constants').httpStatus;
+const repeater = require('../../src/repeater/repeater');
+const sendHeartbeat = heartbeat.sendHeartbeat;
+
+let config;
 
 const generator1 = {
-  name: 'generator1',
-  interval: 6000,
+  name: 'Core_Trust1_heartbeat',
   aspects: [{ name: 'A1', timeout: '1m' }],
+  generatorTemplateName: 'refocus-trust1-collector',
+  subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+  context: { baseUrl: 'https://example.api', },
+  collectors: [{ name: 'agent1' }],
   generatorTemplate: {
+    name: 'refocus-trust1-collector',
     connection: {
-      url: 'http://www.abc.com',
+      url: 'https://example.api',
       bulk: true,
     },
   },
+  interval: 6000,
+};
+
+const generator1Updated = {
+  name: 'Core_Trust1_heartbeat',
+  aspects: [{ name: 'A1', timeout: '1m' }],
+  generatorTemplateName: 'refocus-trust1-collector',
+  subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+  context: { baseUrl: 'https://example.api', },
+  collectors: [{ name: 'agent1' }],
+  generatorTemplate: {
+    name: 'refocus-trust1-collector',
+    connection: {
+      url: 'https://example.api/v2',
+      bulk: true,
+    },
+  },
+  interval: 12000,
 };
 
 const generator2 = {
-  name: 'generator2',
+  name: 'generator2_heartbeat',
   interval: 6000,
   aspects: [{ name: 'A2', timeout: '1m' }],
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
@@ -46,7 +68,7 @@ const generator2 = {
 };
 
 const generator3 = {
-  name: 'generator3',
+  name: 'generator3_heartbeat',
   interval: 6000,
   aspects: [{ name: 'A3', timeout: '1m' }],
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
@@ -58,303 +80,185 @@ const generator3 = {
   },
 };
 
-function mockOld(contents) {
-  return mock.file({
-    content: JSON.stringify(contents),
-    mtime: Date.now() - 10000,
-  });
-}
+const errorResponse = {
+  error: 'Forbidden error with heartbeat',
+};
 
-function mockNew(contents) {
-  return mock.file({
-    content: JSON.stringify(contents),
-    mtime: Date.now(),
-  });
-}
+const hbResponseNoSG = {
+  collectorConfig: {
+    heartbeatInterval: 50,
+    maxSamplesPerBulkRequest: 10,
+    sampleUpsertQueueTime: 100,
+  },
+  generatorsAdded: [],
+  generatorsUpdated: [],
+  generatorsDeleted: [],
+};
+
+const hbResponseWithSG = {
+  collectorConfig: {
+    heartbeatInterval: 20,
+    maxSamplesPerBulkRequest: 100,
+  },
+  generatorsAdded: [
+    generator1,
+  ],
+  generatorsUpdated: [],
+  generatorsDeleted: [],
+};
+
+const hbResponseWithSGToDelete = {
+  collectorConfig: {
+    heartbeatInterval: 99,
+    maxSamplesPerBulkRequest: 999,
+  },
+  generatorsAdded: [
+  ],
+  generatorsUpdated: [],
+  generatorsDeleted: [
+    generator1,
+    generator2,
+    generator3,
+  ],
+};
+
+const hbResponseWithSGToUpdate = {
+  collectorConfig: {
+    heartbeatInterval: 120,
+    maxSamplesPerBulkRequest: 7000,
+  },
+  generatorsAdded: [
+    generator2,
+    generator3,
+  ],
+  generatorsUpdated: [
+    generator1Updated,
+  ],
+  generatorsDeleted: [],
+};
 
 describe('test/heartbeat/heartbeat.js >', () => {
-  const url = 'https://www.example.com';
-  const token = 'cCI6IkpXV5ciOiJIUzI1CJ9eyJhbGNiIsInR';
-  const refocusInstanceName = 'exampleRefocusInstance';
+  const refocusUrl = 'http://refocusheartbeatmock.com';
+  const collectorName = 'collectorForHeartbeatTests';
+  const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
+  const collectorToken = 'm0ck3dt0k3n';
 
-  before(() => {
+  before((done) => {
+    configModule.clearConfig();
     configModule.initializeConfig();
     config = configModule.getConfig();
+    config.name = collectorName;
+    config.refocus.url = refocusUrl;
+    config.refocus.accessToken = collectorToken;
+    repeater.stopAllRepeat();
+    done();
   });
 
-  after(() => {
+  after((done) => {
     configModule.clearConfig();
-    mock.restore();
+    done();
   });
 
-  it('buildMockResponse - added', (done) => {
-    config.generators = {};
+  afterEach(() => {
+    repeater.stopAllRepeat();
+  });
 
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': mockNew(generator2),
-      },
-    });
+  it('error from heartbeat response', (done) => {
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.FORBIDDEN, errorResponse);
 
-    heartbeat.buildMockResponse('./generators')
-    .then((response) => {
-      expect(response.generatorsAdded).to.be.an('array').of.length(2);
-      expect(response.generatorsUpdated).to.be.an('array').of.length(0);
-      expect(response.generatorsDeleted).to.be.an('array').of.length(0);
-      expect(response.generatorsAdded[0].name).to.equal('generator1');
-      expect(response.generatorsAdded[1].name).to.equal('generator2');
+    sendHeartbeat()
+    .then((err) => {
+      expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
+      expect(err.response.body).deep
+        .equal({ error: 'Forbidden error with heartbeat' });
       done();
-    });
+    }).catch((err) => done(err));
   });
 
-  it('buildMockResponse - updates', (done) => {
-    config.generators[generator1.name] = generator1;
-    config.generators[generator2.name] = generator2;
+  it('Ok, simple response without generators', (done) => {
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.OK, hbResponseNoSG);
 
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': mockNew(generator2),
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
+    sendHeartbeat()
     .then((res) => {
-      mock({
-        './generators': {
-          'generator1.json': mockNew(generator1),
-          'generator2.json': mockOld(generator2),
-        },
-      });
-
-      heartbeat.buildMockResponse('./generators')
-      .then((response) => {
-        expect(response.generatorsAdded).to.be.an('array').of.length(0);
-        expect(response.generatorsUpdated).to.be.an('array').of.length(1);
-        expect(response.generatorsDeleted).to.be.an('array').of.length(0);
-        expect(response.generatorsUpdated[0].name).to.equal('generator1');
-        done();
-      });
-    });
-  });
-
-  it('buildMockResponse - deleted', (done) => {
-    config.generators[generator1.name] = generator1;
-    config.generators[generator2.name] = generator2;
-
-    mock({
-      './generators': {
-        'generator1.json': mockOld(generator1),
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .then((response) => {
-      expect(response.generatorsAdded).to.be.an('array').of.length(0);
-      expect(response.generatorsUpdated).to.be.an('array').of.length(0);
-      expect(response.generatorsDeleted).to.be.an('array').of.length(1);
-      expect(response.generatorsDeleted[0].name).to.equal('generator2');
+      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res.generators).to.deep.equal({});
+      expect(res.refocus).to.include(hbResponseNoSG.collectorConfig);
       done();
-    });
+    }).catch((err) => done(err));
   });
 
-  it('buildMockResponse - add/update/delete', (done) => {
-    config.generators[generator1.name] = generator1;
-    config.generators[generator2.name] = generator2;
+  it('Ok, handle a complete response with generators', (done) => {
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.OK, hbResponseWithSG);
 
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator3.json': mockNew(generator3),
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .then((response) => {
-      expect(response.generatorsAdded).to.be.an('array').of.length(1);
-      expect(response.generatorsUpdated).to.be.an('array').of.length(1);
-      expect(response.generatorsDeleted).to.be.an('array').of.length(1);
-      expect(response.generatorsAdded[0].name).to.equal('generator3');
-      expect(response.generatorsUpdated[0].name).to.equal('generator1');
-      expect(response.generatorsDeleted[0].name).to.equal('generator2');
+    sendHeartbeat()
+    .then((res) => {
+      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
+      expect(res.generators).to.deep.equal({ [generator1.name]: generator1 });
       done();
-    });
+    }).catch((err) => done(err));
   });
 
-  it('buildMockResponse - missing directory (error)', (done) => {
-    mock({});
+  it('Ok, sendheart end-to-end', (done) => {
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.OK, hbResponseWithSG);
 
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('Error');
-      expect(err.code).to.equal('ENOENT');
+    // send heartbeat to get a response to add generator1
+    sendHeartbeat()
+    .then(() => {
+      nock(refocusUrl, {
+        reqheaders: { authorization: collectorToken },
+      })
+      .post(heartbeatEndpoint)
+      .reply(httpStatus.OK, hbResponseWithSGToUpdate);
+
+      /*
+       * send heartbeat to get a response to add generator2, generator3
+       * and update generator1
+       */
+      return sendHeartbeat();
+    })
+    .then((res) => {
+      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res.refocus).to.include(hbResponseWithSGToUpdate.collectorConfig);
+
+      // make sure the generator1 is updated
+      expect(res.generators[generator1.name].generatorTemplate).to.deep.equal(
+        generator1Updated.generatorTemplate);
+
+      // make sure generator2 and generator 3 are added
+      expect(res.generators[generator2.name]).to.deep.equal(generator2);
+      expect(res.generators[generator3.name]).to.deep.equal(generator3);
+      nock(refocusUrl, {
+        reqheaders: { authorization: collectorToken },
+      })
+      .post(heartbeatEndpoint)
+      .reply(httpStatus.OK, hbResponseWithSGToDelete);
+
+      // send another heartbeat to get a response to delete all the generators
+      return sendHeartbeat();
+    })
+    .then((res) => {
+      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res.generators).to.deep.equal({});
+      expect(res.refocus).to.include(hbResponseWithSGToDelete.collectorConfig);
       done();
-    });
-
+    })
+    .catch((err) => done(err));
   });
-
-  it('buildMockResponse - invalid json (error)', (done) => {
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': '',
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('Invalid Generator in generator2.json');
-      done();
-    });
-  });
-
-  it('buildMockResponse - invalid json (error)', (done) => {
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': '{} {}',
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('Invalid Generator in generator2.json');
-      done();
-    });
-  });
-
-  it('buildMockResponse - array (error)', (done) => {
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': '[{}, {}]',
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('Invalid Generator in generator2.json');
-      done();
-    });
-
-  });
-  it('buildMockResponse - primitive (error)', (done) => {
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': '4',
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('Invalid Generator in generator2.json');
-      done();
-    });
-  });
-
-  it('buildMockResponse - no name (error)', (done) => {
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': '{prop: "value"}',
-      },
-    });
-
-    heartbeat.buildMockResponse('./generators')
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      expect(err.message).to.equal('Invalid Generator in generator2.json');
-      done();
-    });
-  });
-
-  it('sendHeartbeat - end-to-end', (done) => {
-    config.generators = {};
-    config.name = 'Test';
-    config.refocus.url = url;
-    config.refocus.collectorToken = token;
-
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': mockNew(generator2),
-      },
-    });
-
-    heartbeat.sendHeartbeat()
-    .then((ret) => {
-      expect(ret).to.equal(config);
-      expect(config.generators.generator1).to.exist;
-      expect(config.generators.generator2).to.exist;
-      done();
-    });
-  });
-
-  it('sendHeartbeat - end-to-end (error)', (done) => {
-    config.generators = {};
-    config.name = 'Test';
-    config.refocus.url = url;
-    config.refocus.collectorToken = token;
-
-    mock({
-      './generators': {
-        'generator1.json': mockNew(generator1),
-        'generator2.json': mockNew(''),
-      },
-    });
-
-    heartbeat.sendHeartbeat()
-    .then((ret) => {
-      expect(ret).to.be.an.instanceof(errors.ValidationError);
-      expect(config.generators.generator2).to.not.exist;
-      done();
-    });
-  });
-
-  it('sendHeartbeat - missing token', (done) => {
-    config.name = 'Test';
-    config.refocus.url = url;
-    delete config.refocus.collectorToken;
-
-    try {
-      heartbeat.sendHeartbeat();
-    } catch (err) {
-      expect(err.name).to.equal('ValidationError');
-      done();
-    }
-  });
-
-  it('sendHeartbeat - url null', (done) => {
-    config.name = 'Test';
-    config.refocus.url = null;
-    config.refocus.collectorToken = token;
-
-    try {
-      heartbeat.sendHeartbeat();
-    } catch (err) {
-      expect(err.name).to.equal('ValidationError');
-      done();
-    }
-
-  });
-
-  it('sendHeartbeat - missing url', (done) => {
-    config.name = 'Test';
-    delete config.refocus.url;
-    config.refocus.collectorToken = token;
-
-    try {
-      heartbeat.sendHeartbeat();
-    } catch (err) {
-      expect(err.name).to.equal('ValidationError');
-      done();
-    }
-  });
-
 });

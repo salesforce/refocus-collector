@@ -30,8 +30,5 @@ module.exports = {
     SERVICE_UNAVAILABLE: 503,
   },
 
-  // generators directory location
-  // TODO - remove once we're getting generators from Refocus
-  generatorsDir: './generators',
   heartbeatRepeatName: 'heartbeat',
 };
