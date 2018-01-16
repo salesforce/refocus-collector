@@ -398,7 +398,7 @@ describe('test/repeater/repeater.js >', () => {
 
         // pause the repeat
         repeater.pauseGenerators();
-      }, 25);
+      }, 30);
 
       setTimeout(() => {
         // proves that the repeat did not run after it was paused
@@ -407,7 +407,7 @@ describe('test/repeater/repeater.js >', () => {
 
         // resume repeat
         repeater.resumeGenerators();
-      }, 50);
+      }, 60);
 
       setTimeout(() => {
         // proves that calling resume, resumes the task
@@ -417,7 +417,7 @@ describe('test/repeater/repeater.js >', () => {
         repeater.stopAllRepeat();
 
         return done();
-      }, 75);
+      }, 90);
     });
 
     it('pauseGenerators should not affect the heartbeat repeat', (done) => {
