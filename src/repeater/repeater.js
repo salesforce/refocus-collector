@@ -17,6 +17,7 @@ const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
+const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const u = require('../utils/commonUtils');
 
 /**
@@ -123,9 +124,7 @@ function stop(name) {
  */
 function stopAllRepeat() {
   debug('Entered repeater.stopAllRepeat');
-  Object.keys(tracker).forEach((key) => {
-    stop(key);
-  });
+  Object.keys(tracker).forEach(stop);
 
   return tracker;
 } // stopAllRepeat
@@ -144,12 +143,8 @@ function pause(name) {
  * @returns {Object} The tracker object tracking all the repeats
  */
 function pauseGenerators() {
-  Object.keys(tracker).forEach((key) => {
-    if (key !== 'heartbeat') {
-      pause(key);
-    }
-  });
-
+  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
+    .forEach(pause);
   return tracker;
 } // pauseGenerators
 
@@ -167,12 +162,8 @@ function resume(name) {
  * @returns {Object} The tracker object tracking all the repeats
  */
 function resumeGenerators() {
-  Object.keys(tracker).forEach((key) => {
-    if (key !== 'heartbeat') {
-      resume(key);
-    }
-  });
-
+  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
+    .forEach(resume);
   return tracker;
 } // resumeGenerators
 
