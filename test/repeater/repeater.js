@@ -376,13 +376,13 @@ describe('test/repeater/repeater.js >', () => {
 
       repeater.create({
         name: 'Generator_Pause_Resume_1',
-        interval: 1,
+        interval: 15,
         func: stub1,
       });
 
       repeater.create({
         name: 'Generator_Pause_Resume_2',
-        interval: 1,
+        interval: 15,
         func: stub2,
       });
 
