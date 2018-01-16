@@ -43,8 +43,19 @@ errors.create({
 
 errors.create({
   name: 'CollectorStartError',
-  defaultMessage: 'Failed to start a new collector with the provided refocus instance',
-  defaultResponse: 'Make sure the provided refocusUrl and accessToken are correct',
+  defaultMessage: 'Failed to start a new collector with the provided ' +
+    'refocus instance',
+  defaultResponse: 'Make sure the provided refocusUrl and accessToken ' +
+    'are correct',
+  status: 400,
+  parent: errors.CollectorError,
+});
+
+errors.create({
+  name: 'CollectorStopError',
+  defaultMessage: 'Failed to stop the collector',
+  defaultResponse: 'Make sure the provided refocusUrl and accessToken ' +
+    'are correct',
   status: 400,
   parent: errors.CollectorError,
 });

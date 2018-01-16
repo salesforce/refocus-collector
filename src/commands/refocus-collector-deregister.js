@@ -9,7 +9,7 @@
 /**
  * src/commands/refocus-collector-deregister.js
  *
- * Calls the "deregister" command.
+ * Executes the "deregister" command.
  */
 const program = require('commander');
 const logger = require('winston');

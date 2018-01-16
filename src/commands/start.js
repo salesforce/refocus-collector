@@ -34,7 +34,7 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
   const config = configModule.getConfig();
   config.name = collectorName;
   config.refocus.url = refocusUrl;
-
+  config.refocus.accessToken = accessToken;
   if (rcProxy.dataSourceProxy) { // set data proxy in config
     config.dataSourceProxy = rcProxy.dataSourceProxy;
   }
@@ -58,7 +58,7 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
      * logging once we have heartbeat
      */
     repeater.create({
-      name: 'Heartbeat',
+      name: 'heartbeat',
       interval: config.refocus.heartbeatInterval,
       func: sendHeartbeat,
       onSuccess: debug,

@@ -13,17 +13,20 @@
 const logger = require('winston');
 const Queue = require('buffered-queue');
 const errors = require('../errors');
+const debug = require('debug')('refocus-collector:commonUtils');
 let queueObject;
 const queueListObject = {};
 
 /**
- * Create Queue using Buffered Queue Package
- *
+ * Create a buffered queue object using the passed in 'queueParams' and add it
+ * to a list of buffered queue objects
  * @param  {Object} queueParams    Queue Parameter Object
  *                                 name, size, flushTimeout,
  *                                 verbose, flushFunction,
+ * @returns {Object} The created buffered queue object
  */
 function createQueue(queueParams) {
+  debug('Entered queueUtils.createQueue', queueParams);
   queueObject = new Queue(queueParams.name, {
     size: queueParams.size,
     flushTimeout: queueParams.flushTimeout,
@@ -35,26 +38,29 @@ function createQueue(queueParams) {
   queueObject.on('flush', (data, name) => {
     queueParams.flushFunction(data, queueParams.token);
   });
+
+  return queueObject;
 }
 
 /**
- * Get queue based on Name
- * @param  {String} name Name of Queue
- * @return {Object}      Return Queue object
+ * Get the buffered queue instance by its name
+ * @param  {String} name - Name of the buffered queue instance
+ * @returns {Object} returns the buffered queue object
  */
 function getQueue(name) {
   return queueListObject[name];
 }
 
 /**
- * Enqueue Data to queue from Array
- * @param  {String} name               Queue Name
- * @param  {Array} arrayData          Array of Data
- * @param  {Function} validationFunction Validation function to validate
- *                                       individiual element
+ * Enqueues data to the buffered queue from array, to be later flushed from the
+ * queue
+ * @param  {String} name - Name of the buffered queue
+ * @param  {Array} arrayData - Data to be affed to the buffered queue
+ * @param  {Function} validationFunction - Validation function to validate
+ * individiual element
  * @throws {ValidationError} if the object does not look like a sample
  */
-function enqueueFromArray(name, arrayData, validationFunction=null) {
+function enqueueFromArray(name, arrayData, validationFunction) {
   const queue = queueListObject[name];
   try {
     arrayData.forEach((data) => {
@@ -70,8 +76,19 @@ function enqueueFromArray(name, arrayData, validationFunction=null) {
   }
 }
 
+/**
+ * Flushes the buffered queue that has been created for each of the generator
+ */
+function flushAllBufferedQueues() {
+  Object.keys(queueListObject).forEach((bq) => {
+    queueListObject[bq].onFlush();
+  });
+} // flushAllBufferedQueues
+
 module.exports = {
+  queueListObject,
   createQueue,
   getQueue,
   enqueueFromArray,
+  flushAllBufferedQueues,
 };

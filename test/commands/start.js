@@ -169,12 +169,11 @@ describe('test/commands/start >', () => {
       start.execute(collectorName, refocusUrl, accessToken, {})
       .then(() => {
         const config = configModule.getConfig();
-        console.log(config.name, config.refocus, repeater.tracker);
         expect(config.name).to.equal(collectorName);
         expect(config.refocus.url).to.equal(refocusUrl);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
-        expect(repeater.tracker).to.have.property('Heartbeat');
-        repeater.stop('Heartbeat');
+        expect(repeater.tracker).to.have.property('heartbeat');
+        repeater.stop('heartbeat');
         done();
       })
       .catch((err) => done(err));
@@ -211,8 +210,8 @@ describe('test/commands/start >', () => {
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(config.refocus.proxy).to.equal(refocusProxy);
         expect(config.dataSourceProxy).to.equal(dataSourceProxy);
-        expect(repeater.tracker).to.have.property('Heartbeat');
-        repeater.stop('Heartbeat');
+        expect(repeater.tracker).to.have.property('heartbeat');
+        repeater.stop('heartbeat');
         done();
       })
       .catch((err) => done(err));
@@ -232,7 +231,7 @@ describe('test/commands/start >', () => {
       )
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
-        repeater.stop('Heartbeat');
+        repeater.stop('heartbeat');
         spy.restore();
         done();
       })
@@ -257,10 +256,12 @@ describe('test/commands/start >', () => {
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
         spy.restore();
+        repeater.stop('heartbeat');
         done();
       })
       .catch((err) => {
         spy.restore();
+        repeater.stop('heartbeat');
         done(err);
       });
     });
