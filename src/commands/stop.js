@@ -66,6 +66,7 @@ function sendStopRequest() {
  *  @returns {Object} Response of the stop collector endpoint.
  */
 function execute(forceTerminate) {
+  debug('Entered stop.execute');
   repeater.stopAllRepeat();
 
   // do not flush when force termination is requested
@@ -74,6 +75,8 @@ function execute(forceTerminate) {
   }
 
   return sendStopRequest();
+  debug('Exited stop.execute');
+  process.exit();
 } // execute
 
 module.exports = {
