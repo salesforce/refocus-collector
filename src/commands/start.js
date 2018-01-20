@@ -16,6 +16,7 @@ const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
 const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
+const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const request = require('superagent');
 require('superagent-proxy')(request);
@@ -58,7 +59,7 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
      * logging once we have heartbeat
      */
     repeater.create({
-      name: 'heartbeat',
+      name: heartbeatRepeatName,
       interval: config.refocus.heartbeatInterval,
       func: sendHeartbeat,
       onSuccess: debug,
