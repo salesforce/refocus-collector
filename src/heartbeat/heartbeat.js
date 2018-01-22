@@ -40,7 +40,6 @@ function sendHeartbeat() {
   const changed = u.getChangedMetadata(existing, current);
   Object.assign(existing, current);
   const requestbody = {
-    logLines: [],
     timestamp,
     collectorConfig: changed,
   };
