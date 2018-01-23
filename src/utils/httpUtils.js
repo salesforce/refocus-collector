@@ -19,25 +19,36 @@ const logger = require('winston');
 const configModule = require('../config/config');
 
 /**
+ * Perform a post operation on a given endpoint point with the optional request
+ * body
+ * @param  {String} endpoint - The api endpoint to post to.
+ * @param  {Object} body - The optional post body.
+ * @returns {Promise} which resolves to the post response
+ */
+function doPostToRefocus(endpoint, body) {
+  const config = configModule.getConfig();
+  const refocusUrl = config.refocus.url + endpoint;
+  const req = request.post(refocusUrl)
+    .send(body || {})
+    .set('Authorization', config.refocus.accessToken);
+  if (config.refocus.proxy) {
+    req.proxy(config.refocus.proxy);
+  }
+
+  return req;
+}
+
+/**
  * Send the upsert and handle any errors in the response.
  *
  * @param {Array} arr is the array of samples to upsert;
+ * @param {String} userToken - The authorization token to be set in the headers
  * @throws {ValidationError} if argument(s) is missing,
  * or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
 function doBulkUpsert(arr, userToken) {
-  const config = configModule.getConfig();
-  const url = config.refocus.url;
   return new Promise((resolve, reject) => {
-    if (!url) {
-      // Throw error if url is not present in config.
-      debug('Error: refocus url not found. Supplied %s', url);
-      reject(new errors.ValidationError(
-        'config.refocus should have a url property.'
-      ));
-    }
-
     if (!userToken) {
       // Throw error if user token not provided.
       debug('Error: refocus user not found. Supplied %s', userToken);
@@ -54,20 +65,10 @@ function doBulkUpsert(arr, userToken) {
       ));
     }
 
-    const upsertUrl = url + bulkUpsertEndpoint;
-    debug('Bulk upserting to: %s', upsertUrl);
+    debug('Bulk upserting to: %s', bulkUpsertEndpoint);
 
-    const req = request
-      .post(upsertUrl)
-      .send(arr)
-      .set('Authorization', userToken)
-      .set('Accept', 'application/json');
-
-    if (config.refocus.proxy) {
-      req.proxy(config.refocus.proxy); // set proxy for following request
-    }
-
-    req.end((err, res) => {
+    doPostToRefocus(bulkUpsertEndpoint, arr)
+    .end((err, res) => {
       if (err) {
         logger.error('bulkUpsert returned an error: %o', err);
         return reject(err);
@@ -81,4 +82,5 @@ function doBulkUpsert(arr, userToken) {
 
 module.exports = {
   doBulkUpsert,
+  doPostToRefocus,
 };
