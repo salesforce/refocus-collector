@@ -11,6 +11,7 @@
  *
  * Calls the "status" command.
  */
+'use strict'; // eslint-disable-line strict
 const program = require('commander');
 const logger = require('winston');
 
@@ -20,7 +21,7 @@ program
   .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
   .parse(process.argv);
 
-const name = program.collectorName;
+const name = program.collectorName || process.env.RC_COLLECTOR_NAME;
 
 if (!name || typeof (name) === 'function') {
   logger.error('You must specify a name ' +

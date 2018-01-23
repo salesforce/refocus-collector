@@ -9,7 +9,7 @@
 /**
  * test/commands/status.js
  */
-'use strict';
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 
 describe('test/commands/status >', () => {
@@ -22,11 +22,11 @@ describe('test/commands/status >', () => {
       (error, stdout, stderr) => {
       if (error) {
         console.error(`exec error: ${error}`);
-        done(error);
+        return done(error);
       }
 
       expect(stdout).to.contain('Status => PRD_Collector_12345');
-      done();
+      return done();
     });
   });
 });
