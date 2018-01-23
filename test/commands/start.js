@@ -9,16 +9,17 @@
 /**
  * test/commands/start.js
  */
-'use strict';
-
+'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 const configModule = require('../../src/config/config');
+const httpStatus = require('../../src/constants.js').httpStatus;
 const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
 const request = require('superagent');
+
 require('superagent-proxy')(request);
 
 describe('test/commands/start >', () => {
@@ -30,25 +31,11 @@ describe('test/commands/start >', () => {
   const refocusProxy = 'http://abcproxy.com';
   const dataSourceProxy = 'http://xyzproxy.com';
 
-  const missingCollectorNameError = 'error: You must specify a collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the refocus instance.\n';
+  const missingCollectorNameError = 'error: You must specify a ' +
+    'collector name.\n';
+  const missingUrlError = 'error: You must specify the url of the ' +
+    'refocus instance.\n';
   const missingTokenError = 'error: You must specify an access token.\n';
-
-  before(() => {
-    nock(refocusUrl, {
-      reqheaders: { authorization: accessToken },
-    })
-    .post('/v1/collectors/start',
-      { name: 'collector1', version: '1.0.0' })
-    .reply(201, { token: collectorToken });
-
-    nock(refocusUrl, {
-      reqheaders: { authorization: invalidToken },
-    })
-    .post('/v1/collectors/start',
-      { name: 'collector1', version: '1.0.0' })
-    .reply(401);
-  });
 
   describe('from command line >', () => {
     it('ok', (done) => {
@@ -163,14 +150,30 @@ describe('test/commands/start >', () => {
   });
 
   describe('execute directly >', () => {
+    let config = configModule.getConfig();
+    let version;
+    beforeEach(() => {
+      configModule.initializeConfig();
+      config = configModule.getConfig();
+      config.name = collectorName;
+      config.refocus.url = refocusUrl;
+      config.refocus.accessToken = accessToken;
+      version = config.metadata.version;
+    });
+
     after(() => configModule.clearConfig());
 
     it('ok, no proxy', (done) => {
-      start.execute(collectorName, refocusUrl, accessToken, {})
-      .then(() => {
-        const config = configModule.getConfig();
-        expect(config.name).to.equal(collectorName);
-        expect(config.refocus.url).to.equal(refocusUrl);
+      nock(refocusUrl, {
+        reqheaders: { authorization: accessToken },
+      })
+      .post('/v1/collectors/start',
+        { name: collectorName, version })
+      .reply(httpStatus.CREATED, { token: collectorToken });
+
+      start.execute()
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
         repeater.stop('heartbeat');
@@ -179,8 +182,16 @@ describe('test/commands/start >', () => {
       .catch((err) => done(err));
     });
 
-    it('post returns error', (done) => {
-      start.execute(collectorName, refocusUrl, invalidToken, {})
+    it('post returns error with called with an invalid token', (done) => {
+      nock(refocusUrl, {
+        reqheaders: { authorization: invalidToken },
+      })
+      .post('/v1/collectors/start',
+        { name: collectorName, version })
+      .reply(httpStatus.UNAUTHORIZED);
+
+      config.refocus.accessToken = invalidToken;
+      start.execute()
       .then(() => done('expecting error'))
       .catch((err) => {
         expect(err.name).to.equal('CollectorStartError');
@@ -188,7 +199,8 @@ describe('test/commands/start >', () => {
           'POST http://www.example.com/v1/collectors/start failed: ' +
           '401 Unauthorized');
         done();
-      });
+      })
+      .catch((err) => done(err));
     });
 
     it('ok, with proxy provided', (done) => {
@@ -196,20 +208,18 @@ describe('test/commands/start >', () => {
         reqheaders: { authorization: accessToken },
       })
       .post('/v1/collectors/start',
-        { name: 'collector1', version: '1.0.0' })
-      .reply(201, { token: collectorToken });
+        { name: collectorName, version })
+      .reply(httpStatus.CREATED, { token: collectorToken });
+
+      config.refocus.proxy = refocusProxy;
 
       start.execute(
         collectorName, refocusUrl, accessToken,
         { refocusProxy, dataSourceProxy }
       )
-      .then(() => {
-        const config = configModule.getConfig();
-        expect(config.name).to.equal(collectorName);
-        expect(config.refocus.url).to.equal(refocusUrl);
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
-        expect(config.refocus.proxy).to.equal(refocusProxy);
-        expect(config.dataSourceProxy).to.equal(dataSourceProxy);
         expect(repeater.tracker).to.have.property('heartbeat');
         repeater.stop('heartbeat');
         done();
@@ -221,15 +231,15 @@ describe('test/commands/start >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start', { name: 'collector1', version: '1.0.0' })
-      .reply(201, { token: collectorToken });
+      .post('/v1/collectors/start', { name: collectorName, version })
+      .reply(httpStatus.CREATED, { token: collectorToken });
+
+      config.refocus.proxy = refocusProxy;
 
       const spy = sinon.spy(request, 'post');
-      start.execute(
-        collectorName, refocusUrl, accessToken,
-        { refocusProxy, dataSourceProxy }
-      )
-      .then(() => {
+      start.execute()
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.CREATED);
         expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
         repeater.stop('heartbeat');
         spy.restore();
@@ -245,15 +255,13 @@ describe('test/commands/start >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start', { name: 'collector1', version: '1.0.0' })
-      .reply(201, { token: collectorToken });
+      .post('/v1/collectors/start', { name: collectorName, version })
+      .reply(httpStatus.CREATED, { token: collectorToken });
 
       const spy = sinon.spy(request, 'post');
-      start.execute(
-        collectorName, refocusUrl, accessToken,
-        { dataSourceProxy }
-      )
-      .then(() => {
+      start.execute()
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.CREATED);
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
         spy.restore();
         repeater.stop('heartbeat');

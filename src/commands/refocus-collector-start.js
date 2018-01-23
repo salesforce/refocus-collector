@@ -11,50 +11,30 @@
  *
  * Calls the "start" command.
  */
+'use strict'; // eslint-disable-line strict
 const program = require('commander');
 const logger = require('winston');
 const cmdStart = require('./start');
+const cmdUtils = require('./utils');
 
 program
-  .option('-n, --collectorName <collectorName>', 'The name of the collector to be started')
-  .option('-u, --refocusUrl <refocusUrl>', 'The url of the refocus instance this collector' +
-    ' will send to')
+  .option('-n, --collectorName <collectorName>', 'The name of the ' +
+    'collector to be started')
+  .option('-u, --refocusUrl <refocusUrl>', 'The url of the refocus ' +
+    'instance this collector will send to')
   .option('-t, --accessToken <accessToken>', 'A valid refocus token')
   .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
   .option('-d, --dataSourceProxy <dataSourceProxy>', 'Proxy to data source')
   .parse(process.argv);
 
-const collectorName = program.collectorName || process.env.RC_COLLECTOR_NAME;
-const refocusUrl = program.refocusUrl || process.env.RC_REFOCUS_URL;
-const accessToken = program.accessToken || process.env.RC_ACCESS_TOKEN;
-
-// refocusProxy and dataSourceProxy are optional args
-const refocusProxy = program.refocusProxy || process.env.RC_REFOCUS_PROXY;
-const dataSourceProxy = program.dataSourceProxy ||
-  process.env.RC_DATA_SOURCE_PROXY;
-
-if (!collectorName) {
-  logger.error('You must specify a collector name.');
-  process.exit(1);
-} else if (!refocusUrl) {
-  logger.error('You must specify the url of the refocus instance.');
-  process.exit(1);
-} else if (!accessToken) {
-  logger.error('You must specify an access token.');
+if (!cmdUtils.validateArgs(program)) {
   process.exit(1);
 }
 
-const rcProxy = {};
-if (refocusProxy) {
-  rcProxy.refocusProxy = refocusProxy;
-}
+const config = cmdUtils.setupConfig(program);
 
-if (dataSourceProxy) {
-  rcProxy.dataSourceProxy = dataSourceProxy;
-}
-
-console.log('Start =>', collectorName, refocusUrl, accessToken);
-cmdStart.execute(collectorName, refocusUrl, accessToken, rcProxy)
+logger.log('Start =>', config.collectorName, config.refocus.url);
+cmdStart.execute()
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);
