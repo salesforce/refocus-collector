@@ -25,7 +25,7 @@ const COLLECTOR_START_PATH = '/v1/collectors/start';
 
 /**
  * The "start" command creates the heartbeat repeater.
- * @returns {Object} - Response of the stop collector endpoint
+ * @returns {Promise} - which resolves to the response of the start endpoint
  * @throws CollectorStartError
  */
 function execute() {

@@ -182,7 +182,7 @@ describe('test/commands/start >', () => {
       .catch((err) => done(err));
     });
 
-    it('post returns error with called with an invalid token', (done) => {
+    it('post returns error when called with an invalid token', (done) => {
       nock(refocusUrl, {
         reqheaders: { authorization: invalidToken },
       })
