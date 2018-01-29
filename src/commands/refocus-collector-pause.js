@@ -39,7 +39,7 @@ logger.log('Pause =>', config.name, config.refocus.url + pausePath);
 doPost(pausePath)
 .then(() => {
   logger.info(`Pausing ${config.name}. Use the command "refocus-collector `+
-    `resume" or the /v1/collector/${config.name}/resume endpoint to resume ` +
+    `resume" or the /v1/collectors/${config.name}/resume endpoint to resume ` +
     'the collector');
 })
 .catch((err) => {
