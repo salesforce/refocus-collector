@@ -13,20 +13,32 @@
  */
 const program = require('commander');
 const logger = require('winston');
-const cmdStart = require('./stop');
-const debug = require('debug')('refocus-collector:commands');
+const cmdUtils = require('./utils');
+const doPost = require('../utils/httpUtils.js').doPostToRefocus;
 
 program
-  .option('-f, --force', 'Stop the collector without flushing the samples')
+  .option('-n, --collectorName <collectorName>', 'The name of the ' +
+    'collector to be started')
+  .option('-u, --refocusUrl <refocusUrl>', 'The url of the refocus ' +
+    'instance this collector will send to')
+  .option('-t, --accessToken <accessToken>', 'A valid refocus token')
+  .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
+  .option('-d, --dataSourceProxy <dataSourceProxy>', 'Proxy to data source')
   .parse(process.argv);
 
-debug('About to enter stop.execute');
-cmdStart.execute(program.force)
-.then(() => {
-  debug('Exiting stop.execute');
+if (!cmdUtils.validateArgs(program)) {
+  process.exit(1);
+}
 
-  // exit the process finally
-  process.exit();
+const config = cmdUtils.setupConfig(program);
+
+const stopPath = `/v1/collectors/${config.name}/stop`;
+logger.log('Stop =>', config.name, config.refocus.url + stopPath);
+
+// Request to Refocus to stop the collector
+doPost(stopPath)
+.then(() => {
+  logger.info(`Stopping ${config.name}`);
 })
 .catch((err) => {
   logger.error(err.message);

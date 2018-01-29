@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,24 +7,23 @@
  */
 
 /**
- * src/commands/refocus-collector-start.js
+ * src/commands/refocus-collector-resume.js
  *
- * Calls the "start" command.
+ * Executes the "resume" command.
  */
 'use strict'; // eslint-disable-line strict
 const program = require('commander');
 const logger = require('winston');
-const cmdStart = require('./start');
 const cmdUtils = require('./utils');
+const doPost = require('../utils/httpUtils.js').doPostToRefocus;
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the ' +
-    'collector to be started')
+    'collector to be resumed')
   .option('-u, --refocusUrl <refocusUrl>', 'The url of the refocus ' +
     'instance this collector will send to')
   .option('-t, --accessToken <accessToken>', 'A valid refocus token')
   .option('-r, --refocusProxy <refocusProxy>', 'Proxy to Refocus')
-  .option('-d, --dataSourceProxy <dataSourceProxy>', 'Proxy to data source')
   .parse(process.argv);
 
 if (!cmdUtils.validateArgs(program)) {
@@ -32,9 +31,14 @@ if (!cmdUtils.validateArgs(program)) {
 }
 
 const config = cmdUtils.setupConfig(program);
+const resumePath = `/v1/collectors/${config.name}/resume`;
+logger.log('Resume =>', config.name, config.refocus.url + resumePath);
 
-logger.log('Start =>', config.collectorName, config.refocus.url);
-cmdStart.execute()
+// Request to Refocus to resume collector
+doPost(resumePath)
+.then(() => {
+  logger.info(`Resuming ${config.name}`);
+})
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);

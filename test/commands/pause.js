@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, salesforce.com, inc.
+ * Copyright (c) 2018, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or
@@ -7,15 +7,15 @@
  */
 
 /**
- * test/commands/reregister.js
+ * test/commands/pause.js
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const fork = require('child_process').fork;
 
-describe('test/commands/reregister >', () => {
+describe('test/commands/pause >', () => {
   const collectorName = 'collector1';
-  const refocusUrl = 'http://www.example.com';
+  const refocusUrl = 'http://www.refocus-pause-test.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const refocusProxy = 'http://abcproxy.com';
   const missingCollectorNameError = 'error: You must specify a ' +
@@ -30,9 +30,9 @@ describe('test/commands/reregister >', () => {
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
     const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
     });
@@ -43,12 +43,12 @@ describe('test/commands/reregister >', () => {
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
     const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.stderr.on('data', (data) => {
+    pause.stderr.on('data', (data) => {
       expect(data.toString()).to.equal(missingCollectorNameError);
     });
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
     });
@@ -59,12 +59,12 @@ describe('test/commands/reregister >', () => {
       '--collectorName', collectorName, '--accessToken', accessToken,
     ];
     const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.stderr.on('data', (data) => {
+    pause.stderr.on('data', (data) => {
       expect(data.toString()).to.equal(missingUrlError);
     });
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
     });
@@ -75,12 +75,12 @@ describe('test/commands/reregister >', () => {
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
     ];
     const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.stderr.on('data', (data) => {
+    pause.stderr.on('data', (data) => {
       expect(data.toString()).to.equal(missingTokenError);
     });
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
     });
@@ -92,9 +92,9 @@ describe('test/commands/reregister >', () => {
       '--accessToken', accessToken,
     ];
     const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
     });
@@ -111,9 +111,9 @@ describe('test/commands/reregister >', () => {
         RC_REFOCUS_PROXY: refocusProxy,
       },
     };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
     });
@@ -127,12 +127,12 @@ describe('test/commands/reregister >', () => {
         RC_REFOCUS_URL: refocusUrl,
       },
     };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
+    const pause = fork('src/commands/refocus-collector-pause.js',
       args, opts);
-    reregister.stderr.on('data', (data) => {
+    pause.stderr.on('data', (data) => {
       expect(data.toString()).to.equal(missingTokenError);
     });
-    reregister.on('close', (code) => {
+    pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
     });

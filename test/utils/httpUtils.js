@@ -23,11 +23,93 @@ const bulkUpsertEndpoint = require('../../src/constants')
                             .bulkUpsertEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
-  const dummyStr = 'http://dummy.refocus.url';
+  const refocusUrl = 'http://dummy.refocus.url';
   const dummyToken = '3245678754323356475654356758675435647qwertyrytu';
-  const properRegistryObject = { url: dummyStr, token: dummyToken };
+  const collectorName = 'collector1_for_httpUtils';
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
-  configModule.clearConfig();
+
+  let config;
+  before(() => {
+    configModule.clearConfig();
+    configModule.initializeConfig();
+    config = configModule.getConfig();
+    config.name = collectorName;
+    config.refocus.url = refocusUrl;
+    config.refocus.accessToken = dummyToken;
+  });
+
+  after(() => configModule.clearConfig());
+
+  describe('doPostToRefocus', () => {
+    it('post ok, with body', (done) => {
+      const stopEndpoint = `/v1/collectors/${collectorName}/stop`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyToken },
+      })
+      .post(stopEndpoint, { name: collectorName })
+      .reply(httpStatus.OK);
+
+      httpUtils.doPostToRefocus(stopEndpoint, { name: collectorName })
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('post ok, without body', (done) => {
+      const resumeEndpoint = `/v1/collectors/${collectorName}/resume`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyToken },
+      })
+      .post(resumeEndpoint)
+      .reply(httpStatus.OK);
+
+      httpUtils.doPostToRefocus(resumeEndpoint)
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('post ok, with proxy', (done) => {
+      const pauseEndpoint = `/v1/collectors/${collectorName}/pause`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyToken },
+      })
+      .post(pauseEndpoint, { name: collectorName })
+      .reply(httpStatus.OK);
+
+      config.refocus.proxy = 'http://dummy.refocus.proxy';
+      httpUtils.doPostToRefocus(pauseEndpoint, { name: collectorName })
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        done();
+      })
+      .catch((err) => done(err));
+    });
+
+    it('post returns 4xx error', (done) => {
+      const errorResponse = {
+        error: 'Forbidden error with heartbeat',
+      };
+      const reregisterEndpoint = `/v1/collectors/${collectorName}/reregersiter`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: '1nv5l19aT0k3n' },
+      })
+      .post(reregisterEndpoint, { name: collectorName })
+      .reply(httpStatus.FORBIDDEN, errorResponse);
+
+      httpUtils.doPostToRefocus(reregisterEndpoint, { name: collectorName })
+      .then(() => done('Expecting 401 Forbidden error'))
+      .catch((err) => {
+        expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
+        expect(err.response.body).deep.equal(errorResponse);
+        done();
+      }).catch((err) => done(err));
+    });
+  });
 
   describe('doBulkUpsert >', () => {
     const dummyUserToken = 'some-user-token-string-asfdfhsdjf';
@@ -41,21 +123,9 @@ describe('test/utils/httpUtils.js >', () => {
       config.refocus.collectorToken = dummyToken;
     });
 
-    after(() => configModule.clearConfig());
-
-    it('no url in refocus instance object, gives validation error', (done) => {
-      httpUtils.doBulkUpsert([], dummyUserToken)
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
-    });
-
     it('no array input gives validation error', (done) => {
       const config = configModule.getConfig();
-      config.refocus.url = dummyStr;
+      config.refocus.url = refocusUrl;
       httpUtils.doBulkUpsert()
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
@@ -66,7 +136,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('array input of non-array type gives validation error', (done) => {
-      httpUtils.doBulkUpsert(dummyStr, dummyUserToken)
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken)
       .then(() => done(new Error('Expected validation error')))
       .catch((err) => {
         expect(err.name).to.equal('ValidationError');
@@ -90,10 +160,10 @@ describe('test/utils/httpUtils.js >', () => {
 
     it('empty array is ok', (done) => {
       const config = configModule.getConfig();
-      config.refocus.url = dummyStr;
+      config.refocus.url = refocusUrl;
 
       // TODO: change to nock, stub response
-      mock.post(properRegistryObject.url + bulkUpsertPath, () => Promise.resolve());
+      mock.post(refocusUrl + bulkUpsertPath, () => Promise.resolve());
       httpUtils.doBulkUpsert([], dummyUserToken)
       .then((object) => {
         expect(object.status).to.equal(httpStatus.OK);
@@ -104,10 +174,10 @@ describe('test/utils/httpUtils.js >', () => {
 
     it('array of samples is returned', (done) => {
       const config = configModule.getConfig();
-      config.refocus.url = dummyStr;
+      config.refocus.url = refocusUrl;
 
       // TODO: change to nock, stub response
-      mock.post(properRegistryObject.url + bulkUpsertPath,
+      mock.post(refocusUrl + bulkUpsertPath,
         (req) => req);
       httpUtils.doBulkUpsert(sampleArr, dummyUserToken)
       .then((object) => {
@@ -128,9 +198,9 @@ describe('test/utils/httpUtils.js >', () => {
       const config = configModule.getConfig();
       const refocusProxy = 'http://abcProxy.com';
       config.refocus.proxy = refocusProxy;
-      config.refocus.url = dummyStr;
+      config.refocus.url = refocusUrl;
 
-      nock(dummyStr)
+      nock(refocusUrl)
         .post(bulkUpsertEndpoint)
         .reply(httpStatus.OK, { status: 'OK' });
 
@@ -154,10 +224,10 @@ describe('test/utils/httpUtils.js >', () => {
     it('ok, request does not use refocus proxy if not set in config',
     (done) => {
       const config = configModule.getConfig();
-      config.refocus.url = dummyStr;
+      config.refocus.url = refocusUrl;
       config.refocus.collectorToken = dummyToken;
 
-      nock(dummyStr)
+      nock(refocusUrl)
         .post(bulkUpsertEndpoint)
         .reply(httpStatus.OK, { status: 'OK' });
 

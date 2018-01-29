@@ -12,53 +12,38 @@
  * Command execution for the "start" command. Primary responsibility is to
  * start the heartbeat repeater.
  */
+'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
 const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
-const request = require('superagent');
-require('superagent-proxy')(request);
+const doPost = require('../utils/httpUtils.js').doPostToRefocus;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
-const package = require('../../package.json');
 
 /**
  * The "start" command creates the heartbeat repeater.
- *
- * @throws TODO
+ * @returns {Promise} - which resolves to the response of the start endpoint
+ * @throws CollectorStartError
  */
-function execute(collectorName, refocusUrl, accessToken, rcProxy) {
+function execute() {
   debug('Entered start.execute');
-  configModule.initializeConfig();
   const config = configModule.getConfig();
-  config.name = collectorName;
-  config.refocus.url = refocusUrl;
-  config.refocus.accessToken = accessToken;
-  if (rcProxy.dataSourceProxy) { // set data proxy in config
-    config.dataSourceProxy = rcProxy.dataSourceProxy;
-  }
+  const url = config.refocus.url + COLLECTOR_START_PATH;
+  const body = { name: config.name, version: config.metadata.version };
 
-  const url = refocusUrl + COLLECTOR_START_PATH;
-  const req = request.post(url)
-    .send({ name: collectorName, version: package.version })
-    .set('Authorization', accessToken);
-  const refocusProxy = rcProxy.refocusProxy;
-  if (refocusProxy) {
-    config.refocus.proxy = refocusProxy; // set refocus proxy in config
-    req.proxy(refocusProxy); // set proxy for following request
-  }
-
-  /*
-   * freeze the attributes of config.refocus added by the start command
-   * to avoid any accidentals edits/deletes to it.
-   */
-  Object.keys(config.refocus).forEach(Object.freeze);
-
-  return req.then((res) => {
+  return doPost(COLLECTOR_START_PATH, body)
+  .then((res) => {
     debug('start execute response body', res.body);
     config.refocus.collectorToken = res.body.token;
+
+    /*
+     * freeze the attributes of config.refocus added by the start command
+     * to avoid any accidentals edits/deletes to it.
+     */
+    Object.keys(config.refocus).forEach(Object.freeze);
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper
@@ -75,6 +60,7 @@ function execute(collectorName, refocusUrl, accessToken, rcProxy) {
 
     logger.info({ activity: 'cmdStart' });
     debug('Exiting start.execute');
+    return res;
   })
   .catch((err) => {
     throw new errors.CollectorStartError('', `POST ${url} failed: ${err.status} ${err.message}`);
