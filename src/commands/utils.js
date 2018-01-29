@@ -37,7 +37,7 @@ function validateArgs(args) {
 } // validateArgs
 
 /**
- * Sets up the collector config object with the validated input argumentes from
+ * Sets up the collector config object with the validated input arguments from
  * the command
  * @param  {Object} args - Validated input arguments
  * @returns {Object} the collector config

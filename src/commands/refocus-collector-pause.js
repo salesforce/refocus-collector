@@ -38,7 +38,9 @@ logger.log('Pause =>', config.name, config.refocus.url + pausePath);
 // Request to Refocus to pause the collector
 doPost(pausePath)
 .then(() => {
-  logger.info(`Request to pause ${config.name} has been accepted.`);
+  logger.info(`Pausing ${config.name}. Use the command "refocus-collector `+
+    `resume" or the /v1/collector/${config.name}/resume endpoint to resume ` +
+    'the collector');
 })
 .catch((err) => {
   logger.error(err.message);

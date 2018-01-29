@@ -37,7 +37,7 @@ logger.log('Resume =>', config.name, config.refocus.url + resumePath);
 // Request to Refocus to resume collector
 doPost(resumePath)
 .then(() => {
-  logger.info(`Request to resume collector ${config.name} has been accepted.`);
+  logger.info(`Resuming ${config.name}`);
 })
 .catch((err) => {
   logger.error(err.message);

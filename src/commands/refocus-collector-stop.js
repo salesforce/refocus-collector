@@ -38,7 +38,7 @@ logger.log('Stop =>', config.name, config.refocus.url + stopPath);
 // Request to Refocus to stop the collector
 doPost(stopPath)
 .then(() => {
-  logger.info(`Request to pause ${config.name} has been accepted.`);
+  logger.info(`Stopping ${config.name}`);
 })
 .catch((err) => {
   logger.error(err.message);
