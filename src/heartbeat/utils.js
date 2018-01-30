@@ -77,7 +77,7 @@ function assignContext(ctx, def, collectorToken, res) {
 
 /**
  * Creates a repeater based on the bulk attribute of the of the generator
- * object that is passed as as agrument. When the bulk attribute is true, it
+ * object that is passed as as argument. When the bulk attribute is true, it
  * creates a repeater using the passed in generator. When the bulk attribute
  * is false, it runs through the subjects array and creates a new generator
  * object for each subject, using the generator passed in as the argument),

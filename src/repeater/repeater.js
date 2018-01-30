@@ -139,7 +139,7 @@ function pause(name) {
 } // pause
 
 /**
- * Pauses all the generator repeates.
+ * Pauses all the generator repeats.
  * @returns {Object} The tracker object tracking all the repeats
  */
 function pauseGenerators() {
@@ -158,7 +158,7 @@ function resume(name) {
 } // resume
 
 /**
- * Pauses all the generator repeates.
+ * Pauses all the generator repeats.
  * @returns {Object} The tracker object tracking all the repeats
  */
 function resumeGenerators() {
