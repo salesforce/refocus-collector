@@ -57,7 +57,7 @@ function getQueue(name) {
  * @param  {String} name - Name of the buffered queue
  * @param  {Array} arrayData - Data to be affed to the buffered queue
  * @param  {Function} validationFunction - Validation function to validate
- * individiual element
+ * individual element
  * @throws {ValidationError} if the object does not look like a sample
  */
 function enqueueFromArray(name, arrayData, validationFunction) {
