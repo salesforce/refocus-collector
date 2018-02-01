@@ -149,7 +149,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     config = configModule.getConfig();
     config.name = collectorName;
     config.refocus.url = refocusUrl;
-    config.refocus.accessToken = collectorToken;
+    config.refocus.collectorToken = collectorToken;
     repeater.stopAllRepeat();
     done();
   });
