@@ -27,7 +27,16 @@ function sendHeartbeat() {
   debug('Entered heartbeat.sendHeartbeat');
   const timestamp = Date.now();
   const config = configModule.getConfig();
-  debug('sendHeartbeat config.refocus', config.refocus);
+  const sanitized = JSON.parse(JSON.stringify(config.refocus));
+  if (sanitized.accessToken) {
+    sanitized.accessToken = '...' + sanitized.accessToken.slice(-5);
+  }
+
+  if (sanitized.collectorToken) {
+    sanitized.collectorToken = '...' + sanitized.collectorToken.slice(-5);
+  }
+
+  debug('sendHeartbeat config.refocus', sanitized);
   const collectorName = config.name;
   const refocusUrl = config.refocus.url;
   const accessToken = config.refocus.accessToken;

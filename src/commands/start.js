@@ -36,7 +36,12 @@ function execute() {
 
   return doPost(COLLECTOR_START_PATH, body)
   .then((res) => {
-    debug('start execute response body', res.body);
+    const sanitized = JSON.parse(JSON.stringify(res.body));
+    if (sanitized.token) {
+      sanitized.token = '...' + sanitized.token.slice(-5);
+    }
+
+    debug('start execute response body', sanitized);
     config.refocus.collectorToken = res.body.token;
 
     /*
