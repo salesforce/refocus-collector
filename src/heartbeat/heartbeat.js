@@ -14,9 +14,6 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const request = require('superagent');
 const configModule = require('../config/config');
 const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
-const fs = require('fs');
-const Promise = require('bluebird');
-Promise.promisifyAll(fs);
 const u = require('../utils/commonUtils');
 
 /**
@@ -39,7 +36,7 @@ function sendHeartbeat() {
   debug('sendHeartbeat config.refocus', sanitized);
   const collectorName = config.name;
   const refocusUrl = config.refocus.url;
-  const accessToken = config.refocus.accessToken;
+  const collectorToken = config.refocus.collectorToken;
   const proxy = config.refocus.proxy;
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const urlToPost = refocusUrl + heartbeatEndpoint;
@@ -55,7 +52,7 @@ function sendHeartbeat() {
 
   const req = request.post(urlToPost)
     .send(requestbody)
-    .set('Authorization', accessToken);
+    .set('Authorization', collectorToken);
   if (proxy) {
     req.proxy(proxy); // set proxy for following request
   }
