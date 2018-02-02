@@ -9,6 +9,7 @@
 /**
  * src/heartbeat/utils.js
  */
+'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:heartbeat');
 const configModule = require('../config/config');
 const repeater = require('../repeater/repeater');
@@ -17,6 +18,31 @@ const commonUtils = require('../utils/commonUtils');
 const queueUtils = require('../utils/queueUtils');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
+const collectorStatus = require('../constants').collectorStatus;
+
+/**
+ * Pauses, resumes or stops the collector based on the status of the collector
+ * @param {String} currentStatus - The current status of the collector.
+ * @param {String} newStatus - The new status of the collector.  This is the
+ *  state the collector will be in, once this function has been executed.
+ */
+function changeCollectorState(currentStatus, newStatus) {
+  if (!currentStatus || !newStatus) {
+    return;
+  }
+
+  if (newStatus === collectorStatus.STOPPED) {
+    queueUtils.flushAllBufferedQueues();
+    repeater.stopAllRepeat();
+    process.exit(0);
+  } else if (currentStatus !== newStatus &&
+    newStatus === collectorStatus.PAUSED) {
+    repeater.pauseGenerators();
+  } else if (currentStatus !== newStatus &&
+    newStatus === collectorStatus.RUNNING) {
+    repeater.resumeGenerators();
+  }
+} // changeCollectorState
 
 /**
  * Update the "collectorConfig" attribute of the config.
@@ -28,14 +54,12 @@ function updateCollectorConfig(res) {
 
   // get a fresh copy of collector config
   const config = configModule.getConfig();
-  if (collectorConfig) {
-    debug('Heartbeat response collectorConfig to update', collectorConfig);
-    debug('Collector config before updating', config);
-    Object.keys(collectorConfig).forEach((key) => {
-      config.refocus[key] = collectorConfig[key];
-    });
-    debug('Collector config after updating', config.refocus);
-  }
+  debug('Heartbeat response collectorConfig to update', collectorConfig);
+  debug('Collector config before updating', config);
+  Object.keys(collectorConfig).forEach((key) => {
+    config.refocus[key] = collectorConfig[key];
+  });
+  debug('Collector config after updating', config.refocus);
 } // updateCollectorConfig
 
 /**
@@ -258,8 +282,9 @@ function updateGenerator(res) {
 module.exports = {
   addGenerator,
   assignContext, // exporting for testing purposes only
+  changeCollectorState,
+  createOrUpdateGeneratorQueue, // exporting for testing purposes only
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,
-  createOrUpdateGeneratorQueue, // exporting for testing purposes only
 };

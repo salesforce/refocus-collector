@@ -9,10 +9,12 @@
 /**
  * src/heartbeat/listener.js
  */
+'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:heartbeat');
 const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
+const collectorStatus = require('../constants').collectorStatus;
 
 /**
  * Handles the heartbeat response:
@@ -32,14 +34,20 @@ function handleHeartbeatResponse(err, res) {
     return err;
   }
 
-  if (res) {
+  const config = configModule.getConfig();
+  if (res && res.collectorConfig) {
+    utils.changeCollectorState(config.refocus.status,
+      res.collectorConfig.status);
+
     utils.updateCollectorConfig(res);
-    utils.addGenerator(res);
-    utils.deleteGenerator(res);
-    utils.updateGenerator(res);
+
+    if (res.collectorConfig.status === collectorStatus.RUNNING) {
+      utils.addGenerator(res);
+      utils.deleteGenerator(res);
+      utils.updateGenerator(res);
+    }
   }
 
-  const config = configModule.getConfig();
   debug('exiting handleHeartbeatResponse', config);
   return config;
 } // handleHeartbeatResponse

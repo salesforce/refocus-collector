@@ -17,6 +17,8 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
 const repeater = require('../../src/repeater/repeater');
 const sendHeartbeat = heartbeat.sendHeartbeat;
+const queueUtils = require('../../src/utils/queueUtils');
+const sinon = require('sinon');
 
 let config;
 
@@ -89,6 +91,7 @@ const hbResponseNoSG = {
     heartbeatInterval: 50,
     maxSamplesPerBulkRequest: 10,
     sampleUpsertQueueTime: 100,
+    status: 'Running',
   },
   generatorsAdded: [],
   generatorsUpdated: [],
@@ -99,6 +102,7 @@ const hbResponseWithSG = {
   collectorConfig: {
     heartbeatInterval: 20,
     maxSamplesPerBulkRequest: 100,
+    status: 'Running',
   },
   generatorsAdded: [
     generator1,
@@ -107,10 +111,31 @@ const hbResponseWithSG = {
   generatorsDeleted: [],
 };
 
+const hbResponseStatusPaused = {
+  collectorConfig: {
+    heartbeatInterval: 20,
+    maxSamplesPerBulkRequest: 100,
+    status: 'Paused',
+  },
+  generatorsAdded: [
+  ],
+  generatorsUpdated: [],
+  generatorsDeleted: [],
+};
+
+const hbResponseStatusStopped = {
+  collectorConfig: {
+    heartbeatInterval: 120,
+    maxSamplesPerBulkRequest: 300,
+    status: 'Stopped',
+  },
+};
+
 const hbResponseWithSGToDelete = {
   collectorConfig: {
     heartbeatInterval: 99,
     maxSamplesPerBulkRequest: 999,
+    status: 'Running',
   },
   generatorsAdded: [
   ],
@@ -126,6 +151,7 @@ const hbResponseWithSGToUpdate = {
   collectorConfig: {
     heartbeatInterval: 120,
     maxSamplesPerBulkRequest: 7000,
+    status: 'Running',
   },
   generatorsAdded: [
     generator2,
@@ -142,6 +168,11 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const collectorName = 'collectorForHeartbeatTests';
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const collectorToken = 'm0ck3dt0k3n';
+  let spyFlushQueue;
+  let spyPause;
+  let spyResume;
+  let spyStopAll;
+  let stubExit;
 
   before((done) => {
     configModule.clearConfig();
@@ -174,7 +205,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .then((err) => {
       expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
       expect(err.response.body).deep
-        .equal({ error: 'Forbidden error with heartbeat' });
+        .equal(errorResponse);
       done();
     }).catch((err) => done(err));
   });
@@ -258,6 +289,81 @@ describe('test/heartbeat/heartbeat.js >', () => {
       expect(res.generators).to.deep.equal({});
       expect(res.refocus).to.include(hbResponseWithSGToDelete.collectorConfig);
       done();
+    })
+    .catch((err) => done(err));
+  });
+
+  it('Ok, collector status in heartbeat full cycle ' +
+    'Running->Pause->Running->Stop', (done) => {
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.OK, hbResponseWithSG);
+
+    // send heartbeat with status = running
+    sendHeartbeat()
+    .then((res) => {
+      expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
+      nock(refocusUrl, {
+        reqheaders: { authorization: collectorToken },
+      })
+      .post(heartbeatEndpoint)
+      .reply(httpStatus.OK, hbResponseStatusPaused);
+
+      spyPause = sinon.spy(repeater, 'pauseGenerators');
+
+      // send heartbeat with status = paused
+      return sendHeartbeat();
+    })
+    .then((res) => {
+      expect(spyPause.calledOnce).to.equal(true);
+      expect(res.refocus).to.include(hbResponseStatusPaused.collectorConfig);
+      nock(refocusUrl, {
+        reqheaders: { authorization: collectorToken },
+      })
+      .post(heartbeatEndpoint)
+      .reply(httpStatus.OK, hbResponseWithSGToUpdate);
+      spyResume = sinon.spy(repeater, 'resumeGenerators');
+
+      // send heartbeat with status = running to resume the paused generators
+      return sendHeartbeat();
+    })
+    .then((res) => {
+      expect(spyResume.calledOnce).to.equal(true);
+      expect(res.refocus).to.include(hbResponseWithSGToUpdate.collectorConfig);
+
+      // make sure the generator1 is updated
+      expect(res.generators[generator1.name].generatorTemplate).to.deep.equal(
+        generator1Updated.generatorTemplate);
+
+      // make sure generator2 and generator 3 are added
+      expect(res.generators[generator2.name]).to.deep.equal(generator2);
+      expect(res.generators[generator3.name]).to.deep.equal(generator3);
+
+      nock(refocusUrl, {
+        reqheaders: { authorization: collectorToken },
+      })
+      .post(heartbeatEndpoint)
+      .reply(httpStatus.OK, hbResponseStatusStopped);
+      spyFlushQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
+      spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
+      stubExit = sinon.stub(process, 'exit');
+
+      // send heartbeat with status = stop to stop the collector
+      return sendHeartbeat();
+    })
+    .then(() => {
+      expect(spyStopAll.calledOnce).to.equal(true);
+      expect(spyFlushQueue.calledOnce).to.equal(true);
+      expect(stubExit.calledOnce).to.equal(true);
+      expect(repeater.tracker).to.deep.equal({});
+      spyPause.restore();
+      spyResume.restore();
+      spyStopAll.restore();
+      spyFlushQueue.restore();
+      stubExit.restore();
+      return done();
     })
     .catch((err) => done(err));
   });
