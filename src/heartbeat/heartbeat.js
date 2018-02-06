@@ -15,6 +15,7 @@ const request = require('superagent');
 const configModule = require('../config/config');
 const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
 const u = require('../utils/commonUtils');
+const sanitize = u.sanitize;
 
 /**
  * Send a heartbeat to the Refocus server
@@ -24,14 +25,7 @@ function sendHeartbeat() {
   debug('Entered heartbeat.sendHeartbeat');
   const timestamp = Date.now();
   const config = configModule.getConfig();
-  const sanitized = JSON.parse(JSON.stringify(config.refocus));
-  if (sanitized.accessToken) {
-    sanitized.accessToken = '...' + sanitized.accessToken.slice(-5);
-  }
-
-  if (sanitized.collectorToken) {
-    sanitized.collectorToken = '...' + sanitized.collectorToken.slice(-5);
-  }
+  const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
 
   debug('sendHeartbeat config.refocus', sanitized);
   const collectorName = config.name;

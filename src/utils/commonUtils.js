@@ -10,72 +10,14 @@
  * src/utils/commonUtils.js
  * Common utilities.
  */
-const fs = require('fs');
-const util = require('util');
+'use strict'; // eslint-disable-line strict
 const errors = require('../errors');
-const debug = require('debug')('refocus-collector:commonUtils');
-const path = require('path');
 const os = require('os');
 const crypto = require('crypto');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
 const sampleSchema = RefocusCollectorEval.sampleSchema;
 
 module.exports = {
-
-  /**
-   * Read a file asynchronously.
-   *
-   * @param {String} fileLoc - File location relative to root folder i.e.
-   *  refocus-collector folder
-   * @param {string} encoding - Encoding type
-   * @returns {Promise} - If success, resolves with file data, else rejects
-   *  with error
-   * @throws {ResourceNotFoundError} - If specified file not found.
-   */
-  readFileAsynchr(fileLoc, encoding) {
-    debug('Reading file: %s', path.resolve(fileLoc));
-    return new Promise((resolve, reject) => {
-      fs.readFile(fileLoc, encoding, (err, data) => {
-        if (err) {
-          if (err.code === 'ENOENT') {
-            reject(new errors.ResourceNotFoundError(
-              util.format('File: %s not found', fileLoc
-            )));
-          }
-
-          reject(err);
-        } else {
-          resolve(data);
-        }
-      });
-    });
-  },
-
-  /**
-   * Read a file synchronously.
-   *
-   * @param {String} fileLoc - File location relative to root folder i.e.
-   *  refocus-collector folder.
-   * @returns {String} - File contents
-   * @throws {ResourceNotFoundError} - If specified file not found.
-   */
-  readFileSynchr(fileLoc) {
-    debug('Reading file: %s', path.resolve(fileLoc));
-    let fileContents;
-    try {
-      fileContents = fs.readFileSync(fileLoc).toString();
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        throw new errors.ResourceNotFoundError(
-          util.format('File: %s not found', fileLoc)
-        );
-      } else {
-        throw err;
-      }
-    }
-
-    return fileContents;
-  },
 
   /**
    * Validates the sample.
@@ -188,6 +130,27 @@ module.exports = {
     crypted += cipher.final('hex');
     return crypted;
   }, // encrypt
+
+  /**
+   * Return a copy of the object with the keys masked
+   * @param  {Object} object - Object to be masked
+   * @param  {Array} keys - The keys of the object to be masked
+   * @returns {Object} - returns the object with the keys masked
+   */
+  sanitize(object, keys) {
+    if (!Array.isArray(keys)) {
+      return object;
+    }
+
+    const sanitized = JSON.parse(JSON.stringify(object));
+    keys.forEach((key) => {
+      if (object[key]) {
+        sanitized[key] = '...' + sanitized[key].slice(-5);
+      }
+    });
+
+    return sanitized;
+  }, // sanitize
 
   /**
    * Determine if the given Generator is set up for bulk collection

@@ -36,7 +36,7 @@ function handleHeartbeatResponse(err, res) {
 
   const config = configModule.getConfig();
   if (res && res.collectorConfig) {
-    utils.changeCollectorState(config.refocus.status,
+    utils.changeCollectorStatus(config.refocus.status,
       res.collectorConfig.status);
 
     utils.updateCollectorConfig(res);

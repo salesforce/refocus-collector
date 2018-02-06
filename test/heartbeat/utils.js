@@ -169,14 +169,14 @@ describe('test/heartbeat/utils.js >', () => {
     });
   });
 
-  describe('changeCollectorState', () => {
+  describe('changeCollectorStatus', () => {
     it('when newStatus=Stopped stop should be executed irrespective of ' +
       'the previous status', (done) => {
       const spyBuffQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
       const spyRepeater = sinon.spy(repeater, 'stopAllRepeat');
       const stubExit = sinon.stub(process, 'exit');
-      hu.changeCollectorState('Paused', 'Stopped');
-      hu.changeCollectorState('Running', 'Stopped');
+      hu.changeCollectorStatus('Paused', 'Stopped');
+      hu.changeCollectorStatus('Running', 'Stopped');
       expect(spyBuffQueue.calledTwice).to.equal(true);
       expect(spyRepeater.calledTwice).to.equal(true);
       expect(stubExit.calledTwice).to.equal(true);
@@ -188,7 +188,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('currentStatus = Running and newStatus = Paused', (done) => {
       const spy = sinon.spy(repeater, 'pauseGenerators');
-      hu.changeCollectorState('Running', 'Paused');
+      hu.changeCollectorStatus('Running', 'Paused');
       expect(spy.calledOnce).to.equal(true);
       spy.restore();
       done();
@@ -196,7 +196,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('currentStatus = Paused and newStatus = Paused', (done) => {
       const spy = sinon.spy(repeater, 'pauseGenerators');
-      hu.changeCollectorState('Paused', 'Paused');
+      hu.changeCollectorStatus('Paused', 'Paused');
       expect(spy.calledOnce).to.equal(false);
       spy.restore();
       done();
@@ -204,7 +204,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('currentStatus = Paused and newStatus = Running', (done) => {
       const spy = sinon.spy(repeater, 'resumeGenerators');
-      hu.changeCollectorState('Paused', 'Running');
+      hu.changeCollectorStatus('Paused', 'Running');
       expect(spy.calledOnce).to.equal(true);
       spy.restore();
       done();
@@ -216,7 +216,7 @@ describe('test/heartbeat/utils.js >', () => {
       const spyFlushQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
       const spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
       const stubExit = sinon.stub(process, 'exit');
-      hu.changeCollectorState('Running', 'Running');
+      hu.changeCollectorStatus('Running', 'Running');
       expect(spyPause.called).to.equal(false);
       expect(spyResume.called).to.equal(false);
       expect(spyFlushQueue.called).to.equal(false);
