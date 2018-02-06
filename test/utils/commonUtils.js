@@ -11,51 +11,10 @@
  */
 const expect = require('chai').expect;
 const commonUtils = require('../../src/utils/commonUtils');
+const sanitize = commonUtils.sanitize;
 const config = require('../../src/config/config');
 
 describe('test/utils/commonUtils.js - common utils unit tests >', () => {
-  it('readFile async, success', (done) => {
-    commonUtils.readFileAsynchr('./test/utils/fileToRead.txt', 'utf8')
-    .then((data) => {
-      expect(data).to.be.equal(
-        'This is a text file meant to test the readFile function in ' +
-        'commonUtils.'
-      );
-    })
-    .then(() => done())
-    .catch(done);
-  });
-
-  it('readFile async, file not found', (done) => {
-    commonUtils.readFileAsynchr('./test/utils/FileDoesNotExist.txt', 'utf8')
-    .catch((err) => {
-      expect(err.status).to.be.equal(404);
-      expect(err.name).to.be.equal('ResourceNotFoundError');
-      expect(err.message).to.be.equal(
-        'File: ./test/utils/FileDoesNotExist.txt not found'
-      );
-    })
-    .then(done)
-    .catch(done);
-  });
-
-  it('readFile sync, success', (done) => {
-    const data = commonUtils.readFileSynchr('./test/utils/fileToRead.txt');
-    expect(data).to.be.equal(
-      'This is a text file meant to test the readFile function in ' +
-      'commonUtils.'
-    );
-    done();
-  });
-
-  it('readFile sync, file not found', (done) => {
-    const fn = commonUtils.readFileSynchr.bind(
-      commonUtils, './test/utils/NotExist.txt'
-    );
-    expect(fn).to.throw('File: ./test/utils/NotExist.txt not found');
-    done();
-  });
-
   it('isBulk', (done) => {
     const gen = {
       generatorTemplate: {
@@ -74,6 +33,46 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     delete gen.generatorTemplate;
     expect(commonUtils.isBulk(gen)).to.be.false;
     done();
+  });
+
+  describe('sanitize', () => {
+    it('should not sanitize when keys are not passed as array', (done) => {
+      const obj = {
+        token: 'a310u',
+        username: 'refocus-collector-user',
+      };
+      const sanitized = sanitize(obj, 'token');
+      expect(sanitized.token).to.equal(obj.token);
+      done();
+    });
+
+    it('ok, sanitize with a single key', (done) => {
+      const obj = {
+        token: 'a310u',
+        username: 'refocus-collector-user',
+      };
+      const sanitized = sanitize(obj, ['token']);
+
+      expect(sanitized.token).to.contain('...');
+      expect(sanitized.token.length).to.not.equal(obj.token.length);
+      expect(sanitized.username).to.equal(obj.username);
+      done();
+    });
+
+    it('ok, sanitize with multiple key', (done) => {
+      const obj = {
+        accessToken: 'a310u',
+        username: 'refocus-collector-user',
+        bearerToken: 'b3ar3r',
+      };
+      const sanitized = sanitize(obj, ['accessToken', 'bearerToken']);
+      expect(sanitized.accessToken).to.contain('...');
+      expect(sanitized.accessToken.length).to.not.equal(obj.accessToken.length);
+      expect(sanitized.bearerToken).to.contain('...');
+      expect(sanitized.bearerToken.length).to.not.equal(obj.bearerToken.length);
+      expect(sanitized.username).to.equal(obj.username);
+      done();
+    });
   });
 
   describe('collector metadata >', () => {

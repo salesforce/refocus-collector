@@ -19,7 +19,6 @@
 const program = require('commander');
 const logger = require('winston');
 const figlet = require('figlet');
-const conf = require('../config/config');
 const pj = require('../../package.json');
 
 program

@@ -9,6 +9,7 @@
 /**
  * test/heartbeat/listener.js
  */
+'use strict'; // eslint-disable-line strict
 const configModule = require('../../src/config/config');
 const listener = require('../../src/heartbeat/listener');
 const tracker = require('../../src/repeater/repeater').tracker;
@@ -33,6 +34,7 @@ describe('test/heartbeat/listener.js >', () => {
     collectorConfig: {
       heartbeatInterval: 50,
       maxSamplesPerBulkRequest: 10,
+      status: 'Running',
     },
     encryptionAlgorithm,
     generatorsAdded: [
@@ -69,6 +71,8 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
     expect(updatedConfig.refocus.heartbeatInterval)
       .to.equal(hbResponse.collectorConfig.heartbeatInterval);
+    expect(updatedConfig.refocus.status)
+      .to.equal(hbResponse.collectorConfig.status);
     done();
   });
 
@@ -78,6 +82,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -109,6 +114,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -156,6 +162,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -189,6 +196,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -217,6 +225,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 50,
+        status: 'Running',
       },
       generatorsUpdated: [
         {
@@ -251,6 +260,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -280,6 +290,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsUpdated: [
         {
@@ -313,6 +324,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: [
         {
@@ -351,6 +363,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsDeleted: [
         { name: 'ABC_DATA', },
@@ -371,6 +384,7 @@ describe('test/heartbeat/listener.js >', () => {
       collectorConfig: {
         heartbeatInterval: 50,
         maxSamplesPerBulkRequest: 10,
+        status: 'Running',
       },
       generatorsAdded: {
         name: 'Fghijkl_Mnopq',
@@ -403,6 +417,7 @@ describe('test/heartbeat/listener.js >', () => {
         collectorConfig: {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
+          status: 'Running',
         },
         encryptionAlgorithm,
         generatorsAdded: [
@@ -456,6 +471,7 @@ describe('test/heartbeat/listener.js >', () => {
         collectorConfig: {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
+          status: 'Running',
         },
         encryptionAlgorithm,
         generatorsAdded: [
@@ -541,6 +557,7 @@ describe('test/heartbeat/listener.js >', () => {
         collectorConfig: {
           heartbeatInterval: 50,
           maxSamplesPerBulkRequest: 10,
+          status: 'Running',
         },
         encryptionAlgorithm,
         generatorsAdded: [

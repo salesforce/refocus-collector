@@ -30,5 +30,11 @@ module.exports = {
     SERVICE_UNAVAILABLE: 503,
   },
 
+  collectorStatus: {
+    STOPPED: 'Stopped',
+    PAUSED: 'Paused',
+    RUNNING: 'Running',
+  },
+
   heartbeatRepeatName: 'heartbeat',
 };

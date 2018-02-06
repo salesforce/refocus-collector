@@ -16,6 +16,7 @@
 const debug = require('debug')('refocus-collector:commands');
 const logger = require('winston');
 const configModule = require('../config/config');
+const sanitize = require('../utils/commonUtils').sanitize;
 const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
@@ -36,10 +37,7 @@ function execute() {
 
   return doPost(COLLECTOR_START_PATH, body)
   .then((res) => {
-    const sanitized = JSON.parse(JSON.stringify(res.body));
-    if (sanitized.token) {
-      sanitized.token = '...' + sanitized.token.slice(-5);
-    }
+    const sanitized = sanitize(res.body, ['token']);
 
     debug('start execute response body', sanitized);
     config.refocus.collectorToken = res.body.token;
