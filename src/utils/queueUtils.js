@@ -14,6 +14,9 @@ const logger = require('winston');
 const Queue = require('buffered-queue');
 const errors = require('../errors');
 const debug = require('debug')('refocus-collector:commonUtils');
+const httpUtils = require('./httpUtils');
+const configModule = require('../config/config');
+
 let queueObject;
 const queueListObject = {};
 
@@ -85,10 +88,53 @@ function flushAllBufferedQueues() {
   });
 } // flushAllBufferedQueues
 
+/**
+ * Create or update queue for sample generator
+ * @param  {String} qName - Queue name
+ * @param  {String} refocusUserToken - User token
+ * @param  {Object} collConf - The collectorConfig from the start or heartbeat
+ *  response
+ */
+function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
+  if (!qName) {
+    debug('Error: qName not found. Supplied %s', qName);
+    throw new errors.ValidationError('Missing queue name.');
+  }
+
+  const bq = getQueue(qName); // get bulk update queue
+  if (bq) { // queue matching this name already exists
+    if (!collConf) {
+      debug('Error: collConf not found. Supplied %s', collConf);
+      throw new errors.ValidationError('Missing collectorConfig.');
+    }
+
+    // update queue params
+    if (collConf.maxSamplesPerBulkRequest) {
+      bq._size = collConf.maxSamplesPerBulkRequest;
+    }
+
+    if (collConf.sampleUpsertQueueTime) {
+      bq._flushTimeout = collConf.sampleUpsertQueueTime;
+    }
+  } else { // create queue
+    const config = configModule.getConfig();
+    const queueParams = {
+      name: qName,
+      size: config.refocus.maxSamplesPerBulkRequest,
+      flushTimeout: config.refocus.sampleUpsertQueueTime,
+      verbose: false,
+      flushFunction: httpUtils.doBulkUpsert,
+      token: refocusUserToken,
+    };
+    createQueue(queueParams);
+  }
+} // createOrUpdateGeneratorQueue
+
 module.exports = {
-  queueListObject,
+  createOrUpdateGeneratorQueue,
   createQueue,
   getQueue,
   enqueueFromArray,
   flushAllBufferedQueues,
+  queueListObject,
 };

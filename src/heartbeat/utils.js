@@ -126,51 +126,6 @@ function setupRepeater(generator) {
 } // setupRepeater
 
 /**
- * Create or update queue for sample generator
- * @param  {String} qName - Queue name
- * @param  {String} refocusUserToken - User token
- * @param  {Object} collConf - The collectorConfig from the start or heartbeat
- *  response
- */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
-  if (!qName) {
-    // Throw error if qName is not provided.
-    debug('Error: qName not found. Supplied %s', qName);
-    throw new errors.ValidationError(
-      'Queue name should be provided for queue creation.'
-    );
-  }
-
-  const bq = queueUtils.getQueue(qName); // get queue
-  if (bq) {
-    if (!collConf) {
-      debug('Error: collConf not found. Supplied %s', collConf);
-      throw new errors.ValidationError('Missing collectorConfig.');
-    }
-
-    // update queue params
-    if (collConf.maxSamplesPerBulkRequest) {
-      bq._size = collConf.maxSamplesPerBulkRequest;
-    }
-
-    if (collConf.sampleUpsertQueueTime) {
-      bq._flushTimeout = collConf.sampleUpsertQueueTime;
-    }
-  } else { // create queue
-    const config = configModule.getConfig();
-    const queueParams = {
-      name: qName,
-      size: config.refocus.maxSamplesPerBulkRequest,
-      flushTimeout: config.refocus.sampleUpsertQueueTime,
-      verbose: false,
-      flushFunction: httpUtils.doBulkUpsert,
-      token: refocusUserToken,
-    };
-    queueUtils.createQueue(queueParams);
-  }
-} // createOrUpdateGeneratorQueue
-
-/**
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
@@ -194,7 +149,8 @@ function addGenerator(res) {
         config.generators[g.name] = g;
 
         // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig);
+        queueUtils.createOrUpdateGeneratorQueue(g.name, g.token,
+          res.collectorConfig);
         setupRepeater(g);
       });
 
@@ -280,7 +236,6 @@ module.exports = {
   addGenerator,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
-  createOrUpdateGeneratorQueue, // exporting for testing purposes only
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,

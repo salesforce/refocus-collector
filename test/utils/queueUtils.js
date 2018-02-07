@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
-const queueUtils = require('../../src/utils/queueUtils');
+const qu = require('../../src/utils/queueUtils');
 const errors = require('../../src/errors');
 const configModule = require('../../src/config/config');
 
@@ -42,59 +42,59 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Create queue', (done) => {
-    queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
+    qu.createQueue(queueParams);
+    const queue = qu.getQueue('test');
     expect(queue._size).to.be.equal(100);
     expect(queue._flushTimeout).to.be.equal(4000);
     return done();
   });
 
   it('Get queue', (done) => {
-    queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
+    qu.createQueue(queueParams);
+    const queue = qu.getQueue('test');
     expect(queue._size).to.be.equal(100);
     expect(queue._flushTimeout).to.be.equal(4000);
     return done();
   });
 
   it('Change the queue Size', (done) => {
-    queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
+    qu.createQueue(queueParams);
+    const queue = qu.getQueue('test');
     expect(queue._size).to.be.equal(100);
     queue._size = 50;
-    const newQueue = queueUtils.getQueue('test');
+    const newQueue = qu.getQueue('test');
     expect(newQueue._size).to.be.equal(50);
     return done();
   });
 
   it('Change the queue flush time', (done) => {
-    queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
+    qu.createQueue(queueParams);
+    const queue = qu.getQueue('test');
     expect(queue._flushTimeout).to.be.equal(4000);
     queue._flushTimeout = 500;
-    const newQueue = queueUtils.getQueue('test');
+    const newQueue = qu.getQueue('test');
     expect(newQueue._flushTimeout).to.be.equal(500);
     return done();
   });
 
   it('Create two queue', (done) => {
-    queueUtils.createQueue(queueParams);
-    queueUtils.createQueue({
+    qu.createQueue(queueParams);
+    qu.createQueue({
       name: 'test1',
       size: 100,
       flushTimeout: 3000,
       verbose: false,
       flushFunction,
     });
-    const queue = queueUtils.getQueue('test');
-    const queue1 = queueUtils.getQueue('test1');
+    const queue = qu.getQueue('test');
+    const queue1 = qu.getQueue('test1');
     expect(queue._size).to.be.equal(100);
     expect(queue1._size).to.be.equal(100);
     return done();
   });
 
   it('flush all buffered queue objects', (done) => {
-    const firstQueue = queueUtils.createQueue({
+    const firstQueue = qu.createQueue({
       name: 'firstQueue',
       size: 100,
       flushTimeout: 3000,
@@ -102,7 +102,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
       flushFunction,
     });
 
-    const secondQueue = queueUtils.createQueue({
+    const secondQueue = qu.createQueue({
       name: 'secondQueue',
       size: 100,
       flushTimeout: 3000,
@@ -111,13 +111,13 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
     });
 
     const dataArray = ['1', '2', '3'];
-    queueUtils.enqueueFromArray('firstQueue', dataArray);
-    queueUtils.enqueueFromArray('secondQueue', dataArray);
+    qu.enqueueFromArray('firstQueue', dataArray);
+    qu.enqueueFromArray('secondQueue', dataArray);
     expect(firstQueue.Items).deep.equal(dataArray);
     expect(secondQueue.Items).deep.equal(dataArray);
 
     // call flush all
-    queueUtils.flushAllBufferedQueues();
+    qu.flushAllBufferedQueues();
 
     expect(firstQueue.Items).deep.equal([]);
     expect(secondQueue.Items).deep.equal([]);
@@ -125,14 +125,14 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Flush queue after queue size done', (done) => {
-    queueUtils.createQueue({
+    qu.createQueue({
       name: 'test',
       size: 3,
       flushTimeout: 300,
       verbose: false,
       flushFunction,
     });
-    const queue = queueUtils.getQueue('test');
+    const queue = qu.getQueue('test');
     queue.add(1);
     queue.add(2);
     queue.add(3);
@@ -142,14 +142,14 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Flush queue after queue flushtimeout done', (done) => {
-    queueUtils.createQueue({
+    qu.createQueue({
       name: 'test',
       size: 100,
       flushTimeout: 300,
       verbose: false,
       flushFunction,
     });
-    const queue = queueUtils.getQueue('test');
+    const queue = qu.getQueue('test');
     queue.add(1);
     queue.add(2);
     queue.add(3);
@@ -165,7 +165,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   (done) => {
     const tokenStr = 'some-random-token-string-dfasdfdasfdsfds';
     let flushResult = {};
-    queueUtils.createQueue({
+    qu.createQueue({
       name: 'test',
       size: 100,
       flushTimeout: 300,
@@ -177,7 +177,7 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
 
       token: tokenStr,
     });
-    const queue = queueUtils.getQueue('test');
+    const queue = qu.getQueue('test');
     queue.add(1);
     queue.add(2);
     queue.add(3);
@@ -191,20 +191,85 @@ describe('test/utils/queueUtils.js - queue utils unit tests >', () => {
   });
 
   it('Enqueue function test', (done) => {
-    queueUtils.createQueue(queueParams);
-    const queue = queueUtils.getQueue('test');
-    queueUtils.enqueueFromArray('test', [1, 2, 3, 4]);
+    qu.createQueue(queueParams);
+    const queue = qu.getQueue('test');
+    qu.enqueueFromArray('test', [1, 2, 3, 4]);
     expect(queue.items.length).to.be.equal(4);
     return done();
   });
 
   it('Validation individual data error test', (done) => {
-    queueUtils.createQueue(queueParams);
+    qu.createQueue(queueParams);
     try {
-      queueUtils.enqueueFromArray('test', [1, 2, 3, 4], validateError);
+      qu.enqueueFromArray('test', [1, 2, 3, 4], validateError);
     } catch (err) {
       expect(err.name).to.be.equal('ValidationError');
       return done();
     }
+  });
+
+  describe('createOrUpdateGeneratorQueue >', () => {
+    const collectorConfig = {
+      heartbeatInterval: 50,
+      maxSamplesPerBulkRequest: 1000,
+      sampleUpsertQueueTime: 4000,
+    };
+
+    before(() => {
+      configModule.clearConfig();
+      configModule.initializeConfig();
+    });
+
+    it('OK, new queue created', (done) => {
+      const qpresent = qu.getQueue('qName1');
+      expect(qpresent).to.be.equal(undefined);
+
+      qu.createOrUpdateGeneratorQueue('qName1', 'mytoken',
+        collectorConfig);
+      const qGen1 = qu.getQueue('qName1');
+      expect(qGen1._size).to.be.equal(100);
+      done();
+    });
+
+    it('OK, queue already exists, updated', (done) => {
+      qu.createQueue({
+        name: 'qName1',
+        size: 10,
+        flushTimeout: 4000,
+        verbose: false,
+        flushFunction: (data) => data,
+      });
+
+      const qpresent = qu.getQueue('qName1');
+      expect(qpresent._size).to.be.equal(10);
+      qu.createOrUpdateGeneratorQueue('qName1', 'mytoken',
+        collectorConfig);
+      const qUpdated = qu.getQueue('qName1');
+      expect(qUpdated._size).to.be.equal(1000);
+      done();
+    });
+
+    it('Not ok, queue name null', (done) => {
+      try {
+        qu.createOrUpdateGeneratorQueue(null, 'mytoken',
+          collectorConfig);
+        done(new Error('Expecting error'));
+      } catch (err) {
+        expect(err.name).to.be.equal('ValidationError');
+        expect(err.message).to.be.equal('Missing queue name.');
+        done();
+      }
+    });
+
+    it('Not ok, heartbeat response null', (done) => {
+      try {
+        qu.createOrUpdateGeneratorQueue('qName1', 'mytoken', null);
+        done(new Error('Expecting error'));
+      } catch (err) {
+        expect(err.name).to.be.equal('ValidationError');
+        expect(err.message).to.be.equal('Missing collectorConfig.');
+        done();
+      }
+    });
   });
 });
