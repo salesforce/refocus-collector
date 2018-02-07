@@ -129,9 +129,10 @@ function setupRepeater(generator) {
  * Create or update queue for sample generator
  * @param  {String} qName - Queue name
  * @param  {String} refocusUserToken - User token
- * @param  {Object} res - The Heartbeat Response object
+ * @param  {Object} collConf - The collectorConfig from the start or heartbeat
+ *  response
  */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
+function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
   if (!qName) {
     // Throw error if qName is not provided.
     debug('Error: qName not found. Supplied %s', qName);
@@ -140,27 +141,20 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
     );
   }
 
-  const _bulkUpsertSampleQueue = queueUtils.getQueue(qName); // get queue
-  if (_bulkUpsertSampleQueue) {
-    if (!res) {
-      // Throw error if heartbeat response is not provided.
-      debug('Error: res not found. Supplied %s', res);
-      throw new errors.ValidationError(
-        'Heartbeat response should be provided for queue creation.'
-      );
+  const bq = queueUtils.getQueue(qName); // get queue
+  if (bq) {
+    if (!collConf) {
+      debug('Error: collConf not found. Supplied %s', collConf);
+      throw new errors.ValidationError('Missing collectorConfig.');
     }
 
     // update queue params
-    if (res.collectorConfig) {
-      if (res.collectorConfig.maxSamplesPerBulkRequest) {
-        _bulkUpsertSampleQueue._size = res.collectorConfig
-                                          .maxSamplesPerBulkRequest;
-      }
+    if (collConf.maxSamplesPerBulkRequest) {
+      bq._size = collConf.maxSamplesPerBulkRequest;
+    }
 
-      if (res.collectorConfig.sampleUpsertQueueTime) {
-        _bulkUpsertSampleQueue._flushTimeout =
-          res.collectorConfig.sampleUpsertQueueTime;
-      }
+    if (collConf.sampleUpsertQueueTime) {
+      bq._flushTimeout = collConf.sampleUpsertQueueTime;
     }
   } else { // create queue
     const config = configModule.getConfig();
@@ -174,7 +168,7 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
     };
     queueUtils.createQueue(queueParams);
   }
-}
+} // createOrUpdateGeneratorQueue
 
 /**
  * Function to setup a generator repeater and add the generator to the
@@ -200,7 +194,7 @@ function addGenerator(res) {
         config.generators[g.name] = g;
 
         // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, res);
+        createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig);
         setupRepeater(g);
       });
 
