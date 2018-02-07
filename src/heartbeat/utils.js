@@ -103,29 +103,6 @@ function assignContext(ctx, def, collectorToken, res) {
 } // assignContext
 
 /**
- * Creates a repeater based on the bulk attribute of the of the generator
- * object that is passed as as argument. When the bulk attribute is true, it
- * creates a repeater using the passed in generator. When the bulk attribute
- * is false, it runs through the subjects array and creates a new generator
- * object for each subject, using the generator passed in as the argument),
- * and setting the "subjects" array to contain just the one subject.
- *
- * @param {Object} generator - Generator object from the heartbeat
- */
-function setupRepeater(generator) {
-  if (commonUtils.isBulk(generator)) {
-    repeater.createGeneratorRepeater(generator);
-  } else {
-    // bulk is false
-    generator.subjects.forEach((s) => {
-      const _g = JSON.parse(JSON.stringify(generator));
-      _g.subjects = [s];
-      repeater.createGeneratorRepeater(_g);
-    });
-  }
-} // setupRepeater
-
-/**
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
@@ -151,7 +128,7 @@ function addGenerator(res) {
         // queue name same as generator name
         queueUtils.createOrUpdateGeneratorQueue(g.name, g.token,
           res.collectorConfig);
-        setupRepeater(g);
+        repeater.setupRepeater(g);
       });
 
       debug('Added generators to the config:', generators);
@@ -220,7 +197,7 @@ function updateGenerator(res) {
          * before creating new repeaters.
          */
         repeater.stop(g.name);
-        setupRepeater(g);
+        repeater.setupRepeater(g);
       });
 
       debug('Updated generators in the config: ', generators);
