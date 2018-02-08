@@ -66,152 +66,45 @@ function updateCollectorConfig(res) {
 } // updateCollectorConfig
 
 /**
- * Assign any default values from the template into the generator context if
- * no value was already provided in the generator context.
- *
- * @param {Object} ctx - The context from the generator
- * @param {Object} def - The contextDefinition from the generator template
- * @param {Object} collectorToken - The token for this collector
- * @param {Object} res - The heartbeat response object
- * @returns {Object} the context object with default values populated
- */
-function assignContext(ctx, def, collectorToken, res) {
-  if (!ctx) {
-    ctx = {};
-  }
-
-  if (!def) {
-    def = {};
-  }
-
-  const heartbeatTimestamp = res.timestamp;
-  const secret = collectorToken + heartbeatTimestamp;
-
-  Object.keys(def).forEach((key) => {
-    if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
-      ctx[key] = def[key].default;
-    }
-
-    if (ctx.hasOwnProperty(key) && def.hasOwnProperty(key) &&
-      def[key].encrypted) {
-      ctx[key] = commonUtils.decrypt(ctx[key], secret, res.encryptionAlgorithm);
-    }
-  });
-
-  debug('assignContext returning', ctx);
-  return ctx;
-} // assignContext
-
-/**
- * Creates a repeater based on the bulk attribute of the of the generator
- * object that is passed as as argument. When the bulk attribute is true, it
- * creates a repeater using the passed in generator. When the bulk attribute
- * is false, it runs through the subjects array and creates a new generator
- * object for each subject, using the generator passed in as the argument),
- * and setting the "subjects" array to contain just the one subject.
- *
- * @param {Object} generator - Generator object from the heartbeat
- */
-function setupRepeater(generator) {
-  if (commonUtils.isBulk(generator)) {
-    repeater.createGeneratorRepeater(generator);
-  } else {
-    // bulk is false
-    generator.subjects.forEach((s) => {
-      const _g = JSON.parse(JSON.stringify(generator));
-      _g.subjects = [s];
-      repeater.createGeneratorRepeater(_g);
-    });
-  }
-} // setupRepeater
-
-/**
- * Create or update queue for sample generator
- * @param  {String} qName - Queue name
- * @param  {String} refocusUserToken - User token
- * @param  {Object} res - The Heartbeat Response object
- */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
-  if (!qName) {
-    // Throw error if qName is not provided.
-    debug('Error: qName not found. Supplied %s', qName);
-    throw new errors.ValidationError(
-      'Queue name should be provided for queue creation.'
-    );
-  }
-
-  const _bulkUpsertSampleQueue = queueUtils.getQueue(qName); // get queue
-  if (_bulkUpsertSampleQueue) {
-    if (!res) {
-      // Throw error if heartbeat response is not provided.
-      debug('Error: res not found. Supplied %s', res);
-      throw new errors.ValidationError(
-        'Heartbeat response should be provided for queue creation.'
-      );
-    }
-
-    // update queue params
-    if (res.collectorConfig) {
-      if (res.collectorConfig.maxSamplesPerBulkRequest) {
-        _bulkUpsertSampleQueue._size = res.collectorConfig
-                                          .maxSamplesPerBulkRequest;
-      }
-
-      if (res.collectorConfig.sampleUpsertQueueTime) {
-        _bulkUpsertSampleQueue._flushTimeout =
-          res.collectorConfig.sampleUpsertQueueTime;
-      }
-    }
-  } else { // create queue
-    const config = configModule.getConfig();
-    const queueParams = {
-      name: qName,
-      size: config.refocus.maxSamplesPerBulkRequest,
-      flushTimeout: config.refocus.sampleUpsertQueueTime,
-      verbose: false,
-      flushFunction: httpUtils.doBulkUpsert,
-      token: refocusUserToken,
-    };
-    queueUtils.createQueue(queueParams);
-  }
-}
-
-/**
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
- * @param {Object} res - The Heartbeat Response object
+ * @param {Object} res - The start or heartbeat response object
  */
-function addGenerator(res) {
+function addGenerators(res) {
   const generators = res.generatorsAdded;
+  debug('Getting ready to add generators:', generators);
 
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
   const token = config.refocus.collectorToken;
+
+  function addGenerator(g) {
+    if (g.generatorTemplate.contextDefinition) {
+      g.context = commonUtils.assignContext(g.context,
+        g.generatorTemplate.contextDefinition, token, res);
+    }
+
+    config.generators[g.name] = g;
+
+    // queue name same as generator name
+    queueUtils.createOrUpdateGeneratorQueue(g.name, g.token,
+      res.collectorConfig);
+    repeater.setupRepeater(g);
+    debug('Added generator to the config:', g);
+  } // addGenerator
+
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
-
-        config.generators[g.name] = g;
-
-        // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, res);
-        setupRepeater(g);
-      });
-
-      debug('Added generators to the config:', generators);
+      generators.forEach(addGenerator);
     } else {
       logger.error('generatorsAdded attribute must be an array');
     }
   } else {
     debug('No generators designated for addition');
   }
-} // addGenerator
+} // addGenerators
 
 /**
  * Function to stop the generator repeater and delete the generator from the
@@ -257,7 +150,7 @@ function updateGenerator(res) {
       // Update the repeater for the generators and update the generator config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
+          g.context = commonUtils.assignContext(g.context,
             g.generatorTemplate.contextDefinition, token, res);
         }
 
@@ -270,7 +163,7 @@ function updateGenerator(res) {
          * before creating new repeaters.
          */
         repeater.stop(g.name);
-        setupRepeater(g);
+        repeater.setupRepeater(g);
       });
 
       debug('Updated generators in the config: ', generators);
@@ -283,10 +176,8 @@ function updateGenerator(res) {
 } // updateGenerator
 
 module.exports = {
-  addGenerator,
-  assignContext, // exporting for testing purposes only
+  addGenerators,
   changeCollectorStatus,
-  createOrUpdateGeneratorQueue, // exporting for testing purposes only
   deleteGenerator,
   updateGenerator,
   updateCollectorConfig,

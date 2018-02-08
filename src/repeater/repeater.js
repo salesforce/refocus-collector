@@ -114,7 +114,7 @@ function changeRepeatState(name, newState) {
 function stop(name) {
   changeRepeatState(name, 'stop');
   delete tracker[name];
-  logger.info(`Stopped the repeater identified by: ${name}`);
+  logger.info(`Stopped repeater "${name}"`);
 } // stop
 
 /**
@@ -251,6 +251,29 @@ function createGeneratorRepeater(generator) {
   });
 } // createGeneratorRepeater
 
+/**
+ * Creates one or more repeaters, depending on the bulk attribute of the
+ * generator.
+ * When bulk is true, create a repeater for the generator.
+ * When bulk is false, iterate over the subjects array and create a new
+ * repeater for each subject, setting the "subjects" array to contain just the
+ * one subject.
+ *
+ * @param {Object} gen - Generator object from the start or heartbeat response
+ */
+function setupRepeater(gen) {
+  if (u.isBulk(gen)) {
+    createGeneratorRepeater(gen);
+  } else {
+    // bulk is false
+    gen.subjects.forEach((s) => {
+      const _g = JSON.parse(JSON.stringify(gen));
+      _g.subjects = [s];
+      createGeneratorRepeater(_g);
+    });
+  }
+} // setupRepeater
+
 module.exports = {
   create,
   createGeneratorRepeater,
@@ -259,6 +282,7 @@ module.exports = {
   resume,
   tracker,
   resumeGenerators,
+  setupRepeater,
   stop,
   stopAllRepeat,
   validateDefinition, // export for testing only

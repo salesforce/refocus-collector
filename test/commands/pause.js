@@ -30,8 +30,7 @@ describe('test/commands/pause >', () => {
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
     const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
+    const pause = fork('src/commands/refocus-collector-pause.js', args, opts);
     pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -43,8 +42,7 @@ describe('test/commands/pause >', () => {
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
     const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
+    const pause = fork('src/commands/refocus-collector-pause.js', args, opts);
     pause.stderr.on('data', (data) => {
       expect(data.toString()).to.equal(missingCollectorNameError);
     });
