@@ -19,6 +19,7 @@ const configModule = require('../config/config');
 const sanitize = require('../utils/commonUtils').sanitize;
 const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
+const heartbeatUtils = require('../heartbeat/utils');
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const doPost = require('../utils/httpUtils.js').doPostToRefocus;
 const errors = require('../errors');
@@ -38,7 +39,6 @@ function execute() {
   return doPost(COLLECTOR_START_PATH, body)
   .then((res) => {
     const sanitized = sanitize(res.body, ['token']);
-
     debug('start execute response body', sanitized);
     config.refocus.collectorToken = res.body.token;
 
@@ -47,6 +47,9 @@ function execute() {
      * to avoid any accidentals edits/deletes to it.
      */
     Object.keys(config.refocus).forEach(Object.freeze);
+
+    /* Add the generators supplied in the response. */
+    heartbeatUtils.addGenerators(res.body);
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper

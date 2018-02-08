@@ -106,39 +106,42 @@ function assignContext(ctx, def, collectorToken, res) {
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
- * @param {Object} res - The Heartbeat Response object
+ * @param {Object} res - The start or heartbeat response object
  */
-function addGenerator(res) {
+function addGenerators(res) {
   const generators = res.generatorsAdded;
+  debug('Getting ready to add generators:', generators);
 
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
   const token = config.refocus.collectorToken;
+
+  function addGenerator(g) {
+    if (g.generatorTemplate.contextDefinition) {
+      g.context = assignContext(g.context,
+        g.generatorTemplate.contextDefinition, token, res);
+    }
+
+    config.generators[g.name] = g;
+
+    // queue name same as generator name
+    queueUtils.createOrUpdateGeneratorQueue(g.name, g.token,
+      res.collectorConfig);
+    repeater.setupRepeater(g);
+    debug('Added generator to the config:', g);
+  } // addGenerator
+
   if (generators) {
     if (Array.isArray(generators)) {
       // Create a new repeater for each generator and add to config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
-
-        config.generators[g.name] = g;
-
-        // queue name same as generator name
-        queueUtils.createOrUpdateGeneratorQueue(g.name, g.token,
-          res.collectorConfig);
-        repeater.setupRepeater(g);
-      });
-
-      debug('Added generators to the config:', generators);
+      generators.forEach(addGenerator);
     } else {
       logger.error('generatorsAdded attribute must be an array');
     }
   } else {
     debug('No generators designated for addition');
   }
-} // addGenerator
+} // addGenerators
 
 /**
  * Function to stop the generator repeater and delete the generator from the
@@ -210,7 +213,7 @@ function updateGenerator(res) {
 } // updateGenerator
 
 module.exports = {
-  addGenerator,
+  addGenerators,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
   deleteGenerator,

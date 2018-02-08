@@ -231,7 +231,7 @@ describe('test/heartbeat/utils.js >', () => {
     });
   });
 
-  describe('addGenerator >', () => {
+  describe('addGenerators >', () => {
     const genName1 = 'Gen1';
     const genName2 = 'Gen2';
     beforeEach(() => {
@@ -279,7 +279,7 @@ describe('test/heartbeat/utils.js >', () => {
         generatorsUpdated: [],
         generatorsDeleted: [],
       };
-      hu.addGenerator(heartbeatResp);
+      hu.addGenerators(heartbeatResp);
       const qGen1 = qUtils.getQueue(genName1);
       const qGen2 = qUtils.getQueue(genName2);
       expect(qGen1._size).to.be.equal(100);

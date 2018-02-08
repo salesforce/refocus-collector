@@ -76,13 +76,12 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
   });
 
   describe('collector metadata >', () => {
-
     it('getCurrentMetadata()', (done) => {
       const metadata = commonUtils.getCurrentMetadata();
-
       expect(metadata).to.be.an('object');
 
-      const osKeys = ['arch', 'hostname', 'platform', 'release', 'type', 'username'];
+      const osKeys =
+        ['arch', 'hostname', 'platform', 'release', 'type', 'username'];
       expect(metadata.osInfo).to.be.an('object');
       expect(metadata.osInfo).to.have.all.keys(osKeys);
       expect(metadata.osInfo.arch).to.be.a('string');
@@ -92,14 +91,16 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
       expect(metadata.osInfo.type).to.be.a('string');
       expect(metadata.osInfo.username).to.be.a('string');
 
-      const processKeys = ['execPath', 'memoryUsage', 'uptime', 'version', 'versions'];
+      const processKeys =
+        ['execPath', 'memoryUsage', 'uptime', 'version', 'versions'];
       expect(metadata.processInfo).to.be.an('object');
       expect(metadata.processInfo).to.have.all.keys(processKeys);
       expect(metadata.processInfo.execPath).to.be.a('string');
 
       const memoryUsageKeys = ['rss', 'heapTotal', 'heapUsed'];
       expect(metadata.processInfo.memoryUsage).to.be.an('object');
-      expect(metadata.processInfo.memoryUsage).to.include.all.keys(memoryUsageKeys);
+      expect(metadata.processInfo.memoryUsage)
+      .to.include.all.keys(memoryUsageKeys);
       expect(metadata.processInfo.memoryUsage.rss).to.be.a('number');
       expect(metadata.processInfo.memoryUsage.heapTotal).to.be.a('number');
       expect(metadata.processInfo.memoryUsage.heapUsed).to.be.a('number');
@@ -166,7 +167,6 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
       expect(changed.processInfo.version).to.equal('changed');
 
       expect(changed.version).to.equal('changed');
-
       done();
     });
 

@@ -15,6 +15,7 @@ const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 const configModule = require('../../src/config/config');
 const httpStatus = require('../../src/constants.js').httpStatus;
+const qu = require('../../src/utils/queueUtils');
 const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
@@ -161,7 +162,7 @@ describe('test/commands/start >', () => {
       version = config.metadata.version;
     });
 
-    after(() => configModule.clearConfig());
+    afterEach(() => configModule.clearConfig());
 
     it('ok, no proxy', (done) => {
       nock(refocusUrl, {
@@ -169,13 +170,44 @@ describe('test/commands/start >', () => {
       })
       .post('/v1/collectors/start',
         { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {},
+        generatorsAdded: [
+          {
+            name: 'Gen1',
+            token: 'some-dummy-token-gen1',
+            generatorTemplate: {
+              name: 'gen-template-1',
+              connection: {
+                url: 'https://example.api',
+                bulk: true,
+              },
+            },
+          },
+          {
+            name: 'Gen2',
+            token: 'some-dummy-token-gen2',
+            generatorTemplate: {
+              name: 'gen-template-2',
+              connection: {
+                url: 'https://example.api',
+                bulk: true,
+              },
+            },
+          },
+        ],
+      });
 
       start.execute()
       .then((res) => {
         expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
+        const qGen1 = qu.getQueue('Gen1');
+        const qGen2 = qu.getQueue('Gen2');
+        expect(qGen1._size).to.be.equal(100);
+        expect(qGen2._size).to.be.equal(100);
         repeater.stop('heartbeat');
         done();
       })
@@ -209,7 +241,11 @@ describe('test/commands/start >', () => {
       })
       .post('/v1/collectors/start',
         { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {},
+        generatorsAdded: [],
+      });
 
       config.refocus.proxy = refocusProxy;
 
@@ -232,7 +268,11 @@ describe('test/commands/start >', () => {
         reqheaders: { authorization: accessToken },
       })
       .post('/v1/collectors/start', { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {},
+        generatorsAdded: [],
+      });
 
       config.refocus.proxy = refocusProxy;
 
@@ -256,7 +296,11 @@ describe('test/commands/start >', () => {
         reqheaders: { authorization: accessToken },
       })
       .post('/v1/collectors/start', { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {},
+        generatorsAdded: [],
+      });
 
       const spy = sinon.spy(request, 'post');
       start.execute()
