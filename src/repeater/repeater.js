@@ -114,7 +114,7 @@ function changeRepeatState(name, newState) {
 function stop(name) {
   changeRepeatState(name, 'stop');
   delete tracker[name];
-  logger.info(`Stopped the repeater identified by: ${name}`);
+  logger.info(`Stopped repeater "${name}"`);
 } // stop
 
 /**

@@ -36,7 +36,7 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
     done();
   });
 
-  describe('sanitize', () => {
+  describe('sanitize >', () => {
     it('should not sanitize when keys are not passed as array', (done) => {
       const obj = {
         token: 'a310u',
@@ -236,14 +236,14 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
           .have.property('a', null);
       });
 
-      it('falsey def with falsey ctx should be ok', () => {
+      it('ok, falsey def with falsey ctx', () => {
         const ctx = null;
         const def = null;
         const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
         expect(_ctx).to.deep.equals({ });
       });
 
-      it('falsey def with non falsey ctx should be ok', () => {
+      it('ok, falsey def with non falsey ctx', () => {
         const ctx = {
           okStatus: 'OK',
         };
@@ -255,6 +255,7 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
       describe('with encrypted ctx attributes', () => {
         const password = 'reallylongsecretpassword';
         const secret = token + hbResponse.timestamp;
+
         it('encrypted ctx attributes must be decrypted back', () => {
           const ctx = {
             password: commonUtils.encrypt(password, secret, encryptionAlgorithm),
@@ -300,8 +301,8 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
           expect(_ctx).to.deep.equals({ password, token, notASecret, });
         });
 
-        it('falsey ctx with a non falsey def that has encrypted attributes ' +
-          ' should be ok', () => {
+        it('ok, falsey ctx with non falsey def with encrypted attributes',
+        () => {
           const ctx = null;
           const def = {
             password: {

@@ -24,7 +24,7 @@ const configModule = require('../config/config');
  * @param  {Object} simpleOauth Simple Oauth Object
  * @return {Object} generator   updated generator object
  */
-function sendRemoteRequest(generator, connection, simpleOauth=null) {
+function sendRemoteRequest(generator, connection, simpleOauth = null) {
   return new Promise((resolve) => {
     const { context, aspects, subjects } = generator;
 
@@ -35,9 +35,10 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     // If token is present then add token to request header.
     if (generator.token) {
       const accessToken = generator.token.accessToken;
-      if (simpleOauth.tokenFormat) {
-        connection.headers.Authorization
-        = simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
+      if (!connection.headers) connection.headers = {};
+      if (simpleOauth && simpleOauth.tokenFormat) {
+        connection.headers.Authorization =
+          simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
       } else {
         connection.headers.Authorization = accessToken;
       }
@@ -64,8 +65,8 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
          * If error is 401 and token is present with simple oauth object
          * then token is expired and request new token again.
          */
-        if (err.status == constants.httpStatus.UNAUTHORIZED
-          && simpleOauth && generator.token) {
+        if (err.status == constants.httpStatus.UNAUTHORIZED && simpleOauth
+        && generator.token) {
           generator.token = null;
           collect(generator);
         } else {
