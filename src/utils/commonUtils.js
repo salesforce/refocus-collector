@@ -16,6 +16,7 @@ const os = require('os');
 const crypto = require('crypto');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
 const sampleSchema = RefocusCollectorEval.sampleSchema;
+const debug = require('debug')('refocus-collector:commonUtils');
 
 module.exports = {
 
@@ -164,4 +165,33 @@ module.exports = {
     return Boolean(bulk);
   }, // encrypt
 
+  /**
+   * Assign any default values from the template into the generator context if
+   * no value was already provided in the generator context.
+   *
+   * @param {Object} ctx - The context from the generator
+   * @param {Object} def - The contextDefinition from the generator template
+   * @param {Object} collectorToken - The token for this collector
+   * @param {Object} res - The heartbeat response object
+   * @returns {Object} the context object with default values populated
+   */
+  assignContext(ctx, def, collectorToken, res) {
+    if (!ctx) ctx = {};
+    if (!def) def = {};
+    const secret = collectorToken + res.timestamp;
+    Object.keys(def).forEach((key) => {
+      if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
+        ctx[key] = def[key].default;
+      }
+
+      if (ctx.hasOwnProperty(key) && def.hasOwnProperty(key) &&
+        def[key].encrypted) {
+        ctx[key] = this.decrypt(ctx[key], secret,
+          res.encryptionAlgorithm);
+      }
+    });
+
+    debug('assignContext returning', ctx);
+    return ctx;
+  }, // assignContext
 };

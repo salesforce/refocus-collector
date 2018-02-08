@@ -66,43 +66,6 @@ function updateCollectorConfig(res) {
 } // updateCollectorConfig
 
 /**
- * Assign any default values from the template into the generator context if
- * no value was already provided in the generator context.
- *
- * @param {Object} ctx - The context from the generator
- * @param {Object} def - The contextDefinition from the generator template
- * @param {Object} collectorToken - The token for this collector
- * @param {Object} res - The heartbeat response object
- * @returns {Object} the context object with default values populated
- */
-function assignContext(ctx, def, collectorToken, res) {
-  if (!ctx) {
-    ctx = {};
-  }
-
-  if (!def) {
-    def = {};
-  }
-
-  const heartbeatTimestamp = res.timestamp;
-  const secret = collectorToken + heartbeatTimestamp;
-
-  Object.keys(def).forEach((key) => {
-    if (!ctx.hasOwnProperty(key) && def[key].hasOwnProperty('default')) {
-      ctx[key] = def[key].default;
-    }
-
-    if (ctx.hasOwnProperty(key) && def.hasOwnProperty(key) &&
-      def[key].encrypted) {
-      ctx[key] = commonUtils.decrypt(ctx[key], secret, res.encryptionAlgorithm);
-    }
-  });
-
-  debug('assignContext returning', ctx);
-  return ctx;
-} // assignContext
-
-/**
  * Function to setup a generator repeater and add the generator to the
  * collector config.
  *
@@ -118,7 +81,7 @@ function addGenerators(res) {
 
   function addGenerator(g) {
     if (g.generatorTemplate.contextDefinition) {
-      g.context = assignContext(g.context,
+      g.context = commonUtils.assignContext(g.context,
         g.generatorTemplate.contextDefinition, token, res);
     }
 
@@ -187,7 +150,7 @@ function updateGenerator(res) {
       // Update the repeater for the generators and update the generator config.
       generators.forEach((g) => {
         if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
+          g.context = commonUtils.assignContext(g.context,
             g.generatorTemplate.contextDefinition, token, res);
         }
 
@@ -214,7 +177,6 @@ function updateGenerator(res) {
 
 module.exports = {
   addGenerators,
-  assignContext, // exporting for testing purposes only
   changeCollectorStatus,
   deleteGenerator,
   updateGenerator,

@@ -11,6 +11,7 @@
  */
 const expect = require('chai').expect;
 const commonUtils = require('../../src/utils/commonUtils');
+const hu = require('../../src/heartbeat/utils');
 const sanitize = commonUtils.sanitize;
 const config = require('../../src/config/config');
 
@@ -170,5 +171,153 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
       done();
     });
 
+    describe('assignContext >', () => {
+      const encryptionAlgorithm = 'aes-256-cbc';
+      const token = 'longaphanumerictoken';
+      const hbResponse = {
+        collectorConfig: {
+          heartbeatInterval: 50,
+          status: 'Running',
+        },
+        encryptionAlgorithm,
+        timestamp: Date.now(),
+        generatorsAdded: [],
+        generatorsUpdated: [],
+        generatorsDeleted: [],
+      };
+
+      it('null ctx OK', () => {
+        const ctx = null;
+        const def = { a: { default: 'abc' } };
+
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse)).to
+          .have.property('a', 'abc');
+      });
+
+      it('empty ctx OK', () => {
+        const ctx = {};
+        const def = { a: { default: 'abc' } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse))
+          .to.have.property('a', 'abc');
+      });
+
+      it('undefined ctx OK', () => {
+        const ctx = undefined;
+        const def = { a: { default: 'abc' } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse))
+          .to.have.property('a', 'abc');
+      });
+
+      it('def with default does not overwrite ctx if exists', () => {
+        const ctx = { a: 'xxx' };
+        const def = { a: { default: 'abc' } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse))
+          .to.have.property('a', 'xxx');
+      });
+
+      it('def with no default has no effect', () => {
+        const ctx = { a: 'xxx' };
+        const def = { a: { description: 'This is "a"' } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse)).to
+          .have.property('a', 'xxx');
+      });
+
+      it('def with empty default adds attribute to ctx', () => {
+        const ctx = { };
+        const def = { a: { default: '' } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse)).to
+          .have.property('a', '');
+      });
+
+      it('def with null default adds attribute to ctx', () => {
+        const ctx = { };
+        const def = { a: { default: null } };
+        expect(commonUtils.assignContext(ctx, def, token, hbResponse)).to
+          .have.property('a', null);
+      });
+
+      it('falsey def with falsey ctx should be ok', () => {
+        const ctx = null;
+        const def = null;
+        const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
+        expect(_ctx).to.deep.equals({ });
+      });
+
+      it('falsey def with non falsey ctx should be ok', () => {
+        const ctx = {
+          okStatus: 'OK',
+        };
+        const def = null;
+        const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
+        expect(_ctx).to.deep.equals(ctx);
+      });
+
+      describe('with encrypted ctx attributes', () => {
+        const password = 'reallylongsecretpassword';
+        const secret = token + hbResponse.timestamp;
+        it('encrypted ctx attributes must be decrypted back', () => {
+          const ctx = {
+            password: commonUtils.encrypt(password, secret, encryptionAlgorithm),
+            token: commonUtils.encrypt(token, secret, encryptionAlgorithm),
+          };
+
+          const def = {
+            password: {
+              encrypted: true,
+            },
+            token: {
+              encrypted: true,
+            },
+            notASecret: {
+              encrypted: false,
+            },
+          };
+
+          const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
+          expect(_ctx).to.deep.equals({ password, token, });
+        });
+
+        it('unencrypted ctx attributes should not be effected', () => {
+          const notASecret = 'somenotsecretValue';
+          const ctx = {
+            password: commonUtils.encrypt(password, secret, encryptionAlgorithm),
+            token: commonUtils.encrypt(token, secret, encryptionAlgorithm),
+            notASecret,
+          };
+
+          const def = {
+            password: {
+              encrypted: true,
+            },
+            token: {
+              encrypted: true,
+            },
+            notASecret: {
+              encrypted: false,
+            },
+          };
+          const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
+          expect(_ctx).to.deep.equals({ password, token, notASecret, });
+        });
+
+        it('falsey ctx with a non falsey def that has encrypted attributes ' +
+          ' should be ok', () => {
+          const ctx = null;
+          const def = {
+            password: {
+              encrypted: true,
+            },
+            token: {
+              encrypted: true,
+            },
+            notASecret: {
+              encrypted: false,
+            },
+          };
+          const _ctx = commonUtils.assignContext(ctx, def, token, hbResponse);
+          expect(_ctx).to.deep.equals({ });
+        });
+      });
+    });
   });
 });
