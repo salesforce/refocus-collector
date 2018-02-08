@@ -151,9 +151,11 @@ describe('test/commands/start >', () => {
   });
 
   describe('execute directly >', () => {
-    let config = configModule.getConfig();
+    let config;
     let version;
+
     beforeEach(() => {
+      config = configModule.getConfig();
       configModule.initializeConfig();
       config = configModule.getConfig();
       config.name = collectorName;

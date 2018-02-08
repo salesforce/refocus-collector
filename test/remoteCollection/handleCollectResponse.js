@@ -15,7 +15,6 @@ const sinon = require('sinon');
 const winston = require('winston');
 const mockRest = require('../mockedResponse');
 const bulkEndPoint = require('../../src/constants').bulkUpsertEndpoint;
-const tu = require('../testUtils');
 const refocusUrl = 'http://www.example.com';
 const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
@@ -219,9 +218,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('handleCollectResponse >', () => {
     const generatorName = 'mockGenerator';
     let winstonInfoStub;
-    configModule.initializeConfig();
-    const config = configModule.getConfig();
+    let config;
     before(() => {
+      configModule.initializeConfig();
+      config = configModule.getConfig();
       const qParams = {
         name: generatorName,
         size: config.refocus.maxSamplesPerBulkRequest,
