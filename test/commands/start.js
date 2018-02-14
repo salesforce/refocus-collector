@@ -150,7 +150,7 @@ describe('test/commands/start >', () => {
     });
   });
 
-  describe.only('execute directly >', () => {
+  describe('execute directly >', () => {
     let config = configModule.getConfig();
     let version;
     beforeEach(() => {
