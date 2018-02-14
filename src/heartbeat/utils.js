@@ -188,28 +188,23 @@ function addGenerators(res) {
   // Get a fresh copy of collector config
   const config = configModule.getConfig();
   const token = config.refocus.collectorToken;
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Create a new repeater for each generator and add to config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
+  if (generators && Array.isArray(generators)) {
+    // Create a new repeater for each generator and add to config.
+    generators.forEach((g) => {
+      if (g.generatorTemplate.contextDefinition) {
+        g.context = assignContext(g.context,
+          g.generatorTemplate.contextDefinition, token, res);
+      }
 
-        config.generators[g.name] = g;
+      config.generators[g.name] = g;
 
-        // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, res);
-        setupRepeater(g);
-      });
-
-      debug('Added generators to the config:', generators);
-    } else {
-      logger.error('generatorsAdded attribute must be an array');
-    }
+      // queue name same as generator name
+      createOrUpdateGeneratorQueue(g.name, g.token, res);
+      setupRepeater(g);
+      debug('Generator added: %O', g);
+    });
   } else {
-    debug('No generators designated for addition');
+    debug('No generators to add.');
   }
 } // addGenerators
 
