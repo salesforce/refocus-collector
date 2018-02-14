@@ -129,9 +129,10 @@ function setupRepeater(generator) {
  * Create or update queue for sample generator
  * @param  {String} qName - Queue name
  * @param  {String} refocusUserToken - User token
- * @param  {Object} res - The Heartbeat Response object
+ * @param  {Object} collConf - The collectorConfig from the start or
+ *  heartbeat response
  */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
+function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
   if (!qName) {
     // Throw error if qName is not provided.
     debug('Error: qName not found. Supplied %s', qName);
@@ -140,29 +141,22 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
     );
   }
 
-  const _bulkUpsertSampleQueue = queueUtils.getQueue(qName); // get queue
-  if (_bulkUpsertSampleQueue) {
-    if (!res) {
-      // Throw error if heartbeat response is not provided.
-      debug('Error: res not found. Supplied %s', res);
-      throw new errors.ValidationError(
-        'Heartbeat response should be provided for queue creation.'
-      );
+  const bq = queueUtils.getQueue(qName); // get queue
+  if (bq) { // sample queue for this generator already exists
+    if (!collConf) {
+      debug('Error: missing or empty collector config.');
+      throw new errors.ValidationError('Collector config is required.');
     }
 
     // update queue params
-    if (res.collectorConfig) {
-      if (res.collectorConfig.maxSamplesPerBulkRequest) {
-        _bulkUpsertSampleQueue._size = res.collectorConfig
-                                          .maxSamplesPerBulkRequest;
-      }
-
-      if (res.collectorConfig.sampleUpsertQueueTime) {
-        _bulkUpsertSampleQueue._flushTimeout =
-          res.collectorConfig.sampleUpsertQueueTime;
-      }
+    if (collConf.maxSamplesPerBulkRequest) {
+      bq._size = collConf.maxSamplesPerBulkRequest;
     }
-  } else { // create queue
+
+    if (collConf.sampleUpsertQueueTime) {
+      bq._flushTimeout = collConf.sampleUpsertQueueTime;
+    }
+  } else { // create new sample queue for this generator
     const config = configModule.getConfig();
     const queueParams = {
       name: qName,
@@ -199,7 +193,7 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, res);
+      createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
       setupRepeater(g);
       debug('Generator added: %O', g);
     });
