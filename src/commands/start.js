@@ -20,6 +20,7 @@ const sanitize = require('../utils/commonUtils').sanitize;
 const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
+const hbUtils = require('../heartbeat/utils');
 const doPost = require('../utils/httpUtils.js').doPostToRefocus;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
@@ -38,8 +39,8 @@ function execute() {
   return doPost(COLLECTOR_START_PATH, body)
   .then((res) => {
     const sanitized = sanitize(res.body, ['token']);
-
     debug('start execute response body', sanitized);
+
     config.refocus.collectorToken = res.body.token;
 
     /*
@@ -47,6 +48,9 @@ function execute() {
      * to avoid any accidentals edits/deletes to it.
      */
     Object.keys(config.refocus).forEach(Object.freeze);
+
+    // Add all the generators from the response.
+    hbUtils.addGenerators(res.body);
 
     /*
      * TODO: Replace the success/failure/progress listeners here with proper
@@ -66,7 +70,8 @@ function execute() {
     return res;
   })
   .catch((err) => {
-    throw new errors.CollectorStartError('', `POST ${url} failed: ${err.status} ${err.message}`);
+    throw new errors.CollectorStartError('',
+      `POST ${url} failed: ${err.status} ${err.message}`);
   });
 } // execute
 
