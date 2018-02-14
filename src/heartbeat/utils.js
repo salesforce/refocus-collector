@@ -177,12 +177,12 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
 }
 
 /**
- * Function to setup a generator repeater and add the generator to the
- * collector config.
+ * Set up generator repeaters for each generator and add them to the collector
+ * config.
  *
- * @param {Object} res - The Heartbeat Response object
+ * @param {Object} res - The start response or heartbeat response
  */
-function addGenerator(res) {
+function addGenerators(res) {
   const generators = res.generatorsAdded;
 
   // Get a fresh copy of collector config
@@ -211,7 +211,7 @@ function addGenerator(res) {
   } else {
     debug('No generators designated for addition');
   }
-} // addGenerator
+} // addGenerators
 
 /**
  * Function to stop the generator repeater and delete the generator from the
@@ -283,7 +283,7 @@ function updateGenerator(res) {
 } // updateGenerator
 
 module.exports = {
-  addGenerator,
+  addGenerators,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
   createOrUpdateGeneratorQueue, // exporting for testing purposes only
