@@ -17,7 +17,7 @@ const configModule = require('../config/config');
 const collectorStatus = require('../constants').collectorStatus;
 
 /**
- * Handles the heartbeat response:
+ * Handle the heartbeat response:
  *  1. Update the collector config if the config has changed.
  *  2. Start, delete and update the generator repeaters as needed.
  *
