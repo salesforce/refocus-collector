@@ -43,8 +43,8 @@ function handleHeartbeatResponse(err, res) {
 
     if (res.collectorConfig.status === collectorStatus.RUNNING) {
       utils.addGenerators(res);
-      utils.deleteGenerator(res);
-      utils.updateGenerator(res);
+      utils.deleteGenerators(res);
+      utils.updateGenerators(res);
     }
   }
 

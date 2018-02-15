@@ -178,9 +178,7 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
  */
 function addGenerators(res) {
   const generators = res.generatorsAdded;
-
-  // Get a fresh copy of collector config
-  const config = configModule.getConfig();
+  const config = configModule.getConfig(); // Get a fresh copy
   const token = config.refocus.collectorToken;
   if (generators && Array.isArray(generators)) {
     // Create a new repeater for each generator and add to config.
@@ -203,80 +201,60 @@ function addGenerators(res) {
 } // addGenerators
 
 /**
- * Function to stop the generator repeater and delete the generator from the
- * collector config.
+ * Stop generator repeaters and delete generators from collector config.
  *
  * @param {Object} res - The Heartbeat Response object
  */
-function deleteGenerator(res) {
+function deleteGenerators(res) {
   const generators = res.generatorsDeleted;
-
-  // Get a fresh copy of collector config
-  const config = configModule.getConfig();
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Stop the repeater for the generators and delete them from config.
-      generators.forEach((g) => {
-        repeater.stop(g.name);
-        delete config.generators[g.name];
-      });
-
-      debug('Deleted generators from the config: ', generators);
-    } else {
-      logger.error('generatorsDeleted attribute must be an array');
-    }
+  const config = configModule.getConfig(); // Get a fresh copy
+  if (generators && Array.isArray(generators)) {
+    // Stop the repeater for each generator and delete from config.
+    generators.forEach((g) => {
+      repeater.stop(g.name);
+      delete config.generators[g.name];
+      debug('Generator deleted: %s', g.name);
+    });
   } else {
-    debug('No generators designated for deletion');
+    debug('No generators to delete.');
   }
-} // deleteGenerator
+} // deleteGenerators
 
 /**
- * Function to update the generator repeater and the collector config.
+ * Update generator repeaters and collector config.
  *
  * @param {Object} res - The Heartbeat Response object
  */
-function updateGenerator(res) {
+function updateGenerators(res) {
   const generators = res.generatorsUpdated;
-
-  // Get a fresh copy of collector config.
-  const config = configModule.getConfig();
+  const config = configModule.getConfig(); // Get a fresh copy
   const token = config.refocus.collectorToken;
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Update the repeater for the generators and update the generator config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
+  if (generators && Array.isArray(generators)) {
+    // Update the repeater for each generator and update in config.
+    generators.forEach((g) => {
+      if (g.generatorTemplate.contextDefinition) {
+        g.context = assignContext(g.context,
+          g.generatorTemplate.contextDefinition, token, res);
+      }
 
-        Object.keys(g).forEach((key) => {
-          config.generators[g.name][key] = g[key];
-        });
+      Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
-        /*
-         * Repeaters cannot be updated. The old repeaters needs to be stopped
-         * before creating new repeaters.
-         */
-        repeater.stop(g.name);
-        setupRepeater(g);
-      });
-
-      debug('Updated generators in the config: ', generators);
-    } else {
-      logger.error('generatorsUpdated attribute should be an array');
-    }
+      // Repeaters cannot be updated--stop old ones and create new ones.
+      repeater.stop(g.name);
+      setupRepeater(g);
+      debug('Generator updated: %O', g);
+    });
   } else {
-    debug('No generators designated for update');
+    debug('No generators to update.');
   }
-} // updateGenerator
+} // updateGenerators
 
 module.exports = {
   addGenerators,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
   createOrUpdateGeneratorQueue, // exporting for testing purposes only
-  deleteGenerator,
-  updateGenerator,
+  deleteGenerators,
+  updateGenerators,
   updateCollectorConfig,
 };
