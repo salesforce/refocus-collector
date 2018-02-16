@@ -129,9 +129,10 @@ function setupRepeater(generator) {
  * Create or update queue for sample generator
  * @param  {String} qName - Queue name
  * @param  {String} refocusUserToken - User token
- * @param  {Object} res - The Heartbeat Response object
+ * @param  {Object} collConf - The collectorConfig from the start or
+ *  heartbeat response
  */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
+function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
   if (!qName) {
     // Throw error if qName is not provided.
     debug('Error: qName not found. Supplied %s', qName);
@@ -140,29 +141,22 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
     );
   }
 
-  const _bulkUpsertSampleQueue = queueUtils.getQueue(qName); // get queue
-  if (_bulkUpsertSampleQueue) {
-    if (!res) {
-      // Throw error if heartbeat response is not provided.
-      debug('Error: res not found. Supplied %s', res);
-      throw new errors.ValidationError(
-        'Heartbeat response should be provided for queue creation.'
-      );
+  const bq = queueUtils.getQueue(qName); // get queue
+  if (bq) { // sample queue for this generator already exists
+    if (!collConf) {
+      debug('Error: missing or empty collector config.');
+      throw new errors.ValidationError('Collector config is required.');
     }
 
     // update queue params
-    if (res.collectorConfig) {
-      if (res.collectorConfig.maxSamplesPerBulkRequest) {
-        _bulkUpsertSampleQueue._size = res.collectorConfig
-                                          .maxSamplesPerBulkRequest;
-      }
-
-      if (res.collectorConfig.sampleUpsertQueueTime) {
-        _bulkUpsertSampleQueue._flushTimeout =
-          res.collectorConfig.sampleUpsertQueueTime;
-      }
+    if (collConf.maxSamplesPerBulkRequest) {
+      bq._size = collConf.maxSamplesPerBulkRequest;
     }
-  } else { // create queue
+
+    if (collConf.sampleUpsertQueueTime) {
+      bq._flushTimeout = collConf.sampleUpsertQueueTime;
+    }
+  } else { // create new sample queue for this generator
     const config = configModule.getConfig();
     const queueParams = {
       name: qName,
@@ -177,117 +171,90 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, res) {
 }
 
 /**
- * Function to setup a generator repeater and add the generator to the
- * collector config.
+ * Set up generator repeaters for each generator and add them to the collector
+ * config.
  *
- * @param {Object} res - The Heartbeat Response object
+ * @param {Object} res - The start response or heartbeat response
  */
-function addGenerator(res) {
+function addGenerators(res) {
   const generators = res.generatorsAdded;
-
-  // Get a fresh copy of collector config
-  const config = configModule.getConfig();
+  const config = configModule.getConfig(); // Get a fresh copy
   const token = config.refocus.collectorToken;
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Create a new repeater for each generator and add to config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
+  if (generators && Array.isArray(generators)) {
+    // Create a new repeater for each generator and add to config.
+    generators.forEach((g) => {
+      if (g.generatorTemplate.contextDefinition) {
+        g.context = assignContext(g.context,
+          g.generatorTemplate.contextDefinition, token, res);
+      }
 
-        config.generators[g.name] = g;
+      config.generators[g.name] = g;
 
-        // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, res);
-        setupRepeater(g);
-      });
-
-      debug('Added generators to the config:', generators);
-    } else {
-      logger.error('generatorsAdded attribute must be an array');
-    }
+      // queue name same as generator name
+      createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
+      setupRepeater(g);
+      debug('Generator added: %O', g);
+    });
   } else {
-    debug('No generators designated for addition');
+    debug('No generators to add.');
   }
-} // addGenerator
+} // addGenerators
 
 /**
- * Function to stop the generator repeater and delete the generator from the
- * collector config.
+ * Stop generator repeaters and delete generators from collector config.
  *
  * @param {Object} res - The Heartbeat Response object
  */
-function deleteGenerator(res) {
+function deleteGenerators(res) {
   const generators = res.generatorsDeleted;
-
-  // Get a fresh copy of collector config
-  const config = configModule.getConfig();
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Stop the repeater for the generators and delete them from config.
-      generators.forEach((g) => {
-        repeater.stop(g.name);
-        delete config.generators[g.name];
-      });
-
-      debug('Deleted generators from the config: ', generators);
-    } else {
-      logger.error('generatorsDeleted attribute must be an array');
-    }
+  const config = configModule.getConfig(); // Get a fresh copy
+  if (generators && Array.isArray(generators)) {
+    // Stop the repeater for each generator and delete from config.
+    generators.forEach((g) => {
+      repeater.stop(g.name);
+      delete config.generators[g.name];
+      debug('Generator deleted: %s', g.name);
+    });
   } else {
-    debug('No generators designated for deletion');
+    debug('No generators to delete.');
   }
-} // deleteGenerator
+} // deleteGenerators
 
 /**
- * Function to update the generator repeater and the collector config.
+ * Update generator repeaters and collector config.
  *
  * @param {Object} res - The Heartbeat Response object
  */
-function updateGenerator(res) {
+function updateGenerators(res) {
   const generators = res.generatorsUpdated;
-
-  // Get a fresh copy of collector config.
-  const config = configModule.getConfig();
+  const config = configModule.getConfig(); // Get a fresh copy
   const token = config.refocus.collectorToken;
-  if (generators) {
-    if (Array.isArray(generators)) {
-      // Update the repeater for the generators and update the generator config.
-      generators.forEach((g) => {
-        if (g.generatorTemplate.contextDefinition) {
-          g.context = assignContext(g.context,
-            g.generatorTemplate.contextDefinition, token, res);
-        }
+  if (generators && Array.isArray(generators)) {
+    // Update the repeater for each generator and update in config.
+    generators.forEach((g) => {
+      if (g.generatorTemplate.contextDefinition) {
+        g.context = assignContext(g.context,
+          g.generatorTemplate.contextDefinition, token, res);
+      }
 
-        Object.keys(g).forEach((key) => {
-          config.generators[g.name][key] = g[key];
-        });
+      Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
-        /*
-         * Repeaters cannot be updated. The old repeaters needs to be stopped
-         * before creating new repeaters.
-         */
-        repeater.stop(g.name);
-        setupRepeater(g);
-      });
-
-      debug('Updated generators in the config: ', generators);
-    } else {
-      logger.error('generatorsUpdated attribute should be an array');
-    }
+      // Repeaters cannot be updated--stop old ones and create new ones.
+      repeater.stop(g.name);
+      setupRepeater(g);
+      debug('Generator updated: %O', g);
+    });
   } else {
-    debug('No generators designated for update');
+    debug('No generators to update.');
   }
-} // updateGenerator
+} // updateGenerators
 
 module.exports = {
-  addGenerator,
+  addGenerators,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
   createOrUpdateGeneratorQueue, // exporting for testing purposes only
-  deleteGenerator,
-  updateGenerator,
+  deleteGenerators,
+  updateGenerators,
   updateCollectorConfig,
 };

@@ -231,7 +231,7 @@ describe('test/heartbeat/utils.js >', () => {
     });
   });
 
-  describe('addGenerator>', () => {
+  describe('addGenerators >', () => {
     const genName1 = 'Gen1';
     const genName2 = 'Gen2';
     beforeEach(() => {
@@ -279,7 +279,7 @@ describe('test/heartbeat/utils.js >', () => {
         generatorsUpdated: [],
         generatorsDeleted: [],
       };
-      hu.addGenerator(heartbeatResp);
+      hu.addGenerators(heartbeatResp);
       const qGen1 = qUtils.getQueue(genName1);
       const qGen2 = qUtils.getQueue(genName2);
       expect(qGen1._size).to.be.equal(100);
@@ -289,28 +289,11 @@ describe('test/heartbeat/utils.js >', () => {
   });
 
   describe('createOrUpdateGeneratorQueue >', () => {
-    const heartbeatResp = {
-      collectorConfig: {
-        heartbeatInterval: 50,
-        maxSamplesPerBulkRequest: 1000,
-        sampleUpsertQueueTime: 4000,
-      },
-      timestamp: Date.now(),
-      generatorsAdded: [
-        {
-          name: 'Gen1',
-          token: 'some-dummy-token-gen1',
-          generatorTemplate: {
-            name: 'gen-template-1',
-            connection: {
-              url: 'https://example.api',
-              bulk: true,
-            },
-          },
-        },
-      ],
-      generatorsUpdated: [],
-      generatorsDeleted: [],
+    const token = 'abcdefg-hijklmnop';
+    const collectorConfig = {
+      heartbeatInterval: 50,
+      maxSamplesPerBulkRequest: 1000,
+      sampleUpsertQueueTime: 4000,
     };
 
     before(() => {
@@ -322,7 +305,7 @@ describe('test/heartbeat/utils.js >', () => {
       const qpresent = qUtils.getQueue('qName1');
       expect(qpresent).to.be.equal(undefined);
 
-      hu.createOrUpdateGeneratorQueue('qName1', token, heartbeatResp);
+      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
       const qGen1 = qUtils.getQueue('qName1');
       expect(qGen1._size).to.be.equal(100);
       done();
@@ -339,7 +322,7 @@ describe('test/heartbeat/utils.js >', () => {
 
       const qpresent = qUtils.getQueue('qName1');
       expect(qpresent._size).to.be.equal(10);
-      hu.createOrUpdateGeneratorQueue('qName1', token, heartbeatResp);
+      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
       const qUpdated = qUtils.getQueue('qName1');
       expect(qUpdated._size).to.be.equal(1000);
       done();
@@ -347,7 +330,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('Not ok, queue name null', (done) => {
       try {
-        hu.createOrUpdateGeneratorQueue(null, token, heartbeatResp);
+        hu.createOrUpdateGeneratorQueue(null, token, collectorConfig);
         done('Expecting error');
       } catch (err) {
         expect(err.name).to.be.equal('ValidationError');
@@ -364,9 +347,7 @@ describe('test/heartbeat/utils.js >', () => {
         done('Expecting error');
       } catch (err) {
         expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal(
-          'Heartbeat response should be provided for queue creation.'
-        );
+        expect(err.message).to.be.equal('Collector config is required.');
         done();
       }
     });
