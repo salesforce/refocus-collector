@@ -58,7 +58,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       .set(generator.preparedHeaders);
 
     const config = configModule.getConfig();
-    if (config.dataSourceProxy) {
+    if (config && config.dataSourceProxy) {
       req.proxy(config.dataSourceProxy); // set proxy for following request
     }
 
