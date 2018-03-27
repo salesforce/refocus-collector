@@ -32,12 +32,16 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     generator.preparedUrl =
       rce.prepareUrl(context, aspects, subjects, connection);
 
+    // Initialize connection headers
+    if (!connection) connection = {};
+    if (!connection.hasOwnProperty('headers')) connection.headers = {};
+
     // If token is present then add token to request header.
     if (generator.token) {
       const accessToken = generator.token.accessToken;
-      if (simpleOauth.tokenFormat) {
+      if (simpleOauth && simpleOauth.tokenFormat) {
         connection.headers.Authorization
-        = simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
+          = simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
       } else {
         connection.headers.Authorization = accessToken;
       }
@@ -54,7 +58,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       .set(generator.preparedHeaders);
 
     const config = configModule.getConfig();
-    if (config.dataSourceProxy) {
+    if (config && config.dataSourceProxy) {
       req.proxy(config.dataSourceProxy); // set proxy for following request
     }
 

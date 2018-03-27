@@ -37,6 +37,7 @@ const generator1 = {
     },
   },
   interval: 6000,
+  token: 'abcdefg',
 };
 
 const generator1Updated = {
@@ -54,6 +55,7 @@ const generator1Updated = {
     },
   },
   interval: 12000,
+  token: 'abcdefg',
 };
 
 const generator2 = {
@@ -67,6 +69,7 @@ const generator2 = {
       bulk: false,
     },
   },
+  token: 'abcdefg',
 };
 
 const generator3 = {
@@ -80,6 +83,7 @@ const generator3 = {
       bulk: false,
     },
   },
+  token: 'abcdefg',
 };
 
 const errorResponse = {
