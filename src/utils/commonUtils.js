@@ -132,7 +132,8 @@ module.exports = {
   }, // encrypt
 
   /**
-   * Return a copy of the object with the keys masked
+   * Return a copy of the object with the specified keys masked.
+   *
    * @param  {Object} object - Object to be masked
    * @param  {Array} keys - The keys of the object to be masked
    * @returns {Object} - returns the object with the keys masked
@@ -142,13 +143,20 @@ module.exports = {
       return object;
     }
 
-    const sanitized = JSON.parse(JSON.stringify(object));
-    keys.forEach((key) => {
-      if (object[key]) {
-        sanitized[key] = '...' + sanitized[key].slice(-5);
-      }
-    });
+    function doTraverse(obj) {
+      keys.forEach((key) => {
+        if (obj.hasOwnProperty(key) && typeof obj[key] === 'string') {
+          obj[key] = '...' + obj[key].slice(-5);
+        }
+      });
+      Object.keys(obj)
+      .filter((k) => typeof obj[k] === 'object' && !Array.isArray(obj[k]))
+      .forEach((k) => obj[k] = doTraverse(obj[k]));
+      return obj;
+    }
 
+    let sanitized = JSON.parse(JSON.stringify(object)); // copy
+    sanitized = doTraverse(sanitized);
     return sanitized;
   }, // sanitize
 
