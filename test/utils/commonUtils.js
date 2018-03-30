@@ -52,25 +52,37 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
         username: 'refocus-collector-user',
       };
       const sanitized = sanitize(obj, ['token']);
-
       expect(sanitized.token).to.contain('...');
       expect(sanitized.token.length).to.not.equal(obj.token.length);
       expect(sanitized.username).to.equal(obj.username);
       done();
     });
 
-    it('ok, sanitize with multiple key', (done) => {
+    it('ok, sanitize with multiple keys and nested objects', (done) => {
       const obj = {
         accessToken: 'a310u',
         username: 'refocus-collector-user',
         bearerToken: 'b3ar3r',
+        somethingNested: {
+          a: 1,
+          b: [3, 4, 5],
+          bearerToken: 'qwertyuiop',
+          anotherToken: '1234567890123456789012345678901234567890',
+        },
       };
-      const sanitized = sanitize(obj, ['accessToken', 'bearerToken']);
-      expect(sanitized.accessToken).to.contain('...');
-      expect(sanitized.accessToken.length).to.not.equal(obj.accessToken.length);
-      expect(sanitized.bearerToken).to.contain('...');
-      expect(sanitized.bearerToken.length).to.not.equal(obj.bearerToken.length);
-      expect(sanitized.username).to.equal(obj.username);
+      const sanitized = sanitize(obj,
+        ['accessToken', 'bearerToken', 'anotherToken']);
+      expect(sanitized).to.deep.equal({
+        accessToken: '...a310u',
+        username: 'refocus-collector-user',
+        bearerToken: '...3ar3r',
+        somethingNested: {
+          a: 1,
+          b: [3, 4, 5],
+          bearerToken: '...yuiop',
+          anotherToken: '...67890',
+        },
+      });
       done();
     });
   });

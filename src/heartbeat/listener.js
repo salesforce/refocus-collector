@@ -15,6 +15,7 @@ const logger = require('winston');
 const utils = require('./utils');
 const configModule = require('../config/config');
 const collectorStatus = require('../constants').collectorStatus;
+const sanitize = require('../utils/commonUtils').sanitize;
 
 /**
  * Handle the heartbeat response:
@@ -48,7 +49,8 @@ function handleHeartbeatResponse(err, res) {
     }
   }
 
-  debug('exiting handleHeartbeatResponse', config);
+  const sanitized = sanitize(config, ['accessToken', 'collectorToken', 'token']);
+  debug('exiting handleHeartbeatResponse', sanitized);
   return config;
 } // handleHeartbeatResponse
 
