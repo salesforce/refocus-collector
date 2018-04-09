@@ -14,7 +14,7 @@
 const program = require('commander');
 const logger = require('winston');
 const cmdUtils = require('./utils');
-const doPost = require('../utils/httpUtils.js').doPostToRefocus;
+const doPost = require('../utils/httpUtils.js').doPost;
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the ' +
@@ -31,18 +31,15 @@ if (!cmdUtils.validateArgs(program)) {
 }
 
 const config = cmdUtils.setupConfig(program);
-
-const stopPath = `/v1/collectors/${config.name}/stop`;
-logger.log('Stop =>', config.name, config.refocus.url + stopPath);
+const cr = config.refocus;
+const url = `${cr.url}/v1/collectors/${config.name}/stop`;
+logger.log('Stop =>', config.name, url);
 
 // Request to Refocus to stop the collector
-doPost(stopPath, config.refocus.accessToken)
-.then(() => {
-  logger.info(`Stopping ${config.name}`);
-})
+doPost(url, cr.accessToken, cr.proxy)
+.then(() => logger.info(`Stopping ${config.name}`))
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);
   logger.error(err.response);
 });
-

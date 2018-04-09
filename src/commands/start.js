@@ -21,7 +21,7 @@ const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
 const hbUtils = require('../heartbeat/utils');
-const doPost = require('../utils/httpUtils.js').doPostToRefocus;
+const doPost = require('../utils/httpUtils.js').doPost;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
 
@@ -33,21 +33,22 @@ const COLLECTOR_START_PATH = '/v1/collectors/start';
 function execute() {
   debug('Entered start.execute');
   const config = configModule.getConfig();
-  const url = config.refocus.url + COLLECTOR_START_PATH;
+  const cr = config.refocus;
+  const url = cr.url + COLLECTOR_START_PATH;
   const body = { name: config.name, version: config.metadata.version };
 
-  return doPost(COLLECTOR_START_PATH, config.refocus.accessToken, body)
+  return doPost(url, cr.accessToken, cr.proxy, body)
   .then((res) => {
     const sanitized = sanitize(res.body, ['token']);
     debug('start execute response body', sanitized);
 
-    config.refocus.collectorToken = res.body.token;
+    cr.collectorToken = res.body.token;
 
     /*
-     * freeze the attributes of config.refocus added by the start command
-     * to avoid any accidentals edits/deletes to it.
+     * Freeze config.refocus attributes added by the start command to avoid
+     * accidental edits/deletes.
      */
-    Object.keys(config.refocus).forEach(Object.freeze);
+    Object.keys(cr).forEach(Object.freeze);
 
     // Add all the generators from the response.
     hbUtils.addGenerators(res.body);
@@ -58,7 +59,7 @@ function execute() {
      */
     repeater.create({
       name: heartbeatRepeatName,
-      interval: config.refocus.heartbeatInterval,
+      interval: cr.heartbeatInterval,
       func: sendHeartbeat,
       onSuccess: debug,
       onFailure: debug,

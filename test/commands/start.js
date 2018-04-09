@@ -208,7 +208,7 @@ describe('test/commands/start >', () => {
         repeater.stop('heartbeat');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('post returns error when called with an invalid token', (done) => {
@@ -228,7 +228,7 @@ describe('test/commands/start >', () => {
           '401 Unauthorized');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, with proxy provided', (done) => {
@@ -252,7 +252,7 @@ describe('test/commands/start >', () => {
         repeater.stop('heartbeat');
         done();
       })
-      .catch((err) => done(err));
+      .catch(done);
     });
 
     it('ok, refocus proxy used in request if provided', (done) => {

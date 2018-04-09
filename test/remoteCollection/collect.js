@@ -13,20 +13,11 @@ const expect = require('chai').expect;
 const nock = require('nock');
 const collect = require('../../src/remoteCollection/collect');
 const httpStatus = require('../../src/constants').httpStatus;
-const configModule = require('../../src/config/config');
 const sinon = require('sinon');
 const request = require('superagent');
 require('superagent-proxy')(request);
 
 describe('test/remoteCollection/collect.js >', () => {
-  beforeEach(() => {
-    configModule.initializeConfig();
-  });
-
-  afterEach(() => {
-    configModule.clearConfig();
-  });
-
   describe('collect >', () => {
     const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
       { name: 'UnionCity|Delay', value: 2 },
@@ -219,11 +210,8 @@ describe('test/remoteCollection/collect.js >', () => {
       .catch(done);
     });
 
-    it('ok, request use data source proxy when set in config', (done) => {
+    it('ok, request use data source proxy when present', (done) => {
       const dataSourceProxy = 'http://abcProxy.com';
-      const config = configModule.getConfig();
-      config.dataSourceProxy = dataSourceProxy;
-
       const remoteUrl = 'http://www.xyz.com/';
       const generator = {
         name: 'Generator0',
@@ -235,6 +223,7 @@ describe('test/remoteCollection/collect.js >', () => {
               Authorization: 'abddr121345bb',
             },
             url: 'remoteUrl' + '/status',
+            dataSourceProxy,
           },
         },
       };
@@ -256,8 +245,7 @@ describe('test/remoteCollection/collect.js >', () => {
       });
     });
 
-    it('ok, request does not use data source proxy if not set in config',
-    (done) => {
+    it('ok, request does not use data source proxy if not set', (done) => {
       const remoteUrl = 'http://www.xyz.com/';
       const generator = {
         name: 'Generator0',
