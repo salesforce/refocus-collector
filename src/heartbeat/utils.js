@@ -157,13 +157,15 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
       bq._flushTimeout = collConf.sampleUpsertQueueTime;
     }
   } else { // create new sample queue for this generator
-    const config = configModule.getConfig();
+    const cr = configModule.getConfig().refocus;
     const queueParams = {
       name: qName,
-      size: config.refocus.maxSamplesPerBulkRequest,
-      flushTimeout: config.refocus.sampleUpsertQueueTime,
+      size: cr.maxSamplesPerBulkRequest,
+      flushTimeout: cr.sampleUpsertQueueTime,
       verbose: false,
       flushFunction: httpUtils.doBulkUpsert,
+      proxy: cr.proxy,
+      url: cr.url,
       token: refocusUserToken,
     };
     queueUtils.createQueue(queueParams);
@@ -186,6 +188,11 @@ function addGenerators(res) {
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
           g.generatorTemplate.contextDefinition, token, res);
+      }
+
+      // Add dataSourceProxy to connection, if specified
+      if (g.generatorTemplate.connection.dataSourceProxy) {
+        g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
 
       config.generators[g.name] = g;
@@ -235,6 +242,11 @@ function updateGenerators(res) {
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
           g.generatorTemplate.contextDefinition, token, res);
+      }
+
+      // Add dataSourceProxy to connection, if specified
+      if (g.generatorTemplate.connection.dataSourceProxy) {
+        g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
 
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);

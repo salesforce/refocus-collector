@@ -16,29 +16,24 @@ const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const logger = require('winston');
-const configModule = require('../config/config');
 
 /**
  * Perform a post operation on a given endpoint point with the given token and
  * the optional request body.
  *
- * @param  {String} endpoint - The api endpoint to post to.
+ * @param  {String} url - The url to post to.
  * @param  {String} token - The Authorization token to use.
+ * @param  {String} proxy - Optional proxy url
  * @param  {Object} body - The optional post body.
  * @returns {Promise} which resolves to the post response
  */
-function doPostToRefocus(endpoint, token, body) {
-  const config = configModule.getConfig();
-  const refocusUrl = config.refocus.url + endpoint;
-  const req = request.post(refocusUrl)
+function doPost(url, token, proxy, body) {
+  const req = request.post(url)
     .send(body || {})
-    .set('Authorization', token || config.refocus.accessToken);
-  if (config.refocus.proxy) {
-    req.proxy(config.refocus.proxy);
-  }
-
+    .set('Authorization', token);
+  if (proxy) req.proxy(proxy);
   return req;
-}
+} // doPost
 
 /**
  * Send the upsert and handle any errors in the response.
@@ -49,7 +44,7 @@ function doPostToRefocus(endpoint, token, body) {
  * or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
-function doBulkUpsert(arr, userToken) {
+function doBulkUpsert(url, userToken, proxy, arr) {
   return new Promise((resolve, reject) => {
     if (!userToken) {
       // Throw error if user token not provided.
@@ -67,9 +62,9 @@ function doBulkUpsert(arr, userToken) {
       ));
     }
 
-    debug('Bulk upserting to: %s', bulkUpsertEndpoint);
+    debug('Bulk upserting %d samples to %s', arr.length, url);
 
-    doPostToRefocus(bulkUpsertEndpoint, userToken, arr)
+    doPost(url, userToken, proxy, arr)
     .end((err, res) => {
       if (err) {
         logger.error('bulkUpsert returned an error: %o', err);
@@ -84,5 +79,5 @@ function doBulkUpsert(arr, userToken) {
 
 module.exports = {
   doBulkUpsert,
-  doPostToRefocus,
+  doPost,
 };
