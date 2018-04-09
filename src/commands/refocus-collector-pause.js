@@ -36,7 +36,7 @@ const pausePath = `/v1/collectors/${config.name}/pause`;
 logger.log('Pause =>', config.name, config.refocus.url + pausePath);
 
 // Request to Refocus to pause the collector
-doPost(pausePath)
+doPost(pausePath, config.refocus.accessToken)
 .then(() => {
   logger.info(`Pausing ${config.name}. Use the command "refocus-collector ` +
     `resume" or the /v1/collectors/${config.name}/resume endpoint to resume ` +

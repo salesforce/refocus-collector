@@ -35,7 +35,7 @@ const resumePath = `/v1/collectors/${config.name}/resume`;
 logger.log('Resume =>', config.name, config.refocus.url + resumePath);
 
 // Request to Refocus to resume collector
-doPost(resumePath)
+doPost(resumePath, config.refocus.accessToken)
 .then(() => {
   logger.info(`Resuming ${config.name}`);
 })

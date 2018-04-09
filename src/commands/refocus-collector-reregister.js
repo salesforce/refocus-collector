@@ -36,7 +36,7 @@ const refocusUrl = config.refocus.url + reRegisterpath;
 logger.log('Reregister =>', config.name, config.refocus.url + refocusUrl);
 
 // Request to Refocus to re-register collector
-doPost(reRegisterpath)
+doPost(reRegisterpath, config.refocus.accessToken)
 .then(() => {
   logger.info(`Collector ${config.name} has been reregistered. Use the ` +
     'command "refocus-collector start" or the /v1/collectors/start endpoint ' +

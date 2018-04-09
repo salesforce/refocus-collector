@@ -19,18 +19,20 @@ const logger = require('winston');
 const configModule = require('../config/config');
 
 /**
- * Perform a post operation on a given endpoint point with the optional request
- * body
+ * Perform a post operation on a given endpoint point with the given token and
+ * the optional request body.
+ *
  * @param  {String} endpoint - The api endpoint to post to.
+ * @param  {String} token - The Authorization token to use.
  * @param  {Object} body - The optional post body.
  * @returns {Promise} which resolves to the post response
  */
-function doPostToRefocus(endpoint, body) {
+function doPostToRefocus(endpoint, token, body) {
   const config = configModule.getConfig();
   const refocusUrl = config.refocus.url + endpoint;
   const req = request.post(refocusUrl)
     .send(body || {})
-    .set('Authorization', config.refocus.accessToken);
+    .set('Authorization', token || config.refocus.accessToken);
   if (config.refocus.proxy) {
     req.proxy(config.refocus.proxy);
   }
@@ -67,7 +69,7 @@ function doBulkUpsert(arr, userToken) {
 
     debug('Bulk upserting to: %s', bulkUpsertEndpoint);
 
-    doPostToRefocus(bulkUpsertEndpoint, arr)
+    doPostToRefocus(bulkUpsertEndpoint, userToken, arr)
     .end((err, res) => {
       if (err) {
         logger.error('bulkUpsert returned an error: %o', err);

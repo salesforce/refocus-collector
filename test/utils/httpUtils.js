@@ -49,7 +49,8 @@ describe('test/utils/httpUtils.js >', () => {
       .post(stopEndpoint, { name: collectorName })
       .reply(httpStatus.OK);
 
-      httpUtils.doPostToRefocus(stopEndpoint, { name: collectorName })
+      httpUtils.doPostToRefocus(stopEndpoint, dummyToken,
+        { name: collectorName })
       .then((res) => {
         expect(res.status).to.equal(httpStatus.OK);
         done();
@@ -65,7 +66,7 @@ describe('test/utils/httpUtils.js >', () => {
       .post(resumeEndpoint)
       .reply(httpStatus.OK);
 
-      httpUtils.doPostToRefocus(resumeEndpoint)
+      httpUtils.doPostToRefocus(resumeEndpoint, dummyToken)
       .then((res) => {
         expect(res.status).to.equal(httpStatus.OK);
         done();
@@ -82,7 +83,8 @@ describe('test/utils/httpUtils.js >', () => {
       .reply(httpStatus.OK);
 
       config.refocus.proxy = 'http://dummy.refocus.proxy';
-      httpUtils.doPostToRefocus(pauseEndpoint, { name: collectorName })
+      httpUtils.doPostToRefocus(pauseEndpoint, dummyToken,
+        { name: collectorName })
       .then((res) => {
         expect(res.status).to.equal(httpStatus.OK);
         done();
@@ -101,7 +103,8 @@ describe('test/utils/httpUtils.js >', () => {
       .post(reregisterEndpoint, { name: collectorName })
       .reply(httpStatus.FORBIDDEN, errorResponse);
 
-      httpUtils.doPostToRefocus(reregisterEndpoint, { name: collectorName })
+      httpUtils.doPostToRefocus(reregisterEndpoint, '1nv5l19aT0k3n',
+        { name: collectorName })
       .then(() => done('Expecting 401 Forbidden error'))
       .catch((err) => {
         expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
