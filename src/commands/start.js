@@ -36,7 +36,7 @@ function execute() {
   const url = config.refocus.url + COLLECTOR_START_PATH;
   const body = { name: config.name, version: config.metadata.version };
 
-  return doPost(COLLECTOR_START_PATH, body)
+  return doPost(COLLECTOR_START_PATH, config.refocus.accessToken, body)
   .then((res) => {
     const sanitized = sanitize(res.body, ['token']);
     debug('start execute response body', sanitized);

@@ -36,7 +36,7 @@ const stopPath = `/v1/collectors/${config.name}/stop`;
 logger.log('Stop =>', config.name, config.refocus.url + stopPath);
 
 // Request to Refocus to stop the collector
-doPost(stopPath)
+doPost(stopPath, config.refocus.accessToken)
 .then(() => {
   logger.info(`Stopping ${config.name}`);
 })
