@@ -15,7 +15,6 @@ const request = require('superagent');
 require('superagent-proxy')(request);
 const constants = require('../constants');
 const rce = require('@salesforce/refocus-collector-eval');
-const configModule = require('../config/config');
 
 /**
  * Send Remote request to get data as per the configurations.
@@ -53,10 +52,8 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       .get(generator.preparedUrl)
       .set(generator.preparedHeaders);
 
-    const config = configModule.getConfig();
-    if (config.dataSourceProxy) {
-      req.proxy(config.dataSourceProxy); // set proxy for following request
-    }
+    // set proxy for following request
+    if (connection.dataSourceProxy) req.proxy(connection.dataSourceProxy);
 
     req.end((err, res) => {
       if (err) {

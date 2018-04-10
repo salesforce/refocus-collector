@@ -15,7 +15,7 @@
 const program = require('commander');
 const logger = require('winston');
 const cmdUtils = require('./utils');
-const doPost = require('../utils/httpUtils.js').doPostToRefocus;
+const doPost = require('../utils/httpUtils.js').doPost;
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the ' +
@@ -31,17 +31,15 @@ if (!cmdUtils.validateArgs(program)) {
 }
 
 const config = cmdUtils.setupConfig(program);
-const reRegisterpath = `/v1/collectors/${config.name}/reregister`;
-const refocusUrl = config.refocus.url + reRegisterpath;
-logger.log('Reregister =>', config.name, config.refocus.url + refocusUrl);
+const cr = config.refocus;
+const url = `${cr.url}/v1/collectors/${config.name}/reregister`;
+logger.log('Reregister =>', config.name, url);
 
 // Request to Refocus to re-register collector
-doPost(reRegisterpath, config.refocus.accessToken)
-.then(() => {
-  logger.info(`Collector ${config.name} has been reregistered. Use the ` +
-    'command "refocus-collector start" or the /v1/collectors/start endpoint ' +
-    'to start the collector');
-})
+doPost(url, cr.accessToken, cr.proxy)
+.then(() => logger.info(`Collector ${config.name} has been reregistered. ` +
+  'Use the command "refocus-collector start" or the /v1/collectors/start ' +
+  'endpoint to start the collector'))
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);

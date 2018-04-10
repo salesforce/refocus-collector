@@ -207,7 +207,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
       expect(err.response.body).deep
         .equal(errorResponse);
       done();
-    }).catch((err) => done(err));
+    })
+    .catch(done);
   });
 
   it('Ok, simple response without generators', (done) => {
@@ -223,7 +224,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
       expect(res.generators).to.deep.equal({});
       expect(res.refocus).to.include(hbResponseNoSG.collectorConfig);
       done();
-    }).catch((err) => done(err));
+    })
+    .catch(done);
   });
 
   it('Ok, handle a complete response with generators', (done) => {
@@ -239,7 +241,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
       expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
       expect(res.generators).to.deep.equal({ [generator1.name]: generator1 });
       done();
-    }).catch((err) => done(err));
+    })
+    .catch(done);
   });
 
   it('Ok, sendheart end-to-end', (done) => {
@@ -290,7 +293,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       expect(res.refocus).to.include(hbResponseWithSGToDelete.collectorConfig);
       done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 
   it('Ok, collector status in heartbeat full cycle ' +
@@ -365,6 +368,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
       stubExit.restore();
       return done();
     })
-    .catch((err) => done(err));
+    .catch(done);
   });
 });

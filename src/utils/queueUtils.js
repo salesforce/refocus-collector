@@ -22,7 +22,7 @@ const queueListObject = {};
  * to a list of buffered queue objects
  * @param  {Object} queueParams    Queue Parameter Object
  *                                 name, size, flushTimeout,
- *                                 verbose, flushFunction,
+ *                                 verbose, flushFunction, proxy (optional)
  * @returns {Object} The created buffered queue object
  */
 function createQueue(queueParams) {
@@ -34,7 +34,7 @@ function createQueue(queueParams) {
   });
   queueListObject[queueParams.name] = queueObject;
   queueObject.on('flush', (data, name) =>
-    queueParams.flushFunction(data, queueParams.token));
+    queueParams.flushFunction(data, queueParams.token, queueParams.proxy));
   return queueObject;
 }
 

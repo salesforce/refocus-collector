@@ -15,7 +15,7 @@
 const program = require('commander');
 const logger = require('winston');
 const cmdUtils = require('./utils');
-const doPost = require('../utils/httpUtils.js').doPostToRefocus;
+const doPost = require('../utils/httpUtils.js').doPost;
 
 program
   .option('-n, --collectorName <collectorName>', 'The name of the ' +
@@ -31,17 +31,15 @@ if (!cmdUtils.validateArgs(program)) {
 }
 
 const config = cmdUtils.setupConfig(program);
-const pausePath = `/v1/collectors/${config.name}/pause`;
-
-logger.log('Pause =>', config.name, config.refocus.url + pausePath);
+const cr = config.refocus;
+const url = `${cr.url}/v1/collectors/${config.name}/pause`;
+logger.log('Pause =>', config.name, url);
 
 // Request to Refocus to pause the collector
-doPost(pausePath, config.refocus.accessToken)
-.then(() => {
-  logger.info(`Pausing ${config.name}. Use the command "refocus-collector ` +
-    `resume" or the /v1/collectors/${config.name}/resume endpoint to resume ` +
-    'the collector');
-})
+doPost(url, cr.accessToken, cr.proxy)
+.then(() => logger.info(`Pausing ${config.name}. Use the command ` +
+  `"refocus-collector resume" or the /v1/collectors/${config.name}/resume ` +
+  'endpoint to resume the collector'))
 .catch((err) => {
   logger.error(err.message);
   logger.error(err.explanation);
