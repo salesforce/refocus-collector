@@ -16,7 +16,7 @@ const repeater = require('../repeater/repeater');
 const logger = require('winston');
 const commonUtils = require('../utils/commonUtils');
 const sanitize = commonUtils.sanitize;
-const queueUtils = require('../utils/queueUtils');
+const queue = require('../utils/queue');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
@@ -34,7 +34,7 @@ function changeCollectorStatus(currentStatus, newStatus) {
 
   if (newStatus === collectorStatus.STOPPED) {
     repeater.stopAllRepeat();
-    queueUtils.flushAllBufferedQueues();
+    queue.flushAll();
     process.exit(0);
   } else if (currentStatus !== newStatus &&
     newStatus === collectorStatus.PAUSED) {
@@ -126,13 +126,14 @@ function setupRepeater(generator) {
 } // setupRepeater
 
 /**
- * Create or update queue for sample generator
+ * Update queue for sample generator (if found), or create a new one.
+ *
  * @param  {String} qName - Queue name
- * @param  {String} refocusUserToken - User token
- * @param  {Object} collConf - The collectorConfig from the start or
- *  heartbeat response
+ * @param  {Object} collConf - The collectorConfig from the start or heartbeat
+ *  response
+ * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
+function createOrUpdateGeneratorQueue(qName, collConf) {
   if (!qName) {
     // Throw error if qName is not provided.
     debug('Error: qName not found. Supplied %s', qName);
@@ -141,7 +142,7 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
     );
   }
 
-  const bq = queueUtils.getQueue(qName); // get queue
+  const bq = queue.get(qName); // get queue
   if (bq) { // sample queue for this generator already exists
     if (!collConf) {
       debug('Error: missing or empty collector config.');
@@ -150,27 +151,29 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
 
     // update queue params
     if (collConf.maxSamplesPerBulkRequest) {
-      bq._size = collConf.maxSamplesPerBulkRequest;
+      queue.updateSize(qName, collConf.maxSamplesPerBulkRequest);
     }
 
     if (collConf.sampleUpsertQueueTime) {
-      bq._flushTimeout = collConf.sampleUpsertQueueTime;
+      queue.updateFlushTimeout(qName, collConf.sampleUpsertQueueTime);
     }
-  } else { // create new sample queue for this generator
-    const cr = configModule.getConfig().refocus;
-    const queueParams = {
-      name: qName,
-      size: cr.maxSamplesPerBulkRequest,
-      flushTimeout: cr.sampleUpsertQueueTime,
-      verbose: false,
-      flushFunction: httpUtils.doBulkUpsert,
-      proxy: cr.proxy,
-      url: cr.url,
-      token: refocusUserToken,
-    };
-    queueUtils.createQueue(queueParams);
+
+    return bq;
   }
-}
+
+  // not found, so create new sample queue for this generator
+  const cr = configModule.getConfig().refocus;
+  return queue.create({
+    name: qName,
+    size: cr.maxSamplesPerBulkRequest,
+    flushTimeout: cr.sampleUpsertQueueTime,
+    verbose: false,
+    flushFunction: httpUtils.doBulkUpsert,
+    proxy: cr.proxy,
+    url: cr.url,
+    token: refocusUserToken,
+  });
+} // createOrUpdateGeneratorQueue
 
 /**
  * Set up generator repeaters for each generator and add them to the collector
@@ -195,10 +198,14 @@ function addGenerators(res) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
 
+      // Add Refocus url/proxy to generator
+      g.refocus = { url: config.refocus.url };
+      if (config.refocus.proxy) g.refocus.proxy = config.refocus.proxy;
+
       config.generators[g.name] = g;
 
-      // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
+      // queue name === generator name
+      createOrUpdateGeneratorQueue(g.name, res.collectorConfig || {});
       setupRepeater(g);
       debug('Generator added: %O', g);
     });
@@ -248,6 +255,10 @@ function updateGenerators(res) {
       if (g.generatorTemplate.connection.dataSourceProxy) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
+
+      // Add Refocus url/proxy to generator
+      g.refocus = { url: config.refocus.url };
+      if (config.refocus.proxy) g.refocus.proxy = config.refocus.proxy;
 
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
