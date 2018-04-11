@@ -15,12 +15,13 @@ const expect = require('chai').expect;
 const configModule = require('../../src/config/config');
 const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
+const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
 const sendHeartbeat = heartbeat.sendHeartbeat;
-const queueUtils = require('../../src/utils/queueUtils');
 const sinon = require('sinon');
 
 let config;
+const refocusUrl = 'http://refocusheartbeatmock.com';
 
 const generator1 = {
   name: 'Core_Trust1_heartbeat',
@@ -35,6 +36,9 @@ const generator1 = {
       url: 'https://example.api',
       bulk: true,
     },
+  },
+  refocus: {
+    url: refocusUrl,
   },
   interval: 6000,
 };
@@ -53,6 +57,9 @@ const generator1Updated = {
       bulk: true,
     },
   },
+  refocus: {
+    url: refocusUrl,
+  },
   interval: 12000,
 };
 
@@ -67,6 +74,9 @@ const generator2 = {
       bulk: false,
     },
   },
+  refocus: {
+    url: refocusUrl,
+  },
 };
 
 const generator3 = {
@@ -79,6 +89,9 @@ const generator3 = {
       url: 'http://www.abc.com',
       bulk: false,
     },
+  },
+  refocus: {
+    url: refocusUrl,
   },
 };
 
@@ -164,7 +177,6 @@ const hbResponseWithSGToUpdate = {
 };
 
 describe('test/heartbeat/heartbeat.js >', () => {
-  const refocusUrl = 'http://refocusheartbeatmock.com';
   const collectorName = 'collectorForHeartbeatTests';
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const collectorToken = 'm0ck3dt0k3n';
@@ -245,7 +257,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .catch(done);
   });
 
-  it('Ok, sendheart end-to-end', (done) => {
+  it('Ok, send heartbeat end-to-end', (done) => {
     nock(refocusUrl, {
       reqheaders: { authorization: collectorToken },
     })
@@ -349,7 +361,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       })
       .post(heartbeatEndpoint)
       .reply(httpStatus.OK, hbResponseStatusStopped);
-      spyFlushQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
+      spyFlushQueue = sinon.spy(q, 'flushAll');
       spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
       stubExit = sinon.stub(process, 'exit');
 

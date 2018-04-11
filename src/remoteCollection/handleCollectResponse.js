@@ -13,7 +13,7 @@ const debug = require('debug')('refocus-collector:handleCollectResponse');
 const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
-const queueUtils = require('../utils/queueUtils');
+const queue = require('../utils/queue');
 const httpStatus = require('../constants').httpStatus;
 const commonUtils = require('../utils/commonUtils');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
@@ -145,9 +145,11 @@ function handleCollectResponse(collectResponse) {
       }`);
     }
 
-    // Enqueue using the sample generator name as the queue name.
-    queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
-      commonUtils.validateSample);
+    // Validate all the samples.
+    samplesToEnqueue.forEach(commonUtils.validateSample);
+
+    // Enqueue to the named queue (sample generator name).
+    queue.enqueue(collectRes.name, samplesToEnqueue);
   })
   .catch((err) => {
     debug(err);

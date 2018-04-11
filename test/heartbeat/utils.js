@@ -12,13 +12,13 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const hu = require('../../src/heartbeat/utils');
-const queueUtils = require('../../src/utils/queueUtils');
+const q = require('../../src/utils/queue');
 const sinon = require('sinon');
 const encrypt = require('../../src/utils/commonUtils').encrypt;
-const qUtils = require('../../src/utils/queueUtils');
 const configModule = require('../../src/config/config');
 const repeater = require('../../src/repeater/repeater');
 const encryptionAlgorithm = 'aes-256-cbc';
+
 describe('test/heartbeat/utils.js >', () => {
   const token = 'longaphanumerictoken';
 
@@ -34,7 +34,7 @@ describe('test/heartbeat/utils.js >', () => {
     generatorsDeleted: [],
   };
 
-  describe('assignContext>', () => {
+  describe('assignContext >', () => {
     it('null ctx OK', () => {
       const ctx = null;
       const def = { a: { default: 'abc' } };
@@ -101,7 +101,7 @@ describe('test/heartbeat/utils.js >', () => {
       expect(_ctx).to.deep.equals(ctx);
     });
 
-    describe('with encrypted ctx attributes', () => {
+    describe('with encrypted ctx attributes >', () => {
       const password = 'reallylongsecretpassword';
       const secret = token + hbResponse.timestamp;
       it('encrypted ctx attributes must be decrypted back', () => {
@@ -169,10 +169,10 @@ describe('test/heartbeat/utils.js >', () => {
     });
   });
 
-  describe('changeCollectorStatus', () => {
+  describe('changeCollectorStatus >', () => {
     it('when newStatus=Stopped stop should be executed irrespective of ' +
       'the previous status', (done) => {
-      const spyBuffQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
+      const spyBuffQueue = sinon.spy(q, 'flushAll');
       const spyRepeater = sinon.spy(repeater, 'stopAllRepeat');
       const stubExit = sinon.stub(process, 'exit');
       hu.changeCollectorStatus('Paused', 'Stopped');
@@ -213,7 +213,7 @@ describe('test/heartbeat/utils.js >', () => {
     it('currentStatus = Running and newStatus = Running', (done) => {
       const spyPause = sinon.spy(repeater, 'pauseGenerators');
       const spyResume = sinon.spy(repeater, 'resumeGenerators');
-      const spyFlushQueue = sinon.spy(queueUtils, 'flushAllBufferedQueues');
+      const spyFlushQueue = sinon.spy(q, 'flushAll');
       const spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
       const stubExit = sinon.stub(process, 'exit');
       hu.changeCollectorStatus('Running', 'Running');
@@ -237,6 +237,10 @@ describe('test/heartbeat/utils.js >', () => {
     beforeEach(() => {
       configModule.clearConfig();
       configModule.initializeConfig();
+      const config = configModule.getConfig();
+      config.refocus = {
+        url: 'mock.refocus.com',
+      };
     });
 
     afterEach(() => {
@@ -263,6 +267,7 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
+            subjectQuery: '?absolutePath=Canada',
           },
           {
             name: genName2,
@@ -274,14 +279,15 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
+            subjectQuery: '?absolutePath=Canada',
           },
         ],
         generatorsUpdated: [],
         generatorsDeleted: [],
       };
       hu.addGenerators(heartbeatResp);
-      const qGen1 = qUtils.getQueue(genName1);
-      const qGen2 = qUtils.getQueue(genName2);
+      const qGen1 = q.get(genName1);
+      const qGen2 = q.get(genName2);
       expect(qGen1._size).to.be.equal(100);
       expect(qGen2._size).to.be.equal(100);
       done();
@@ -302,17 +308,17 @@ describe('test/heartbeat/utils.js >', () => {
     });
 
     it('OK, new queue created', (done) => {
-      const qpresent = qUtils.getQueue('qName1');
-      expect(qpresent).to.be.equal(undefined);
+      const qpresent = q.get('qName1');
+      expect(qpresent).to.be.false;
 
       hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
-      const qGen1 = qUtils.getQueue('qName1');
+      const qGen1 = q.get('qName1');
       expect(qGen1._size).to.be.equal(100);
       done();
     });
 
     it('OK, queue already exists, updated', (done) => {
-      qUtils.createQueue({
+      q.create({
         name: 'qName1',
         size: 10,
         flushTimeout: 4000,
@@ -320,10 +326,10 @@ describe('test/heartbeat/utils.js >', () => {
         flushFunction: (data) => data,
       });
 
-      const qpresent = qUtils.getQueue('qName1');
+      const qpresent = q.get('qName1');
       expect(qpresent._size).to.be.equal(10);
       hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
-      const qUpdated = qUtils.getQueue('qName1');
+      const qUpdated = q.get('qName1');
       expect(qUpdated._size).to.be.equal(1000);
       done();
     });
@@ -333,10 +339,9 @@ describe('test/heartbeat/utils.js >', () => {
         hu.createOrUpdateGeneratorQueue(null, token, collectorConfig);
         done('Expecting error');
       } catch (err) {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal(
-          'Queue name should be provided for queue creation.'
-        );
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message',
+          'Queue name should be provided for queue creation.');
         done();
       }
     });
@@ -344,7 +349,7 @@ describe('test/heartbeat/utils.js >', () => {
     it('Not ok, heartbeat response null', (done) => {
       try {
         hu.createOrUpdateGeneratorQueue('qName1', token, null);
-        done('Expecting error');
+        done(new Error('Expecting error'));
       } catch (err) {
         expect(err.name).to.be.equal('ValidationError');
         expect(err.message).to.be.equal('Collector config is required.');

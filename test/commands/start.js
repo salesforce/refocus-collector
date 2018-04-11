@@ -15,7 +15,7 @@ const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 const configModule = require('../../src/config/config');
 const httpStatus = require('../../src/constants.js').httpStatus;
-const qUtils = require('../../src/utils/queueUtils');
+const q = require('../../src/utils/queue');
 const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
@@ -182,6 +182,7 @@ describe('test/commands/start >', () => {
                 bulk: true,
               },
             },
+            subjectQuery: '?absolutePath=Canada',
           },
           {
             name: 'Gen2',
@@ -193,6 +194,7 @@ describe('test/commands/start >', () => {
                 bulk: true,
               },
             },
+            subjectQuery: '?absolutePath=Canada',
           },
         ],
       });
@@ -201,8 +203,8 @@ describe('test/commands/start >', () => {
         expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
-        const qGen1 = qUtils.getQueue('Gen1');
-        const qGen2 = qUtils.getQueue('Gen2');
+        const qGen1 = q.getQueue('Gen1');
+        const qGen2 = q.getQueue('Gen2');
         expect(qGen1._size).to.be.equal(100);
         expect(qGen2._size).to.be.equal(100);
         repeater.stop('heartbeat');

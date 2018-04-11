@@ -22,7 +22,7 @@ const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
 const prepareTransformArgs = hcr.prepareTransformArgs;
-const queueUtils = require('../../src/utils/queueUtils');
+const q = require('../../src/utils/queue');
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
 const httpUtils = require('../../src/utils/httpUtils');
@@ -229,7 +229,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         verbose: false,
         flushFunction: httpUtils.doBulkUpsert,
       };
-      queueUtils.createQueue(qParams);
+      q.create(qParams);
 
       // use nock to mock the response when flushing
       const sampleArr = [
@@ -245,7 +245,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     afterEach(() => {
       winstonInfoStub.reset();
-      queueUtils.getQueue(generatorName).Items = [];
+      q.get(generatorName).Items = [];
     });
 
     after(() => {
@@ -399,7 +399,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(winston.info.args[0][0]).contains('generator: mockGenerator');
       expect(winston.info.args[0][0])
         .contains(`numSamples: ${expected.length}`);
-      const queue = queueUtils.getQueue(generatorName);
+      const queue = q.get(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
       expect(queue.items[0]).to.eql(expected[0]);
       expect(queue.items[1]).to.eql(expected[1]);

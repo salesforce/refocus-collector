@@ -12,7 +12,7 @@
 const repeater = require('../../src/repeater/repeater');
 const tracker = repeater.tracker;
 const expect = require('chai').expect;
-
+const ref = { url: 'mock.refocus.com' };
 describe('test/repeater/repeater.js >', () => {
   describe('createGeneratorRepeater >', () => {
     it('should start a new generator repeat', (done) => {
@@ -29,6 +29,7 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def);
@@ -54,6 +55,7 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def);
@@ -81,6 +83,7 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def);
@@ -109,6 +112,7 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       repeater.createGeneratorRepeater(obj);
