@@ -311,9 +311,10 @@ describe('test/commands/start >', () => {
     });
   });
 
-  it('heartbeat repeater fails?' /* , (done) => {
+  it('heartbeat repeater fails? TODO confirm that error was logged and thrown'
+  /* , (done) => {
     start.execute();
-    // TODO confirm that error was logged and thrown
+    // 
     done();
   } */);
 });
