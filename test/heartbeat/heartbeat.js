@@ -275,10 +275,24 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('Ok, send heartbeat end-to-end', (done) => {
     nock(refocusUrl, {
+      reqheaders: { authorization: 'mygeneratorusertoken' },
+    })
+    .get('/v1/subjects')
+    .query({
+      absolutePath: 'Parent.Child.*',
+      tags: 'Primary',
+    })
+    .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
+
+    nock(refocusUrl, {
       reqheaders: { authorization: collectorToken },
     })
     .post(heartbeatEndpoint)
     .reply(httpStatus.OK, hbResponseWithSG);
+
+    nock('https://example.api')
+    .get('/v2')
+    .reply(httpStatus.OK, 'true');
 
     // send heartbeat to get a response to add generator1
     heartbeat()

@@ -32,6 +32,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     // Add the url to the generator so the handler has access to it later.
     generator.preparedUrl =
       rce.prepareUrl(context, aspects, subjects, connection);
+    debug('preparedUrl = %s', generator.preparedUrl);
 
     // If token is present, add to request header.
     if (generator.token) {
@@ -40,7 +41,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
         set(connection, 'headers.Authorization',
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
       } else {
-        set(connection, 'headers.Authorization', accessToken);
+        if (accessToken) set(connection, 'headers.Authorization', accessToken);
       }
     }
 
@@ -76,7 +77,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       }
 
       if (res) {
-        debug('Remote data source returned an OK response: %o', res);
+        debug('Remote data source returned an OK response: %O', res.body);
         generator.res = res;
       }
 
@@ -128,7 +129,7 @@ function prepareRemoteRequest(generator) {
 function collect(generator) {
   return findSubjects(generator.refocus.url, generator.token,
     generator.refocus.proxy, generator.subjectQuery)
-  .then((subjects) => generator.subjects = subjects)
+  .then((subjects) => generator.subjects = subjects.body || [])
   .then(() => prepareRemoteRequest(generator));
 } // onRepeat
 
