@@ -57,6 +57,16 @@ function get(name) {
 } // get
 
 /**
+ * Returns true if we are tracking a buffered queue instance with this name.
+ *
+ * @param {String} name - Name of the buffered queue instance
+ * @returns {Boolean} if the named queue exists
+ */
+function exists(name) {
+  return qmap.hasOwnProperty(name);
+} // exists
+
+/**
  * Updates the queue size for the named queue.
  *
  * @param {String} name - the name of the buffered queue
@@ -121,6 +131,7 @@ function flushAll() {
 module.exports = {
   create,
   enqueue,
+  exists,
   flushAll,
   get,
   updateFlushTimeout,

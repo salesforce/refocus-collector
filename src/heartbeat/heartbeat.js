@@ -13,28 +13,27 @@
 const debug = require('debug')('refocus-collector:heartbeat');
 const request = require('superagent');
 const configModule = require('../config/config');
-const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
+const listener = require('./listener');
 const u = require('../utils/commonUtils');
+const httpUtils = require('../utils/httpUtils');
 const sanitize = u.sanitize;
 
 /**
  * Send a heartbeat to the Refocus server
  * @returns {Request} - the request sent to the Refocus server
  */
-function sendHeartbeat() {
-  debug('Entered heartbeat.sendHeartbeat');
+module.exports = () => {
+  debug('Entered heartbeat');
   const timestamp = Date.now();
   const config = configModule.getConfig();
   const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
-
-  debug('sendHeartbeat config.refocus', sanitized);
+  debug('heartbeat config.refocus', sanitized);
   const collectorName = config.name;
   const refocusUrl = config.refocus.url;
   const collectorToken = config.refocus.collectorToken;
   const proxy = config.refocus.proxy;
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const urlToPost = refocusUrl + heartbeatEndpoint;
-
   const existing = configModule.getConfig().metadata;
   const current = u.getCurrentMetadata();
   const changed = u.getChangedMetadata(existing, current);
@@ -43,18 +42,7 @@ function sendHeartbeat() {
     timestamp,
     collectorConfig: changed,
   };
-
-  const req = request.post(urlToPost)
-    .send(requestbody)
-    .set('Authorization', collectorToken);
-  if (proxy) {
-    req.proxy(proxy); // set proxy for following request
-  }
-
-  return req.then((res) => handleHeartbeatResponse(null, res.body))
-  .catch((err) => handleHeartbeatResponse(err, null));
-}
-
-module.exports = {
-  sendHeartbeat,
+  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody)
+  .then((res) => listener(null, res.body))
+  .catch((err) => listener(err, null));
 };

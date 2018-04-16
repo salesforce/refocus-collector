@@ -16,6 +16,9 @@ const tracker = require('../../src/repeater/repeater').tracker;
 const expect = require('chai').expect;
 const encrypt = require('../../src/utils/commonUtils').encrypt;
 const encryptionAlgorithm = 'aes-256-cbc';
+const logger = require('winston');
+logger.configure({ level: 0 });
+
 describe('test/heartbeat/listener.js >', () => {
   before(() => {
     configModule.clearConfig();
@@ -62,13 +65,13 @@ describe('test/heartbeat/listener.js >', () => {
   it('should handle errors passed to the function', (done) => {
     const err = { status: 404,
       description: 'heartbeat not received', };
-    const ret = listener.handleHeartbeatResponse(err, hbResponse);
+    const ret = listener(err, hbResponse);
     expect(ret).to.deep.equal(err);
     done();
   });
 
   it('collector config should be updated', (done) => {
-    const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+    const updatedConfig = listener(null, hbResponse);
     expect(updatedConfig.refocus.heartbeatInterval)
       .to.equal(hbResponse.collectorConfig.heartbeatInterval);
     expect(updatedConfig.refocus.status)
@@ -102,7 +105,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    const updatedConfig = listener(null, res);
     expect(updatedConfig.generators.Core_Trust2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.Core_Trust2._bulk).not.equal(undefined);
@@ -134,7 +137,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    listener.handleHeartbeatResponse(null, res);
+    listener(null, res);
     hbResponse.generatorsUpdated = [
       {
         name: 'Core_Trust3',
@@ -150,7 +153,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
     ];
     hbResponse.generatorsAdded = [];
-    const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+    const updatedConfig = listener(null, hbResponse);
     expect(updatedConfig.generators.Core_Trust3.context)
       .to.deep.equal({ baseUrl: 'https://example.api', });
     expect(tracker.Core_Trust3).not.equal(null);
@@ -183,7 +186,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    const updatedConfig = listener(null, res);
     expect(updatedConfig.generators.Core_Trust_nonBulk_NA1_NA2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.Core_Trust_nonBulk_NA1_NA2.NA1).not.equal(undefined);
@@ -217,7 +220,7 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
 
-    let updatedConfig = listener.handleHeartbeatResponse(null, res);
+    let updatedConfig = listener(null, res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
@@ -247,7 +250,7 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
 
-    updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
+    updatedConfig = listener(null, updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
     expect(tracker.bulktrueToBulkFalse_1.NA1).not.equal(undefined);
@@ -281,7 +284,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    let updatedConfig = listener.handleHeartbeatResponse(null, res);
+    let updatedConfig = listener(null, res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.bulktrueToBulkFalse_2.NA1).not.equal(undefined);
@@ -311,7 +314,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    updatedConfig = listener.handleHeartbeatResponse(null, updatedRes);
+    updatedConfig = listener(null, updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
     expect(tracker.bulktrueToBulkFalse_2._bulk).not.equal(undefined);
@@ -357,7 +360,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener.handleHeartbeatResponse(null, res);
+    const updatedConfig = listener(null, res);
     expect(updatedConfig.generators.ABC_DATA).to.not.equal(undefined);
     const resDel = {
       collectorConfig: {
@@ -369,7 +372,7 @@ describe('test/heartbeat/listener.js >', () => {
         { name: 'ABC_DATA', },
       ],
     };
-    const updatedConfigAgain = listener.handleHeartbeatResponse(null, resDel);
+    const updatedConfigAgain = listener(null, resDel);
     expect(Object.keys(tracker)).to.contain('Fghijkl_Mnopq');
     expect(updatedConfigAgain.generators.Fghijkl_Mnopq)
       .to.not.equal(undefined);
@@ -402,7 +405,7 @@ describe('test/heartbeat/listener.js >', () => {
         context: { baseUrl: 'https://example.api', },
       },
     };
-    const ret = listener.handleHeartbeatResponse(null, res);
+    const ret = listener(null, res);
     expect(ret.refocus.heartbeatInterval).to.equal(50);
     done();
   });
@@ -453,7 +456,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      const updatedConfig = listener.handleHeartbeatResponse(null, res);
+      const updatedConfig = listener(null, res);
       const decryptedContext = updatedConfig.generators
         .Core_Trust2_With_Encryption.context;
 
@@ -507,7 +510,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      listener.handleHeartbeatResponse(null, res);
+      listener(null, res);
       const newPassword = 'newPassword';
       const newToken = 'newToken';
       hbResponse.generatorsUpdated = [
@@ -543,7 +546,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ];
       hbResponse.generatorsAdded = [];
-      const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+      const updatedConfig = listener(null, hbResponse);
       expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
         .to.deep.equal({ baseUrl: 'https://example.api.v2',
           password: newPassword, token: newToken, });
@@ -593,7 +596,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      listener.handleHeartbeatResponse(null, res);
+      listener(null, res);
       const newPassword = 'newPassword';
       const newToken = 'newToken';
       hbResponse.generatorsUpdated = [
@@ -629,7 +632,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ];
       hbResponse.generatorsAdded = [];
-      const updatedConfig = listener.handleHeartbeatResponse(null, hbResponse);
+      const updatedConfig = listener(null, hbResponse);
       expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
         .to.deep.equal({ baseUrl: 'https://example.api.v2',
           password: newPassword, token: newToken, });

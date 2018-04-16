@@ -18,6 +18,8 @@ const encrypt = require('../../src/utils/commonUtils').encrypt;
 const configModule = require('../../src/config/config');
 const repeater = require('../../src/repeater/repeater');
 const encryptionAlgorithm = 'aes-256-cbc';
+const logger = require('winston');
+logger.configure({ level: 0 });
 
 describe('test/heartbeat/utils.js >', () => {
   const token = 'longaphanumerictoken';
@@ -39,8 +41,8 @@ describe('test/heartbeat/utils.js >', () => {
       const ctx = null;
       const def = { a: { default: 'abc' } };
 
-      expect(hu.assignContext(ctx, def, token, hbResponse)).to
-        .have.property('a', 'abc');
+      expect(hu.assignContext(ctx, def, token, hbResponse))
+        .to.have.property('a', 'abc');
     });
 
     it('empty ctx OK', () => {
@@ -231,6 +233,9 @@ describe('test/heartbeat/utils.js >', () => {
     });
   });
 
+  /* TODO - ․(node:78011) UnhandledPromiseRejectionWarning: Unhandled promise
+   rejection (rejection id: 104): ValidationError: doBulkUpsert missing
+    token */
   describe('addGenerators >', () => {
     const genName1 = 'Gen1';
     const genName2 = 'Gen2';
@@ -238,9 +243,13 @@ describe('test/heartbeat/utils.js >', () => {
       configModule.clearConfig();
       configModule.initializeConfig();
       const config = configModule.getConfig();
-      config.refocus = {
-        url: 'mock.refocus.com',
-      };
+      if (config.refocus) {
+        config.refocus.url = 'mock.refocus.com';
+      } else {
+        config.refocus = {
+          url: 'mock.refocus.com',
+        };
+      }
     });
 
     afterEach(() => {
@@ -311,7 +320,7 @@ describe('test/heartbeat/utils.js >', () => {
       const qpresent = q.get('qName1');
       expect(qpresent).to.be.false;
 
-      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
+      hu.createOrUpdateGeneratorQueue('qName1', collectorConfig);
       const qGen1 = q.get('qName1');
       expect(qGen1._size).to.be.equal(100);
       done();
@@ -328,7 +337,7 @@ describe('test/heartbeat/utils.js >', () => {
 
       const qpresent = q.get('qName1');
       expect(qpresent._size).to.be.equal(10);
-      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
+      hu.createOrUpdateGeneratorQueue('qName1', collectorConfig);
       const qUpdated = q.get('qName1');
       expect(qUpdated._size).to.be.equal(1000);
       done();
@@ -336,23 +345,22 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('Not ok, queue name null', (done) => {
       try {
-        hu.createOrUpdateGeneratorQueue(null, token, collectorConfig);
+        hu.createOrUpdateGeneratorQueue(null, collectorConfig);
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
-        expect(err).to.have.property('message',
-          'Queue name should be provided for queue creation.');
+        expect(err).to.have.property('message', 'Missing queue name');
         done();
       }
     });
 
     it('Not ok, heartbeat response null', (done) => {
       try {
-        hu.createOrUpdateGeneratorQueue('qName1', token, null);
+        hu.createOrUpdateGeneratorQueue('qName1', null);
         done(new Error('Expecting error'));
       } catch (err) {
-        expect(err.name).to.be.equal('ValidationError');
-        expect(err.message).to.be.equal('Collector config is required.');
+        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('message', 'Missing collector config');
         done();
       }
     });

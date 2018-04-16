@@ -110,8 +110,8 @@ describe('test/commands/utils >', () => {
        * make sure setupConfig also initializes the config with the collector
        * metadata
        */
-      expect(Object.keys(config.metadata)).to.include
-        .members(['osInfo', 'processInfo', 'version']);
+      expect(Object.keys(config.metadata))
+        .to.include.members(['osInfo', 'processInfo', 'version']);
     });
   });
 });

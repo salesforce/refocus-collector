@@ -18,20 +18,20 @@ describe('test/commands/resume >', () => {
   const refocusUrl = 'http://www.refocus-resume-test.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const refocusProxy = 'http://abcproxy.com';
-  const missingCollectorNameError = 'error: You must specify a ' +
-    'collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the ' +
-    'refocus instance.\n';
+  const missingCollectorNameError =
+    'error: You must specify a collector name.\n';
+  const missingUrlError =
+    'error: You must specify the url of the refocus instance.\n';
   const missingTokenError = 'error: You must specify an access token.\n';
+  const cmd = 'src/commands/refocus-collector-resume.js';
+  const silence = { silent: true };
 
   it('ok', (done) => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
-    const opts = { silent: true };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
+    const resume = fork(cmd, args, silence);
     resume.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -42,12 +42,9 @@ describe('test/commands/resume >', () => {
     const args = [
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
-    resume.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingCollectorNameError);
-    });
+    const resume = fork(cmd, args, silence);
+    resume.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingCollectorNameError));
     resume.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -58,12 +55,9 @@ describe('test/commands/resume >', () => {
     const args = [
       '--collectorName', collectorName, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
-    resume.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingUrlError);
-    });
+    const resume = fork(cmd, args, silence);
+    resume.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingUrlError));
     resume.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -74,12 +68,9 @@ describe('test/commands/resume >', () => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
     ];
-    const opts = { silent: true };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
-    resume.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const resume = fork(cmd, args, silence);
+    resume.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     resume.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -88,12 +79,11 @@ describe('test/commands/resume >', () => {
 
   it('ok, no refocusProxy', (done) => {
     const args = [
-      '--collectorName', collectorName, '--refocusUrl', refocusUrl,
+      '--collectorName', collectorName,
+      '--refocusUrl', refocusUrl,
       '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
+    const resume = fork(cmd, args, silence);
     resume.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -111,8 +101,7 @@ describe('test/commands/resume >', () => {
         RC_REFOCUS_PROXY: refocusProxy,
       },
     };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
+    const resume = fork(cmd, args, opts);
     resume.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -127,11 +116,9 @@ describe('test/commands/resume >', () => {
         RC_REFOCUS_URL: refocusUrl,
       },
     };
-    const resume = fork('src/commands/refocus-collector-resume.js',
-      args, opts);
-    resume.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const resume = fork(cmd, args, opts);
+    resume.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     resume.on('close', (code) => {
       expect(code).to.equal(1);
       done();

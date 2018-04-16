@@ -20,7 +20,7 @@ const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
 const request = require('superagent');
-
+const sgt = require('../sgt');
 require('superagent-proxy')(request);
 
 describe('test/commands/start >', () => {
@@ -32,11 +32,13 @@ describe('test/commands/start >', () => {
   const refocusProxy = 'http://abcproxy.com';
   const dataSourceProxy = 'http://xyzproxy.com';
 
-  const missingCollectorNameError = 'error: You must specify a ' +
-    'collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the ' +
-    'refocus instance.\n';
+  const missingCollectorNameError =
+    'error: You must specify a collector name.\n';
+  const missingUrlError =
+    'error: You must specify the url of the refocus instance.\n';
   const missingTokenError = 'error: You must specify an access token.\n';
+  const cmd = 'src/commands/refocus-collector-start.js';
+  const silence = { silent: true };
 
   describe('from command line >', () => {
     it('ok', (done) => {
@@ -45,8 +47,7 @@ describe('test/commands/start >', () => {
         '--accessToken', accessToken, '--refocusProxy', refocusProxy,
         '--dataSourceProxy', dataSourceProxy,
       ];
-      const opts = { silent: true };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -57,8 +58,7 @@ describe('test/commands/start >', () => {
       const args = [
         '--refocusUrl', refocusUrl, '--accessToken', accessToken,
       ];
-      const opts = { silent: true };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, silence);
       start.stderr.on('data', (data) => {
         expect(data.toString()).to.equal(missingCollectorNameError);
       });
@@ -72,8 +72,7 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--accessToken', accessToken,
       ];
-      const opts = { silent: true };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, silence);
       start.stderr.on('data', (data) => {
         expect(data.toString()).to.equal(missingUrlError);
       });
@@ -87,8 +86,7 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       ];
-      const opts = { silent: true };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, silence);
       start.stderr.on('data', (data) => {
         expect(data.toString()).to.equal(missingTokenError);
       });
@@ -103,8 +101,7 @@ describe('test/commands/start >', () => {
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
         '--accessToken', accessToken,
       ];
-      const opts = { silent: true };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -123,7 +120,7 @@ describe('test/commands/start >', () => {
           RC_DATA_SOURCE_PROXY: dataSourceProxy,
         },
       };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, opts);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -139,7 +136,7 @@ describe('test/commands/start >', () => {
           RC_DATA_SOURCE_PROXY: dataSourceProxy,
         },
       };
-      const start = fork('src/commands/refocus-collector-start.js', args, opts);
+      const start = fork(cmd, args, opts);
       start.stderr.on('data', (data) => {
         expect(data.toString()).to.equal(missingTokenError);
       });
@@ -150,6 +147,7 @@ describe('test/commands/start >', () => {
     });
   });
 
+  // TODO fix all the nock errors here
   describe('execute directly >', () => {
     let config = configModule.getConfig();
     let version;
@@ -165,6 +163,24 @@ describe('test/commands/start >', () => {
     after(() => configModule.clearConfig());
 
     it('ok, no proxy', (done) => {
+      nock('https://example.api')
+      .get()
+      .times(100)
+      .reply({
+        statusCode: 200,
+        body: [],
+      });
+
+      nock(refocusUrl, {
+        reqheaders: { authorization: 'some-dummy-token-gen1' },
+      })
+      .get('/v1/subjects')
+      .times(100)
+      .query({
+        absolutePath: 'Canada',
+      })
+      .reply(httpStatus.OK, [{ absolutePath: 'Foo.bar', name: 'bar' }]);
+
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
@@ -175,25 +191,15 @@ describe('test/commands/start >', () => {
           {
             name: 'Gen1',
             token: 'some-dummy-token-gen1',
-            generatorTemplate: {
-              name: 'gen-template-1',
-              connection: {
-                url: 'https://example.api',
-                bulk: true,
-              },
-            },
+            generatorTemplate: sgt,
+            aspects: [{ name: 'foo' }],
             subjectQuery: '?absolutePath=Canada',
           },
           {
             name: 'Gen2',
             token: 'some-dummy-token-gen2',
-            generatorTemplate: {
-              name: 'gen-template-2',
-              connection: {
-                url: 'https://example.api',
-                bulk: true,
-              },
-            },
+            generatorTemplate: sgt,
+            aspects: [{ name: 'bar' }],
             subjectQuery: '?absolutePath=Canada',
           },
         ],
@@ -203,8 +209,8 @@ describe('test/commands/start >', () => {
         expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
-        const qGen1 = q.getQueue('Gen1');
-        const qGen2 = q.getQueue('Gen2');
+        const qGen1 = q.get('Gen1');
+        const qGen2 = q.get('Gen2');
         expect(qGen1._size).to.be.equal(100);
         expect(qGen2._size).to.be.equal(100);
         repeater.stop('heartbeat');

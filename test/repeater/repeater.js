@@ -13,8 +13,14 @@ const repeater = require('../../src/repeater/repeater');
 const tracker = repeater.tracker;
 const expect = require('chai').expect;
 const ref = { url: 'mock.refocus.com' };
+const logger = require('winston');
+logger.configure({ level: 0 });
+
 describe('test/repeater/repeater.js >', () => {
   describe('createGeneratorRepeater >', () => {
+    const dummyFunc = (x) => x;
+    const dummyOnProgress = (x) => x;
+
     it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
@@ -32,7 +38,8 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(def.interval);
       expect(ret.name).to.equal('Generator0');
@@ -58,12 +65,13 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(def.interval);
       expect(ret.name).to.equal('Generator0.1');
       expect(ret.funcName).to.equal('func');
-      expect(ret.onProgress.name).to.equal('handleCollectResponse');
+      expect(ret.onProgress.name).to.equal('dummyOnProgress');
       expect(tracker['Generator0.1']._bulk).to.equal(ret.handle);
       done();
     });
@@ -86,7 +94,8 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       setTimeout(() => {
         expect(ret.handle).to.not.equal(undefined);
         expect(ret.interval).to.equal(def.interval);
@@ -115,16 +124,17 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      repeater.createGeneratorRepeater(obj);
+      repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
       obj.name = 'Generator0.2';
       obj.interval = 60;
       repeater.stop(obj.name);
-      const ret = repeater.createGeneratorRepeater(obj);
+      const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(obj.interval);
       expect(ret.name).to.equal('Generator0.2');
       expect(ret.funcName).to.equal('func');
-      expect(ret.onProgress.name).to.equal('handleCollectResponse');
+      expect(ret.onProgress.name).to.equal('dummyOnProgress');
       expect(tracker['Generator0.2']._bulk).to.equal(ret.handle);
       done();
     });

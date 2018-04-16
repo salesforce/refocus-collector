@@ -18,20 +18,20 @@ describe('test/commands/stop >', () => {
   const refocusUrl = 'http://www.refocus-stop-test.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const refocusProxy = 'http://abcproxy.com';
-  const missingCollectorNameError = 'error: You must specify a ' +
-    'collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the ' +
-    'refocus instance.\n';
+  const missingCollectorNameError =
+    'error: You must specify a collector name.\n';
+  const missingUrlError =
+    'error: You must specify the url of the refocus instance.\n';
   const missingTokenError = 'error: You must specify an access token.\n';
+  const cmd = 'src/commands/refocus-collector-stop.js';
+  const silence = { silent: true };
 
   it('ok', (done) => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
-    const opts = { silent: true };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
+    const stop = fork(cmd, args, silence);
     stop.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -42,12 +42,9 @@ describe('test/commands/stop >', () => {
     const args = [
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
-    stop.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingCollectorNameError);
-    });
+    const stop = fork(cmd, args, silence);
+    stop.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingCollectorNameError));
     stop.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -58,12 +55,9 @@ describe('test/commands/stop >', () => {
     const args = [
       '--collectorName', collectorName, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
-    stop.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingUrlError);
-    });
+    const stop = fork(cmd, args, silence);
+    stop.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingUrlError));
     stop.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -74,12 +68,9 @@ describe('test/commands/stop >', () => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
     ];
-    const opts = { silent: true };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
-    stop.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const stop = fork(cmd, args, silence);
+    stop.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     stop.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -91,9 +82,7 @@ describe('test/commands/stop >', () => {
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
+    const stop = fork(cmd, args, silence);
     stop.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -111,8 +100,7 @@ describe('test/commands/stop >', () => {
         RC_REFOCUS_PROXY: refocusProxy,
       },
     };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
+    const stop = fork(cmd, args, opts);
     stop.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -127,11 +115,9 @@ describe('test/commands/stop >', () => {
         RC_REFOCUS_URL: refocusUrl,
       },
     };
-    const stop = fork('src/commands/refocus-collector-stop.js',
-      args, opts);
-    stop.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const stop = fork(cmd, args, opts);
+    stop.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     stop.on('close', (code) => {
       expect(code).to.equal(1);
       done();

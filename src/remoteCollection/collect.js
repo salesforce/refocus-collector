@@ -9,11 +9,13 @@
 /**
  * src/remoteCollection/collect.js
  */
-
 const debug = require('debug')('refocus-collector:remoteCollection');
 const request = require('superagent');
+const get = require('just-safe-get');
+const set = require('just-safe-set');
 require('superagent-proxy')(request);
 const constants = require('../constants');
+const findSubjects = require('../utils/httpUtils').findSubjects;
 const rce = require('@salesforce/refocus-collector-eval');
 
 /**
@@ -31,19 +33,21 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     generator.preparedUrl =
       rce.prepareUrl(context, aspects, subjects, connection);
 
-    // If token is present then add token to request header.
+    // If token is present, add to request header.
     if (generator.token) {
       const accessToken = generator.token.accessToken;
-      if (simpleOauth.tokenFormat) {
-        connection.headers.Authorization
-        = simpleOauth.tokenFormat.replace('{accessToken}', accessToken);
+      if (get(simpleOauth, 'tokenFormat')) {
+        set(connection, 'headers.Authorization',
+          simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
       } else {
-        connection.headers.Authorization = accessToken;
+        set(connection, 'headers.Authorization', accessToken);
       }
     }
 
-    // Add the prepared headers to the generator so the handler has access to
-    // them later for validation.
+    /*
+     * Add the prepared headers to the generator so the handler has access to
+     * them later for validation.
+     */
     generator.preparedHeaders =
       rce.prepareHeaders(connection.headers, context);
 
@@ -58,13 +62,13 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
     req.end((err, res) => {
       if (err) {
         /*
-         * If error is 401 and token is present with simple oauth object
-         * then token is expired and request new token again.
+         * If 401 error AND token is present with simple oauth object, treat
+         * this token as expired and request a new token.
          */
-        if (err.status == constants.httpStatus.UNAUTHORIZED
-          && simpleOauth && generator.token) {
+        if (err.status == constants.httpStatus.UNAUTHORIZED && simpleOauth &&
+          generator.token) {
           generator.token = null;
-          collect(generator);
+          return prepareRemoteRequest(generator);
         } else {
           debug('Remote data source returned an OK response: %o', res);
           generator.res = err;
@@ -79,7 +83,7 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
       return resolve(generator);
     });
   });
-}
+} // sendRemoteRequest
 
 /**
  * This is responsible for the data collection from the remote data source. It
@@ -94,10 +98,10 @@ function sendRemoteRequest(generator, connection, simpleOauth=null) {
  *  attribute carrying the response from the remote data source
  * @throws {ValidationError} if thrown by prepareUrl
  */
-function collect(generator) {
+function prepareRemoteRequest(generator) {
   const connection = generator.generatorTemplate.connection;
 
-  /**
+  /*
    * If simple_oauth object is present then use that for token generation
    * and using that token remote request should be done.
    */
@@ -119,8 +123,16 @@ function collect(generator) {
   } else {
     return sendRemoteRequest(generator, connection);
   }
-} // collect
+} // prepareRemoteRequest
+
+function collect(generator) {
+  return findSubjects(generator.refocus.url, generator.token,
+    generator.refocus.proxy, generator.subjectQuery)
+  .then((subjects) => generator.subjects = subjects)
+  .then(() => prepareRemoteRequest(generator));
+} // onRepeat
 
 module.exports = {
   collect,
+  prepareRemoteRequest, // export for testing only
 };

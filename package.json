@@ -39,6 +39,8 @@
     "figlet": "^1.2.0",
     "fs": "0.0.1-security",
     "joi": "^13.1.2",
+    "just-safe-get": "^1.2.1",
+    "just-safe-set": "^2.0.1",
     "just-template": "^1.1.22",
     "path": "^0.12.7",
     "repeat": "0.0.6",

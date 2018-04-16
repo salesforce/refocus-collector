@@ -13,7 +13,6 @@
 const expect = require('chai').expect;
 
 describe('test/commands/status >', () => {
-
   // TODO: child process fails on travis with error
   // /bin/sh: 1: refocus-collector: not found
   it('logs the expected result', (done) => {

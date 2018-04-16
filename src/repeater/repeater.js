@@ -13,9 +13,6 @@ const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors');
-const handleCollectResponse =
-  require('../remoteCollection/handleCollectResponse').handleCollectResponse;
-const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const u = require('../utils/commonUtils');
@@ -114,7 +111,10 @@ function changeRepeatState(name, newState) {
 function stop(name) {
   changeRepeatState(name, 'stop');
   delete tracker[name];
-  logger.info(`Stopped the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:stopped',
+    name,
+  });
 } // stop
 
 /**
@@ -135,7 +135,10 @@ function stopAllRepeat() {
  */
 function pause(name) {
   changeRepeatState(name, 'pause');
-  logger.info(`Paused the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:paused',
+    name,
+  });
 } // pause
 
 /**
@@ -154,7 +157,10 @@ function pauseGenerators() {
  */
 function resume(name) {
   changeRepeatState(name, 'resume');
-  logger.info(`Resumed the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:resumed',
+    name,
+  });
 } // resume
 
 /**
@@ -224,7 +230,7 @@ function create(def) {
   def.funcName = def.func.name;
   trackRepeater(def);
   logger.info({
-    activity: 'createdRepeater',
+    activity: 'repeater:created',
     name: def.name,
     funcName: def.func.name,
     interval: def.interval,
@@ -238,14 +244,15 @@ function create(def) {
  * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
+ * @param {Function} fn - pass in the function to call on each interval
  * @returns {Promise} - A read-only Promise instance.
  */
-function createGeneratorRepeater(generator) {
+function createGeneratorRepeater(generator, func, onProgress) {
   return create({
     name: generator.name,
     interval: generator.interval,
-    func: () => collect(generator),
-    onProgress: handleCollectResponse,
+    func: () => func(generator),
+    onProgress,
     bulk: u.isBulk(generator),
     subjects: generator.subjects,
   });

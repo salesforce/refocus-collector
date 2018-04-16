@@ -17,8 +17,9 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
 const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
-const sendHeartbeat = heartbeat.sendHeartbeat;
 const sinon = require('sinon');
+const logger = require('winston');
+logger.configure({ level: 0 });
 
 let config;
 const refocusUrl = 'http://refocusheartbeatmock.com';
@@ -40,6 +41,7 @@ const generator1 = {
   refocus: {
     url: refocusUrl,
   },
+  token: 'mygeneratorusertoken',
   interval: 6000,
 };
 
@@ -213,7 +215,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .post(heartbeatEndpoint)
     .reply(httpStatus.FORBIDDEN, errorResponse);
 
-    sendHeartbeat()
+    heartbeat()
     .then((err) => {
       expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
       expect(err.response.body).deep
@@ -230,7 +232,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .post(heartbeatEndpoint)
     .reply(httpStatus.OK, hbResponseNoSG);
 
-    sendHeartbeat()
+    heartbeat()
     .then((res) => {
       expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
       expect(res.generators).to.deep.equal({});
@@ -241,15 +243,29 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   it('Ok, handle a complete response with generators', (done) => {
+    nock('https://example.api')
+    .get()
+    .reply(httpStatus.OK, []);
+
+    nock(refocusUrl, {
+      reqheaders: { authorization: 'mygeneratorusertoken' },
+    })
+    .get('/v1/subjects')
+    .query({
+      absolutePath: 'Parent.Child.*',
+      tags: 'Primary',
+    })
+    .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
+
     nock(refocusUrl, {
       reqheaders: { authorization: collectorToken },
     })
     .post(heartbeatEndpoint)
     .reply(httpStatus.OK, hbResponseWithSG);
 
-    sendHeartbeat()
+    heartbeat()
     .then((res) => {
-      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res).to.have.all.keys('generators', 'metadata', 'name', 'refocus');
       expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
       expect(res.generators).to.deep.equal({ [generator1.name]: generator1 });
       done();
@@ -265,7 +281,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .reply(httpStatus.OK, hbResponseWithSG);
 
     // send heartbeat to get a response to add generator1
-    sendHeartbeat()
+    heartbeat()
     .then(() => {
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
@@ -277,10 +293,10 @@ describe('test/heartbeat/heartbeat.js >', () => {
        * send heartbeat to get a response to add generator2, generator3
        * and update generator1
        */
-      return sendHeartbeat();
+      return heartbeat();
     })
     .then((res) => {
-      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res).to.have.all.keys('generators', 'metadata', 'name', 'refocus');
       expect(res.refocus).to.include(hbResponseWithSGToUpdate.collectorConfig);
 
       // make sure the generator1 is updated
@@ -297,10 +313,10 @@ describe('test/heartbeat/heartbeat.js >', () => {
       .reply(httpStatus.OK, hbResponseWithSGToDelete);
 
       // send another heartbeat to get a response to delete all the generators
-      return sendHeartbeat();
+      return heartbeat();
     })
     .then((res) => {
-      expect(res).to.have.all.keys('refocus', 'generators', 'metadata', 'name');
+      expect(res).to.have.all.keys('generators', 'metadata', 'name', 'refocus');
       expect(res.generators).to.deep.equal({});
       expect(res.refocus).to.include(hbResponseWithSGToDelete.collectorConfig);
       done();
@@ -317,7 +333,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .reply(httpStatus.OK, hbResponseWithSG);
 
     // send heartbeat with status = running
-    sendHeartbeat()
+    heartbeat()
     .then((res) => {
       expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
       nock(refocusUrl, {
@@ -329,7 +345,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       spyPause = sinon.spy(repeater, 'pauseGenerators');
 
       // send heartbeat with status = paused
-      return sendHeartbeat();
+      return heartbeat();
     })
     .then((res) => {
       expect(spyPause.calledOnce).to.equal(true);
@@ -342,7 +358,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       spyResume = sinon.spy(repeater, 'resumeGenerators');
 
       // send heartbeat with status = running to resume the paused generators
-      return sendHeartbeat();
+      return heartbeat();
     })
     .then((res) => {
       expect(spyResume.calledOnce).to.equal(true);
@@ -366,7 +382,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       stubExit = sinon.stub(process, 'exit');
 
       // send heartbeat with status = stop to stop the collector
-      return sendHeartbeat();
+      return heartbeat();
     })
     .then(() => {
       expect(spyStopAll.calledOnce).to.equal(true);

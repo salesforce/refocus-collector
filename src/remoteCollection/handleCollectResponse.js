@@ -90,7 +90,7 @@ function prepareTransformArgs(generator) {
   if (commonUtils.isBulk(generator)) {
     args.subjects = generator.subjects;
   } else {
-    args.subject = generator.subjects[0];
+    args.subject = generator.subjects[0]; // FIXME
   }
 
   return args;
@@ -98,10 +98,7 @@ function prepareTransformArgs(generator) {
 
 /**
  * Handles the response from the remote data source by calling the transform
- * function. It also calls the sample bulk upsert api to send the data to the
- * configured refocus instance immediately. In the later versions,
- * instead of calling the sample bulk upsert API immediately, we can start
- * storing the sample in an in-memory sample queue.
+ * function, then enqueuing the samples from that response for bulk upsert.
  *
  * @param  {Promise} collectResponse - Response from the "collect" function.
  *  This resolves to the generator object along with the "res" attribute which
@@ -128,21 +125,21 @@ function handleCollectResponse(collectResponse) {
     let samplesToEnqueue = [];
     if (func) {
       samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
-      logger.info(`{
-        generator: ${collectRes.name},
-        url: ${collectRes.preparedUrl},
-        numSamples: ${samplesToEnqueue.length},
-      }`);
+      logger.info({
+        generator: collectRes.name,
+        url: collectRes.preparedUrl,
+        numSamples: samplesToEnqueue.length,
+      });
     } else {
       const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
         `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
       samplesToEnqueue = errorSamples(collectRes, errorMessage);
-      logger.info(`{
-        generator: ${collectRes.name},
-        url: ${collectRes.preparedUrl},
-        error: ${errorMessage},
-        numSamples: ${samplesToEnqueue.length},
-      }`);
+      logger.info({
+        generator: collectRes.name,
+        url: collectRes.preparedUrl,
+        error: errorMessage,
+        numSamples: samplesToEnqueue.length,
+      });
     }
 
     // Validate all the samples.

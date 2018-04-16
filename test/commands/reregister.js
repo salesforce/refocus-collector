@@ -18,20 +18,20 @@ describe('test/commands/reregister >', () => {
   const refocusUrl = 'http://www.example.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const refocusProxy = 'http://abcproxy.com';
-  const missingCollectorNameError = 'error: You must specify a ' +
-    'collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the ' +
-    'refocus instance.\n';
+  const missingCollectorNameError =
+    'error: You must specify a collector name.\n';
+  const missingUrlError =
+    'error: You must specify the url of the refocus instance.\n';
   const missingTokenError = 'error: You must specify an access token.\n';
+  const cmd = 'src/commands/refocus-collector-reregister.js';
+  const silence = { silent: true };
 
   it('ok', (done) => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
-    const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
+    const reregister = fork(cmd, args, silence);
     reregister.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -42,12 +42,9 @@ describe('test/commands/reregister >', () => {
     const args = [
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
-    reregister.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingCollectorNameError);
-    });
+    const reregister = fork(cmd, args, silence);
+    reregister.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingCollectorNameError));
     reregister.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -58,12 +55,9 @@ describe('test/commands/reregister >', () => {
     const args = [
       '--collectorName', collectorName, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
-    reregister.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingUrlError);
-    });
+    const reregister = fork(cmd, args, silence);
+    reregister.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingUrlError));
     reregister.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -74,12 +68,9 @@ describe('test/commands/reregister >', () => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
     ];
-    const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
-    reregister.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const reregister = fork(cmd, args, silence);
+    reregister.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     reregister.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -91,9 +82,7 @@ describe('test/commands/reregister >', () => {
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
+    const reregister = fork(cmd, args, silence);
     reregister.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -111,8 +100,7 @@ describe('test/commands/reregister >', () => {
         RC_REFOCUS_PROXY: refocusProxy,
       },
     };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
+    const reregister = fork(cmd, args, opts);
     reregister.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -127,11 +115,9 @@ describe('test/commands/reregister >', () => {
         RC_REFOCUS_URL: refocusUrl,
       },
     };
-    const reregister = fork('src/commands/refocus-collector-reregister.js',
-      args, opts);
-    reregister.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const reregister = fork(cmd, args, opts);
+    reregister.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(missingTokenError));
     reregister.on('close', (code) => {
       expect(code).to.equal(1);
       done();

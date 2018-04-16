@@ -107,7 +107,7 @@ function getDefaultConfig() {
   const metadata = common.getCurrentMetadata();
   Object.assign(conf.metadata, metadata);
   return conf;
-} // init
+} // getDefaultConfig
 
 /**
  * Initialize the config object.

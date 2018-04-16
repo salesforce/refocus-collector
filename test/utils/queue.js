@@ -32,7 +32,7 @@ const params = [
 ];
 
 describe('test/utils/queue.js >', () => {
-  describe('create/get >', () => {
+  describe('create/get/exists >', () => {
     it('OK - queues created and added to map', (done) => {
       const q0 = queue.create(params[0]);
       const q1 = queue.create(params[1]);
@@ -44,11 +44,13 @@ describe('test/utils/queue.js >', () => {
       expect(q1).to.have.property('_flushTimeout', 3000);
       expect(queue.get('test0')).to.have.property('_name', 'test0');
       expect(queue.get('test1')).to.have.property('_name', 'test1');
+      expect(queue.exists('test0')).to.be.true;
       return done();
     });
 
     it('queue name not found', (done) => {
       expect(queue.get('DOES_NOT_EXIST')).to.be.false;
+      expect(queue.exists('DOES_NOT_EXIST')).to.be.false;
       return done();
     });
   });
