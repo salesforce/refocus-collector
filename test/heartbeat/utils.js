@@ -245,9 +245,11 @@ describe('test/heartbeat/utils.js >', () => {
       const config = configModule.getConfig();
       if (config.refocus) {
         config.refocus.url = 'mock.refocus.com';
+        config.refocus.collectorToken = 'some-collector-token';
       } else {
         config.refocus = {
           url: 'mock.refocus.com',
+          collectorToken: 'some-collector-token',
         };
       }
     });
@@ -314,6 +316,8 @@ describe('test/heartbeat/utils.js >', () => {
     before(() => {
       configModule.clearConfig();
       configModule.initializeConfig();
+      const config = configModule.getConfig();
+      config.refocus.collectorToken = 'my-collector-token';
     });
 
     it('OK, new queue created', (done) => {
@@ -332,6 +336,7 @@ describe('test/heartbeat/utils.js >', () => {
         size: 10,
         flushTimeout: 4000,
         verbose: false,
+        token: '123abc',
         flushFunction: (data) => data,
       });
 

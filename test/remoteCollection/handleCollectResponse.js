@@ -166,6 +166,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         size: config.refocus.maxSamplesPerBulkRequest,
         flushTimeout: config.refocus.sampleUpsertQueueTime,
         verbose: false,
+        token: '123abc',
         flushFunction: httpUtils.doBulkUpsert,
       };
       q.create(qParams);

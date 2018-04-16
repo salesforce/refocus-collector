@@ -20,7 +20,6 @@ describe('test/commands/status >', () => {
     exec('refocus-collector status --collectorName=PRD_Collector_12345',
       (error, stdout, stderr) => {
       if (error) {
-        console.error(`exec error: ${error}`);
         return done(error);
       }
 

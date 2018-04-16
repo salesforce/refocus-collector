@@ -20,6 +20,7 @@ const params = [
     size: 100,
     flushTimeout: 4000,
     verbose: false,
+    token: '123abc',
     flushFunction: (data) => data,
   },
   {
@@ -27,6 +28,7 @@ const params = [
     size: 50,
     flushTimeout: 3000,
     verbose: false,
+    token: '123abc',
     flushFunction: (data) => data,
   },
 ];
