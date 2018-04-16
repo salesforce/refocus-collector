@@ -39,7 +39,5 @@ logger.log('Resume =>', config.name, url);
 doPost(url, cr.accessToken, cr.proxy)
 .then(() => logger.info(`Resuming ${config.name}`))
 .catch((err) => {
-  logger.error(err.message);
-  logger.error(err.explanation);
-  logger.error(err.response);
+  logger.error(err.message, err.explanation, err.response);
 });

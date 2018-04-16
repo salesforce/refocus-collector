@@ -41,7 +41,5 @@ doPost(url, cr.accessToken, cr.proxy)
   `"refocus-collector resume" or the /v1/collectors/${config.name}/resume ` +
   'endpoint to resume the collector'))
 .catch((err) => {
-  logger.error(err.message);
-  logger.error(err.explanation);
-  logger.error(err.response);
+  logger.error(err.message, err.explanation, err.response);
 });

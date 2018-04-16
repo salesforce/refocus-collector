@@ -33,5 +33,4 @@ try {
   console.log('Status =>', name);
 } catch (err) {
   logger.error(err.message);
-  logger.error(err);
 }

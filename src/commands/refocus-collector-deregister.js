@@ -34,5 +34,4 @@ try {
   cmdDeregister.execute(name);
 } catch (err) {
   logger.error(err.message);
-  logger.error(err);
 }
