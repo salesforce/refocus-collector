@@ -332,6 +332,16 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .post(heartbeatEndpoint)
     .reply(httpStatus.OK, hbResponseWithSG);
 
+    nock(refocusUrl, {
+      reqheaders: { authorization: 'mygeneratorusertoken' },
+    })
+    .get('/v1/subjects')
+    .query({
+      absolutePath: 'Parent.Child.*',
+      tags: 'Primary',
+    })
+    .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
+
     // send heartbeat with status = running
     heartbeat()
     .then((res) => {
