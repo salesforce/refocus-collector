@@ -22,6 +22,8 @@ const logger = require('winston');
 logger.configure({ level: 0 });
 
 describe('test/heartbeat/utils.js >', () => {
+  afterEach(() => repeater.stopAllRepeaters());
+
   const token = 'longaphanumerictoken';
 
   const hbResponse = {
@@ -175,7 +177,7 @@ describe('test/heartbeat/utils.js >', () => {
     it('when newStatus=Stopped stop should be executed irrespective of ' +
       'the previous status', (done) => {
       const spyBuffQueue = sinon.spy(q, 'flushAll');
-      const spyRepeater = sinon.spy(repeater, 'stopAllRepeat');
+      const spyRepeater = sinon.spy(repeater, 'stopAllRepeaters');
       const stubExit = sinon.stub(process, 'exit');
       hu.changeCollectorStatus('Paused', 'Stopped');
       hu.changeCollectorStatus('Running', 'Stopped');
@@ -216,7 +218,7 @@ describe('test/heartbeat/utils.js >', () => {
       const spyPause = sinon.spy(repeater, 'pauseGenerators');
       const spyResume = sinon.spy(repeater, 'resumeGenerators');
       const spyFlushQueue = sinon.spy(q, 'flushAll');
-      const spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
+      const spyStopAll = sinon.spy(repeater, 'stopAllRepeaters');
       const stubExit = sinon.stub(process, 'exit');
       hu.changeCollectorStatus('Running', 'Running');
       expect(spyPause.called).to.equal(false);

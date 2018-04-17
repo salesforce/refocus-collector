@@ -64,13 +64,12 @@ function validateCollectResponse(cr) {
 
   try {
     // Response "Content-Type" header matches request "Accept" header?
-    debug('validateCollectResponse', cr.preparedHeaders, cr.res.headers);
+    debug('validateCollectResponse headers', cr.preparedHeaders, cr.res.headers);
     RefocusCollectorEval.validateResponseType(cr.preparedHeaders,
       cr.res.headers);
   } catch (err) {
     throw new errors.ValidationError(err.message);
   }
-
 } // validateCollectResponse
 
 /**
@@ -110,7 +109,13 @@ function prepareTransformArgs(generator) {
 function handleCollectResponse(collectResponse) {
   debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
-    validateCollectResponse(collectRes);
+    try {
+      validateCollectResponse(collectRes);
+    } catch (err) {
+      debug('***collectRes %s', collectRes.preparedUrl);
+      Promise.reject(err);
+    }
+
     const tr = collectRes.generatorTemplate.transform;
     const args = prepareTransformArgs(collectRes);
     const status = collectRes.res.statusCode;
@@ -121,6 +126,7 @@ function handleCollectResponse(collectResponse) {
      * status is NOT one of the "OK" (2xx) statuses, generate "default" error
      * samples.
      */
+    debug('RefocusCollectorEval.getTransformFunction: %O', collectRes);
     const func = RefocusCollectorEval.getTransformFunction(tr, status);
     let samplesToEnqueue = [];
     if (func) {

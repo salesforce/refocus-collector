@@ -41,6 +41,8 @@ describe('test/commands/start >', () => {
   const silence = { silent: true };
 
   describe('from command line >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     it('ok', (done) => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
@@ -169,7 +171,7 @@ describe('test/commands/start >', () => {
       .reply({
         statusCode: 200,
         body: [],
-      });
+      }, { 'Content-Type': 'application/json' });
 
       nock(refocusUrl, {
         reqheaders: { authorization: 'some-dummy-token-gen1' },

@@ -38,7 +38,7 @@ function changeCollectorStatus(currentStatus, newStatus) {
 
   switch (newStatus) {
     case collectorStatus.STOPPED:
-      repeater.stopAllRepeat();
+      repeater.stopAllRepeaters();
       queue.flushAll();
       process.exit(0);
       break;

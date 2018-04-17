@@ -17,6 +17,7 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
 const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
+const sgt = require('../sgt');
 const sinon = require('sinon');
 const logger = require('winston');
 logger.configure({ level: 0 });
@@ -31,13 +32,7 @@ const generator1 = {
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseUrl: 'https://example.api', },
   collectors: [{ name: 'agent1' }],
-  generatorTemplate: {
-    name: 'refocus-trust1-collector',
-    connection: {
-      url: 'https://example.api',
-      bulk: true,
-    },
-  },
+  generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,
   },
@@ -52,16 +47,11 @@ const generator1Updated = {
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseUrl: 'https://example.api', },
   collectors: [{ name: 'agent1' }],
-  generatorTemplate: {
-    name: 'refocus-trust1-collector',
-    connection: {
-      url: 'https://example.api/v2',
-      bulk: true,
-    },
-  },
+  generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,
   },
+  token: 'mygeneratorusertoken',
   interval: 12000,
 };
 
@@ -69,6 +59,7 @@ const generator2 = {
   name: 'generator2_heartbeat',
   interval: 6000,
   aspects: [{ name: 'A2', timeout: '1m' }],
+  subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
     connection: {
@@ -79,22 +70,20 @@ const generator2 = {
   refocus: {
     url: refocusUrl,
   },
+  token: 'mygeneratorusertoken',
 };
 
 const generator3 = {
   name: 'generator3_heartbeat',
   interval: 6000,
   aspects: [{ name: 'A3', timeout: '1m' }],
+  subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
-  generatorTemplate: {
-    connection: {
-      url: 'http://www.abc.com',
-      bulk: false,
-    },
-  },
+  generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,
   },
+  token: 'mygeneratorusertoken',
 };
 
 const errorResponse = {
@@ -195,7 +184,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
     config.name = collectorName;
     config.refocus.url = refocusUrl;
     config.refocus.collectorToken = collectorToken;
-    repeater.stopAllRepeat();
     done();
   });
 
@@ -205,7 +193,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   });
 
   afterEach(() => {
-    repeater.stopAllRepeat();
+    repeater.stopAllRepeaters();
   });
 
   it('error from heartbeat response', (done) => {
@@ -245,7 +233,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
   it('Ok, handle a complete response with generators', (done) => {
     nock('https://example.api')
     .get()
-    .reply(httpStatus.OK, []);
+    .reply(httpStatus.OK, [], { 'Content-Type': 'application/json' });
 
     nock(refocusUrl, {
       reqheaders: { authorization: 'mygeneratorusertoken' },
@@ -267,7 +255,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .then((res) => {
       expect(res).to.have.all.keys('generators', 'metadata', 'name', 'refocus');
       expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
-      expect(res.generators).to.deep.equal({ [generator1.name]: generator1 });
+      expect(Object.keys(res.generators)).to.deep.equal([generator1.name]);
       done();
     })
     .catch(done);
@@ -278,11 +266,22 @@ describe('test/heartbeat/heartbeat.js >', () => {
       reqheaders: { authorization: 'mygeneratorusertoken' },
     })
     .get('/v1/subjects')
+    .times(2)
     .query({
       absolutePath: 'Parent.Child.*',
       tags: 'Primary',
     })
     .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
+
+    nock(refocusUrl, {
+      reqheaders: { authorization: 'mygeneratorusertoken' },
+    })
+    .get('/v1/subjects')
+    .times(2)
+    .query({
+      absolutePath: 'S1.S2',
+    })
+    .reply(httpStatus.OK, [{ absolutePath: 'S1.S2', name: 'S1' }]);
 
     nock(refocusUrl, {
       reqheaders: { authorization: collectorToken },
@@ -292,7 +291,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
     nock('https://example.api')
     .get('/v2')
-    .reply(httpStatus.OK, 'true');
+    .reply(httpStatus.OK, [true], { 'Content-Type': 'application/json' });
 
     // send heartbeat to get a response to add generator1
     heartbeat()
@@ -319,7 +318,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
       // make sure generator2 and generator 3 are added
       expect(res.generators[generator2.name]).to.deep.equal(generator2);
-      expect(res.generators[generator3.name]).to.deep.equal(generator3);
+      expect(res.generators[generator3.name].name)
+        .to.deep.equal(generator3.name);
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
       })
@@ -341,6 +341,16 @@ describe('test/heartbeat/heartbeat.js >', () => {
   it('Ok, collector status in heartbeat full cycle ' +
     'Running->Pause->Running->Stop', (done) => {
     nock(refocusUrl, {
+      reqheaders: { authorization: 'mygeneratorusertoken' },
+    })
+    .get('/v1/subjects')
+    .times(2)
+    .query({
+      absolutePath: 'S1.S2',
+    })
+    .reply(httpStatus.OK, [{ absolutePath: 'S1.S2', name: 'S1' }]);
+
+    nock(refocusUrl, {
       reqheaders: { authorization: collectorToken },
     })
     .post(heartbeatEndpoint)
@@ -350,11 +360,16 @@ describe('test/heartbeat/heartbeat.js >', () => {
       reqheaders: { authorization: 'mygeneratorusertoken' },
     })
     .get('/v1/subjects')
+    .times(2)
     .query({
       absolutePath: 'Parent.Child.*',
       tags: 'Primary',
     })
     .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
+
+    nock('https://example.api')
+    .get()
+    .reply(httpStatus.OK, [], { 'Content-Type': 'application/json' });
 
     // send heartbeat with status = running
     heartbeat()
@@ -394,7 +409,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
       // make sure generator2 and generator 3 are added
       expect(res.generators[generator2.name]).to.deep.equal(generator2);
-      expect(res.generators[generator3.name]).to.deep.equal(generator3);
+      expect(res.generators[generator3.name].name)
+        .to.deep.equal(generator3.name);
 
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
@@ -402,7 +418,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       .post(heartbeatEndpoint)
       .reply(httpStatus.OK, hbResponseStatusStopped);
       spyFlushQueue = sinon.spy(q, 'flushAll');
-      spyStopAll = sinon.spy(repeater, 'stopAllRepeat');
+      spyStopAll = sinon.spy(repeater, 'stopAllRepeaters');
       stubExit = sinon.stub(process, 'exit');
 
       // send heartbeat with status = stop to stop the collector

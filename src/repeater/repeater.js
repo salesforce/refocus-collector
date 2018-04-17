@@ -122,12 +122,11 @@ function stop(name) {
  * tracker.
  * @returns {Object} The tracker object tracking all the repeats
  */
-function stopAllRepeat() {
-  debug('Entered repeater.stopAllRepeat');
+function stopAllRepeaters() {
+  debug('Entered repeater.stopAllRepeaters');
   Object.keys(tracker).forEach(stop);
-
   return tracker;
-} // stopAllRepeat
+} // stopAllRepeaters
 
 /**
  * Pauses the repeater, given its name
@@ -248,6 +247,8 @@ function create(def) {
  * @returns {Promise} - A read-only Promise instance.
  */
 function createGeneratorRepeater(generator, func, onProgress) {
+  debug('createGeneratorRepeater "%s", subjectQuery %s', generator.name,
+    generator.subjectQuery);
   return create({
     name: generator.name,
     interval: generator.interval,
@@ -267,6 +268,6 @@ module.exports = {
   tracker,
   resumeGenerators,
   stop,
-  stopAllRepeat,
+  stopAllRepeaters,
   validateDefinition, // export for testing only
 };

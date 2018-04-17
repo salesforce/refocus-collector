@@ -70,7 +70,7 @@ function doBulkUpsert(url, userToken, proxy, arr) {
         return reject(err);
       }
 
-      debug('doBulkUpsert returned an OK response: %o', res);
+      debug('doBulkUpsert returned an OK response: %O', res.body);
       return resolve(res);
     });
   });
@@ -85,8 +85,9 @@ function doBulkUpsert(url, userToken, proxy, arr) {
  * @param {String} qry - the query string
  * @returns {Promise} array of subjects matching the query
  */
-function findSubjects(url, token, proxy, qry, rq) {
-  debug('findSubjects:', url, token, proxy, qry);
+function findSubjects(url, token, proxy, qry) {
+  debug('findSubjects(url=%s, token=%s, proxy=%s, qry=%s)', url,
+    token ? 'HAS_TOKEN' : 'MISSING', proxy, qry);
   if (!url) {
     const e = new ValidationError('Missing refocus url');
     logger.error('findSubjects', e.message);
@@ -110,7 +111,7 @@ function findSubjects(url, token, proxy, qry, rq) {
     .set('Authorization', token);
   if (proxy) req.proxy(proxy);
   return req.then((res) => {
-    debug('findSubjects %O', res.body);
+    debug('findSubjects returning %O', res.body);
     return res;
   });
 } // getSubjects

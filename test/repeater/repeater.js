@@ -17,7 +17,10 @@ const logger = require('winston');
 logger.configure({ level: 0 });
 
 describe('test/repeater/repeater.js >', () => {
+
   describe('createGeneratorRepeater >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     const dummyFunc = (x) => x;
     const dummyOnProgress = (x) => x;
 
@@ -36,6 +39,7 @@ describe('test/repeater/repeater.js >', () => {
           },
         },
         refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
@@ -63,6 +67,7 @@ describe('test/repeater/repeater.js >', () => {
           },
         },
         refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
@@ -92,6 +97,7 @@ describe('test/repeater/repeater.js >', () => {
           },
         },
         refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
@@ -122,11 +128,12 @@ describe('test/repeater/repeater.js >', () => {
           },
         },
         refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
       obj.name = 'Generator0.2';
-      obj.interval = 60;
+      obj.interval = 60000;
       repeater.stop(obj.name);
       const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
         dummyOnProgress);
@@ -257,6 +264,8 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   describe('stop >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     it('should stop the repeat and delete it from the tracker', (done) => {
       let currentCount = 0;
       function stub() {
@@ -344,9 +353,11 @@ describe('test/repeater/repeater.js >', () => {
     });
   });
 
-  describe('stopAllRepeat >', () => {
+  describe('stopAllRepeaters >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     it('OK even when tracker is empty', (done) => {
-      const _tracker = repeater.stopAllRepeat();
+      const _tracker = repeater.stopAllRepeaters();
       expect(_tracker).to.deep.equal({});
       done();
     });
@@ -361,13 +372,15 @@ describe('test/repeater/repeater.js >', () => {
       };
 
       repeater.create(def);
-      const _tracker = repeater.stopAllRepeat();
+      const _tracker = repeater.stopAllRepeaters();
       expect(_tracker).to.deep.equal({});
       done();
     });
   });
 
   describe('pause and resume >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     it('OK even when tracker is empty', (done) => {
       let _tracker = repeater.pauseGenerators();
       expect(_tracker).to.deep.equal({});
@@ -428,8 +441,7 @@ describe('test/repeater/repeater.js >', () => {
         expect(count1).to.be.above(count1BeforePause);
         expect(count2).to.be.above(count2BeforePause);
 
-        repeater.stopAllRepeat();
-
+        repeater.stopAllRepeaters();
         return done();
       }, 90);
     });
@@ -450,8 +462,7 @@ describe('test/repeater/repeater.js >', () => {
         // proves that pause did not effect the heartbeat repeat
         expect(count).to.be.above(0);
 
-        repeater.stopAllRepeat();
-
+        repeater.stopAllRepeaters();
         return done();
       }, 25);
     });
@@ -518,7 +529,7 @@ describe('test/repeater/repeater.js >', () => {
     it('missing interval', (done) => {
       try {
         repeater.create({ name: 'Gen', func: () => {} });
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -531,7 +542,7 @@ describe('test/repeater/repeater.js >', () => {
     it('wrong typeof interval', (done) => {
       try {
         repeater.create({ name: 'Gen', interval: '10', func: () => {} });
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -546,7 +557,7 @@ describe('test/repeater/repeater.js >', () => {
 
       try {
         repeater.create(def);
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError' &&
           err.message === 'Duplicate repeater name violation: Gen') {

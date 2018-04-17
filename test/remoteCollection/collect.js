@@ -53,7 +53,8 @@ describe('test/remoteCollection/collect.js >', () => {
       };
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, remoteData);
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
@@ -128,11 +129,13 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .post('/login')
-        .reply(httpStatus.OK, token);
+        .reply(httpStatus.OK, token,
+          { 'Content-Type': 'application/json' });
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, remoteData);
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
@@ -232,7 +235,8 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, { status: 'OK' });
+        .reply(httpStatus.OK, { status: 'OK' },
+          { 'Content-Type': 'application/json' });
 
       const spy = sinon.spy(request, 'get');
       collect.prepareRemoteRequest(generator)
@@ -265,7 +269,8 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, { status: 'OK' });
+        .reply(httpStatus.OK, { status: 'OK' },
+          { 'Content-Type': 'application/json' });
 
       const spy = sinon.spy(request, 'get');
       collect.prepareRemoteRequest(generator)
