@@ -21,13 +21,12 @@ const sanitize = u.sanitize;
  * Send a heartbeat to the Refocus server
  * @returns {Request} - the request sent to the Refocus server
  */
-function sendHeartbeat() {
-  debug('Entered heartbeat.sendHeartbeat');
+module.exports = () => {
+  debug('Entered heartbeat');
   const timestamp = Date.now();
   const config = configModule.getConfig();
   const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
-
-  debug('sendHeartbeat config.refocus', sanitized);
+  debug('heartbeat config.refocus', sanitized);
   const collectorName = config.name;
   const refocusUrl = config.refocus.url;
   const collectorToken = config.refocus.collectorToken;
@@ -53,8 +52,4 @@ function sendHeartbeat() {
 
   return req.then((res) => handleHeartbeatResponse(null, res.body))
   .catch((err) => handleHeartbeatResponse(err, null));
-}
-
-module.exports = {
-  sendHeartbeat,
 };
