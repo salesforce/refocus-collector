@@ -14,6 +14,7 @@ const httpUtils = require('../../src/utils/httpUtils');
 const request = require('superagent');
 const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
+const mockedResponse = require('../mockedResponse');
 const httpStatus = require('../../src/constants').httpStatus;
 const sinon = require('sinon');
 require('superagent-proxy')(request);
@@ -23,8 +24,10 @@ const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
 describe('test/utils/httpUtils.js >', () => {
   const refocusUrl = 'http://dummy.refocus.url';
   const dummyToken = '3245678754323356475654356758675435647qwertyrytu';
+  const dummyUserToken = 'some-user-token-string-asfdfhsdjf';
   const collectorName = 'collector1_for_httpUtils';
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
+  const refocusProxy = 'http://abcProxy.com';
 
   describe('doPost >', () => {
     it('post ok, with body', (done) => {
@@ -101,79 +104,58 @@ describe('test/utils/httpUtils.js >', () => {
   });
 
   describe('doBulkUpsert >', () => {
-    const dummyUserToken = 'some-user-token-string-asfdfhsdjf';
-
     // clear stub
     after(mock.clearRoutes);
 
-    it('no array input gives validation error', (done) => {
+    it('missing arr arg', (done) => {
       httpUtils.doBulkUpsert(refocusUrl, dummyUserToken)
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
-    });
-
-    it('array input of non-array type gives validation error', (done) => {
-      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, 'Hi')
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
-    });
-
-    it('no user token, gives validation error', (done) => {
-      httpUtils.doBulkUpsert(refocusUrl)
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
-    });
-
-    // TODO: add test to show how doBulkUpsert handles
-    // failed bulkUpsert response
-
-    it('empty array is ok', (done) => {
-      // TODO: change to nock, stub response
-      mock.post(refocusUrl + bulkUpsertPath, () => Promise.resolve());
-      httpUtils.doBulkUpsert(refocusUrl + bulkUpsertPath, dummyUserToken, null,
-        [])
-      .then((object) => {
-        expect(object.status).to.equal(httpStatus.OK);
-        done();
-      })
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
       .catch(done);
     });
 
-    it('array of samples is returned', (done) => {
-      // TODO: change to nock, stub response
-      mock.post(refocusUrl + bulkUpsertPath,
-        (req) => req);
-      httpUtils.doBulkUpsert(refocusUrl + bulkUpsertPath, dummyUserToken, null,
-        sampleArr)
-      .then((object) => {
+    it('arr arg is not an array', (done) => {
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, 'Hi')
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
+      .catch(done);
+    });
 
-        // due to how superagent-mocker works,
-        // request.body is sent and returned as
-        // { '0': { name: 'sample1' }, '1': { name: 'sample2' } }
-        // instead of an array
-        expect(object.body['0']).to.deep.equal(sampleArr[0]);
-        expect(object.body['1']).to.deep.equal(sampleArr[1]);
-        expect(object.status).to.equal(httpStatus.OK);
-        done();
+    it('missing token', (done) => {
+      httpUtils.doBulkUpsert(refocusUrl)
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
+      .catch(done);
+    });
+
+    it('test to show handling failed bulkUpsert response');
+
+    it('empty array is ok no-op', (done) => {
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, [])
+      .then((res) => done())
+      .catch(done);
+    });
+
+    it('OK+jobId returned', (done) => {
+      const endpoint = '/v1/samples/upsert/bulk';
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
       })
+      .post(endpoint, sampleArr)
+      .reply(httpStatus.OK, mockedResponse.bulkUpsertPostOk);
+
+      httpUtils.doPost(`${refocusUrl}${endpoint}`, dummyUserToken, null,
+        sampleArr)
+      .then((res) => expect(res.body)
+        .to.deep.equal(mockedResponse.bulkUpsertPostOk))
+      .then(() => done())
       .catch(done);
     });
 
     it('ok, request use refocus proxy if set', (done) => {
-      const refocusProxy = 'http://abcProxy.com';
-
       nock(refocusUrl)
         .post(bulkUpsertEndpoint)
         .reply(httpStatus.OK, { status: 'OK' });
