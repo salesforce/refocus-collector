@@ -126,32 +126,26 @@ describe('test/utils/httpUtils.js >', () => {
 
     it('missing arr arg', (done) => {
       httpUtils.doBulkUpsert(refocusUrl, dummyUserToken)
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
+      .catch(done);
     });
 
     it('arr arg is not an array', (done) => {
       httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, 'Hi')
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
+      .catch(done);
     });
 
     it('missing token', (done) => {
       httpUtils.doBulkUpsert(refocusUrl)
-      .then(() => done(new Error('Expected validation error')))
-      .catch((err) => {
-        expect(err.name).to.equal('ValidationError');
-        expect(err.status).to.equal(httpStatus.BAD_REQUEST);
-        done();
-      });
+      .then((res) =>
+        expect(res).to.have.property('name', 'ValidationError'))
+      .then(() => done())
+      .catch(done);
     });
 
     it('test to show handling failed bulkUpsert response');

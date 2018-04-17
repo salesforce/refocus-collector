@@ -107,16 +107,8 @@ function prepareTransformArgs(generator) {
  * @throws {ValidationError} if thrown by validateCollectResponse
  */
 function handleCollectResponse(collectResponse) {
-  debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
-    try {
-      validateCollectResponse(collectRes);
-    } catch (err) {
-      debug('reject collect response due to validation error, %s',
-        collectRes.preparedUrl);
-      Promise.reject(err);
-    }
-
+    validateCollectResponse(collectRes);
     const tr = collectRes.generatorTemplate.transform;
     const args = prepareTransformArgs(collectRes);
     const status = collectRes.res.statusCode;
@@ -156,10 +148,13 @@ function handleCollectResponse(collectResponse) {
     queue.enqueue(collectRes.name, samplesToEnqueue);
   })
   .catch((err) => {
-    debug(err);
-    logger.error('handleCollectResponse threw an error: ', err.name,
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    logger.error('handleCollectResponse error: ', err.name,
       err.message);
-    return Promise.reject(err);
+    return Promise.resolve(err);
   });
 } // handleCollectResponse
 

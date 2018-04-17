@@ -30,7 +30,7 @@ const generator1 = {
   aspects: [{ name: 'A1', timeout: '1m' }],
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-  context: { baseUrl: 'https://example.api', },
+  context: { baseTrustUrl: 'https://example.api', },
   collectors: [{ name: 'agent1' }],
   generatorTemplate: sgt,
   refocus: {
@@ -45,7 +45,7 @@ const generator1Updated = {
   aspects: [{ name: 'A1', timeout: '1m' }],
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
-  context: { baseUrl: 'https://example.api', },
+  context: { baseTrustUrl: 'https://example.api', },
   collectors: [{ name: 'agent1' }],
   generatorTemplate: sgt,
   refocus: {
@@ -232,7 +232,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('Ok, handle a complete response with generators', (done) => {
     nock('https://example.api')
-    .get()
+    .get('/v1/instances/status/preview')
     .reply(httpStatus.OK, [], { 'Content-Type': 'application/json' });
 
     nock(refocusUrl, {
@@ -368,7 +368,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .reply(httpStatus.OK, [{ absolutePath: 'Parent.Child.One', name: 'One' }]);
 
     nock('https://example.api')
-    .get()
+    .get('/v1/instances/status/preview')
     .reply(httpStatus.OK, [], { 'Content-Type': 'application/json' });
 
     // send heartbeat with status = running

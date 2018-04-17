@@ -17,10 +17,9 @@ const logger = require('winston');
 logger.configure({ level: 0 });
 
 describe('test/repeater/repeater.js >', () => {
+  after(() => repeater.stopAllRepeaters());
 
   describe('createGeneratorRepeater >', () => {
-    afterEach(() => repeater.stopAllRepeaters());
-
     const dummyFunc = (x) => x;
     const dummyOnProgress = (x) => x;
 
@@ -138,11 +137,11 @@ describe('test/repeater/repeater.js >', () => {
       const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
         dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
-      expect(ret.interval).to.equal(obj.interval);
-      expect(ret.name).to.equal('Generator0.2');
-      expect(ret.funcName).to.equal('func');
-      expect(ret.onProgress.name).to.equal('dummyOnProgress');
-      expect(tracker['Generator0.2']._bulk).to.equal(ret.handle);
+      expect(ret).to.have.property('interval', obj.interval);
+      expect(ret).to.have.property('name', 'Generator0.2');
+      expect(ret).to.have.property('funcName', 'func');
+      expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
+      expect(tracker['Generator0.2']).to.have.property('_bulk', ret.handle);
       done();
     });
   });
@@ -264,8 +263,6 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   describe('stop >', () => {
-    afterEach(() => repeater.stopAllRepeaters());
-
     it('should stop the repeat and delete it from the tracker', (done) => {
       let currentCount = 0;
       function stub() {
@@ -278,7 +275,8 @@ describe('test/repeater/repeater.js >', () => {
         func: stub,
       };
       let oldCount = 0;
-      repeater.create(def);
+      const g4 = repeater.create(def);
+      expect(g4).to.have.property('name', 'Generator4');
       setTimeout(() => {
         // proves repeat ran
         expect(currentCount).to.be.at.least(1);
@@ -354,8 +352,6 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   describe('stopAllRepeaters >', () => {
-    afterEach(() => repeater.stopAllRepeaters());
-
     it('OK even when tracker is empty', (done) => {
       const _tracker = repeater.stopAllRepeaters();
       expect(_tracker).to.deep.equal({});
@@ -379,8 +375,6 @@ describe('test/repeater/repeater.js >', () => {
   });
 
   describe('pause and resume >', () => {
-    afterEach(() => repeater.stopAllRepeaters());
-
     it('OK even when tracker is empty', (done) => {
       let _tracker = repeater.pauseGenerators();
       expect(_tracker).to.deep.equal({});

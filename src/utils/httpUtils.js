@@ -49,17 +49,25 @@ function doBulkUpsert(url, userToken, proxy, arr) {
   if (!userToken) {
     const e = new ValidationError('doBulkUpsert missing token');
     logger.error(e.message);
-    return Promise.reject(e);
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    return Promise.resolve(e);
   }
 
   if (!Array.isArray(arr)) {
     const e = new ValidationError('doBulkUpsert missing array of samples');
     logger.error(e.message);
-    return Promise.reject(e);
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    return Promise.resolve(e);
   }
 
   // Don't bother sending a POST if the array is empty.
-  if (arr.length === 0) return Promise.resolve();
+  if (arr.length === 0) return Promise.resolve(true);
 
   return new Promise((resolve, reject) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
@@ -67,7 +75,11 @@ function doBulkUpsert(url, userToken, proxy, arr) {
     .end((err, res) => {
       if (err) {
         logger.error(err.message);
-        return reject(err);
+        /*
+         * Don't Promise.reject(...) this error, because there is no handler
+         * for the rejection.
+         */
+        return resolve(err);
       }
 
       debug('doBulkUpsert returned an OK response: %O', res.body);
