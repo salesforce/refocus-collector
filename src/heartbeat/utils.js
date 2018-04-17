@@ -22,13 +22,15 @@ const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
 
 /**
- * Pauses, resumes or stops the collector based on the status of the collector
+ * Pauses, resumes or stops the collector based on the status of the collector.
+ *
  * @param {String} currentStatus - The current status of the collector.
- * @param {String} newStatus - The new status of the collector.  This is the
+ * @param {String} newStatus - The new status of the collector. This is the
  *  state the collector will be in, once this function has been executed.
  */
 function changeCollectorStatus(currentStatus, newStatus) {
-  if (!currentStatus || !newStatus) {
+  // no-op if either arg is missing or if they are already the same status
+  if (!currentStatus || !newStatus || (currentStatus === newStatus)) {
     return;
   }
 
@@ -36,17 +38,17 @@ function changeCollectorStatus(currentStatus, newStatus) {
     repeater.stopAllRepeat();
     queueUtils.flushAllBufferedQueues();
     process.exit(0);
-  } else if (currentStatus !== newStatus &&
-    newStatus === collectorStatus.PAUSED) {
+  }
+
+  if (newStatus === collectorStatus.PAUSED) {
     repeater.pauseGenerators();
-  } else if (currentStatus !== newStatus &&
-    newStatus === collectorStatus.RUNNING) {
+  } else if (newStatus === collectorStatus.RUNNING) {
     repeater.resumeGenerators();
   }
 } // changeCollectorState
 
 /**
- * Update the "collectorConfig" attribute of the config.
+ * Update the collector config with any changes from the heartbeat response.
  *
  * @param {Object} res - The Heartbeat Response object
  */
@@ -67,7 +69,7 @@ function updateCollectorConfig(res) {
 
 /**
  * Assign any default values from the template into the generator context if
- * no value was already provided in the generator context.
+ * no value was provided in the generator context.
  *
  * @param {Object} ctx - The context from the generator
  * @param {Object} def - The contextDefinition from the generator template
@@ -98,7 +100,7 @@ function assignContext(ctx, def, collectorToken, res) {
     }
   });
 
-  debug('assignContext returning', ctx);
+  debug('assignContext returning %O', ctx);
   return ctx;
 } // assignContext
 
