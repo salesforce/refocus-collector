@@ -66,7 +66,7 @@ function execute() {
       onProgress: debug,
     });
 
-    logger.info({ activity: 'cmdStart' });
+    logger.info({ activity: 'cmd:start' });
     debug('Exiting start.execute');
     return res;
   })

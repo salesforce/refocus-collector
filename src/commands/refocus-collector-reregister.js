@@ -41,7 +41,5 @@ doPost(url, cr.accessToken, cr.proxy)
   'Use the command "refocus-collector start" or the /v1/collectors/start ' +
   'endpoint to start the collector'))
 .catch((err) => {
-  logger.error(err.message);
-  logger.error(err.explanation);
-  logger.error(err.response);
+  logger.error(err.message, err.explanation, err.response);
 });
