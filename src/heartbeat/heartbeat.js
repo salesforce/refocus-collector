@@ -13,7 +13,7 @@
 const debug = require('debug')('refocus-collector:heartbeat');
 const request = require('superagent');
 const configModule = require('../config/config');
-const handleHeartbeatResponse = require('./listener').handleHeartbeatResponse;
+const listener = require('./listener');
 const u = require('../utils/commonUtils');
 const sanitize = u.sanitize;
 
@@ -50,6 +50,6 @@ module.exports = () => {
     req.proxy(proxy); // set proxy for following request
   }
 
-  return req.then((res) => handleHeartbeatResponse(null, res.body))
-  .catch((err) => handleHeartbeatResponse(err, null));
+  return req.then((res) => listener(null, res.body))
+  .catch((err) => listener(err, null));
 };

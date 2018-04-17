@@ -27,11 +27,11 @@ const sanitize = require('../utils/commonUtils').sanitize;
  * @returns {Object} - config object. An error object is returned if this
  *  function is called with the error as the first argument.
  */
-function handleHeartbeatResponse(err, res) {
-  debug('entered handleHeartbeatResponse');
+module.exports = (err, res) => {
+  debug('entered heartbeat listener');
   if (err) {
-    logger.error('The handleHeartbeatResponse function was called with an ' +
-      'error:', err);
+    logger.error('The heartbeat listener was called with an error: ',
+      err.message);
     return err;
   }
 
@@ -49,11 +49,8 @@ function handleHeartbeatResponse(err, res) {
     }
   }
 
-  const sanitized = sanitize(config, ['accessToken', 'collectorToken', 'token']);
-  debug('exiting handleHeartbeatResponse', sanitized);
+  const sanitized =
+    sanitize(config, ['accessToken', 'collectorToken', 'token']);
+  debug('exiting heartbeat listener %O', sanitized);
   return config;
-} // handleHeartbeatResponse
-
-module.exports = {
-  handleHeartbeatResponse,
 };
