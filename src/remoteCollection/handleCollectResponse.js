@@ -112,7 +112,8 @@ function handleCollectResponse(collectResponse) {
     try {
       validateCollectResponse(collectRes);
     } catch (err) {
-      debug('***collectRes %s', collectRes.preparedUrl);
+      debug('reject collect response due to validation error, %s',
+        collectRes.preparedUrl);
       Promise.reject(err);
     }
 

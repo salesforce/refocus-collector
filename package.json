@@ -38,7 +38,7 @@
     "errors": "^0.3.0",
     "figlet": "^1.2.0",
     "fs": "0.0.1-security",
-    "joi": "^13.1.2",
+    "joi": "^13.2.0",
     "just-safe-get": "^1.2.1",
     "just-safe-set": "^2.0.1",
     "just-template": "^1.1.22",
@@ -52,7 +52,7 @@
     "winston": "^2.3.1"
   },
   "devDependencies": {
-    "babel-eslint": "^8.2.2",
+    "babel-eslint": "^8.2.3",
     "chai": "^4.1.2",
     "coveralls": "^3.0.0",
     "eslint": "^4.19.0",
@@ -61,7 +61,7 @@
     "jscs": "^3.0.7",
     "mocha": "^3.5.3",
     "mock-fs": "^4.4.1",
-    "nock": "^9.1.5",
+    "nock": "^9.2.5",
     "sinon": "^4.4.8",
     "superagent-mocker": "^0.5.2"
   }
