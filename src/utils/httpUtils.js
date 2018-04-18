@@ -82,7 +82,7 @@ function doBulkUpsert(url, userToken, proxy, arr) {
         return resolve(err);
       }
 
-      debug('doBulkUpsert returned an OK response: %O', res.body);
+      debug('doBulkUpsert returned OK %O', res.body);
       return resolve(res);
     });
   });

@@ -22,14 +22,16 @@ const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
 const prepareTransformArgs = hcr.prepareTransformArgs;
-const queueUtils = require('../../src/utils/queueUtils');
+const q = require('../../src/utils/queue');
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
 const httpUtils = require('../../src/utils/httpUtils');
+const logger = require('winston');
+logger.configure({ level: 0 });
 
 describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('validateCollectResponse >', () => {
-    it('error if arg is undefined', (done) => {
+    it('error - arg is undefined', (done) => {
       try {
         validateCollectResponse();
         done('Expecting error');
@@ -39,7 +41,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if arg is null', (done) => {
+    it('error - arg is null', (done) => {
       try {
         validateCollectResponse(null);
         done('Expecting error');
@@ -49,7 +51,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if arg is array', (done) => {
+    it('error - arg is array', (done) => {
       try {
         validateCollectResponse(['a', 1]);
         done('Expecting error');
@@ -59,7 +61,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if arg missing "res" attribute', (done) => {
+    it('error - arg missing "res" attribute', (done) => {
       try {
         validateCollectResponse({ name: 'Foo', url: 'abc.com' });
         done('Expecting error');
@@ -69,7 +71,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if arg missing "name" attribute', (done) => {
+    it('error - arg missing "name" attribute', (done) => {
       try {
         validateCollectResponse({ res: {}, url: 'abc.com' });
         done('Expecting error');
@@ -79,7 +81,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if arg missing "url" attribute', (done) => {
+    it('error - arg missing "url" attribute', (done) => {
       try {
         validateCollectResponse({ res: {}, name: 'Foo' });
         done('Expecting error');
@@ -89,7 +91,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if res missing status code', (done) => {
+    it('error - res missing status code', (done) => {
       try {
         validateCollectResponse({ res: {}, url: 'abc.com', name: 'Foo' });
         done('Expecting error');
@@ -99,7 +101,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if invalid status code', (done) => {
+    it('error - invalid status code', (done) => {
       const cr = { res: { statusCode: 4 }, url: 'abc.com', name: 'Foo' };
       try {
         validateCollectResponse(cr);
@@ -127,7 +129,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
-    it('error if invalid content type', (done) => {
+    it('error - invalid content type', (done) => {
       const cr = {
         res: {
           statusCode: 200,
@@ -145,75 +147,12 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         validateCollectResponse(cr);
         done(new Error('Expecting error'));
       } catch (err) {
-        console.log(err);
         expect(err).to.have.property('name', 'ValidationError');
         expect(err).to.have.property('message',
           'Accept application/json but got text/xml');
         done();
       }
     });
-  });
-
-  it('ArgsError when obj does not have subject attribute', (done) => {
-    const obj = {
-      aspects: [{ name: 'A', timeout: '1h' }],
-      context: {},
-      res: {},
-      generatorTemplate: {
-        transform: {
-          default: 'return [{ name: "Foo" }, { name: "Bar" }]',
-        },
-      },
-    };
-    handleCollectResponse(Promise.resolve(obj))
-    .then(() => done('Expecting a ValidationError'))
-    .catch((err) => {
-      expect(err.message).to.contain('Must include EITHER a "subject" ' +
-        'attribute OR a "subjects" attribute.');
-      expect(err.name).to.equal('ArgsError');
-    });
-    done();
-  });
-
-  it('ArgsError when obj does not have context attribute', (done) => {
-    const obj = {
-      res: {},
-      subject: { absolutePath: 'abc' },
-      generatorTemplate: {
-        transform: {
-          default: 'return [{ name: "Foo" }, { name: "Bar" }]',
-        },
-      },
-    };
-    handleCollectResponse(Promise.resolve(obj))
-    .then(() => done('Expecting a ValidationError'))
-    .catch((err) => {
-      expect(err.message).to.contain('Missing "context" attribute');
-      expect(err.name).to.equal('ArgsError');
-    });
-    return done();
-  });
-
-  it('ValidationError when obj does not have name attribute', (done) => {
-    const obj = {
-      res: {},
-      context: {},
-      subject: { absolutePath: 'S1.S2' },
-      generatorTemplate: {
-        transform: {
-          default: 'return [{ name: "S1.S2|A1", value: 10 }, ' +
-            '{ name: "S1.S2|A2", value: 2 }]',
-        },
-      },
-      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-    };
-    handleCollectResponse(Promise.resolve(obj))
-    .then(() => done('Expecting a ValidationError'))
-    .catch((err) => {
-      expect(err.name).to.equal('ValidationError');
-      return done();
-    })
-    .catch(done);
   });
 
   describe('handleCollectResponse >', () => {
@@ -227,9 +166,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         size: config.refocus.maxSamplesPerBulkRequest,
         flushTimeout: config.refocus.sampleUpsertQueueTime,
         verbose: false,
+        token: '123abc',
         flushFunction: httpUtils.doBulkUpsert,
       };
-      queueUtils.createQueue(qParams);
+      q.create(qParams);
 
       // use nock to mock the response when flushing
       const sampleArr = [
@@ -245,7 +185,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     afterEach(() => {
       winstonInfoStub.reset();
-      queueUtils.getQueue(generatorName).Items = [];
+      q.get(generatorName).Items = [];
     });
 
     after(() => {
@@ -400,7 +340,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .to.have.property('generator', 'mockGenerator');
       expect(winston.info.args[0][0])
         .to.have.property('numSamples', expected.length);
-      const queue = queueUtils.getQueue(generatorName);
+      const queue = q.get(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
       expect(queue.items[0]).to.eql(expected[0]);
       expect(queue.items[1]).to.eql(expected[1]);

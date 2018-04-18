@@ -9,8 +9,8 @@
 /**
  * src/remoteCollection/errorSamples.js
  */
-const debug = require('debug')
-('refocus-collector:remoteCollection:errorSamples');
+const debug =
+  require('debug')('refocus-collector:remoteCollection:errorSamples');
 
 module.exports = (collectResponse, messageBody) => {
   debug('errorSamples', collectResponse.name, messageBody);

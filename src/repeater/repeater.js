@@ -13,8 +13,6 @@ const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors');
-const handleCollectResponse =
-  require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
@@ -55,12 +53,12 @@ function trackRepeater(def) {
 
 /**
  * The default function that is called every time a task is repeated.
+ *
  * @param {Object} result - The return value of one particular task
  *  invocation.
  */
 function onProgress(result) {
-  debug('onProgress: task was successfully repeated with ' +
-    'the following response: ', result);
+  debug('onProgress: task was successfully repeated %O', result);
 } // onProgress
 
 /**
@@ -69,8 +67,7 @@ function onProgress(result) {
  * return value for each invocation.
  */
 function onSuccess(results) {
-  debug('onSuccess: All the repeat tasks were completed with the ' +
-  'the following response: ', results);
+  debug('onSuccess: all repeat tasks completed %O', results);
 } // onSuccess
 
 /**
@@ -79,7 +76,8 @@ function onSuccess(results) {
  * @param {Object} err - Error thrown by the repeatable task.
  */
 function onFailure(err) {
-  logger.error(`onFailure: The task returned an error ${err}`);
+  debug('onFailure %O', err);
+  logger.error(`onFailure: task returned error: ${err.message}`);
 } // onFailure
 
 /**
@@ -125,12 +123,11 @@ function stop(name) {
  * tracker.
  * @returns {Object} The tracker object tracking all the repeats
  */
-function stopAllRepeat() {
-  debug('Entered repeater.stopAllRepeat');
+function stopAllRepeaters() {
+  debug('Entered repeater.stopAllRepeaters');
   Object.keys(tracker).forEach(stop);
-
   return tracker;
-} // stopAllRepeat
+} // stopAllRepeaters
 
 /**
  * Pauses the repeater, given its name
@@ -247,14 +244,17 @@ function create(def) {
  * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
+ * @param {Function} func - pass in the function to call on each interval
+ * @param {Function} onProgress - pass in the function call after each
+ *  repetition
  * @returns {Promise} - A read-only Promise instance.
  */
-function createGeneratorRepeater(generator) {
+function createGeneratorRepeater(generator, func, onProgress) {
   return create({
     name: generator.name,
     interval: generator.interval,
-    func: () => collect(generator),
-    onProgress: handleCollectResponse,
+    func: () => func(generator),
+    onProgress,
     bulk: u.isBulk(generator),
     subjects: generator.subjects,
   });
@@ -269,6 +269,6 @@ module.exports = {
   tracker,
   resumeGenerators,
   stop,
-  stopAllRepeat,
+  stopAllRepeaters,
   validateDefinition, // export for testing only
 };

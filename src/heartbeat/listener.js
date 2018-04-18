@@ -37,12 +37,10 @@ module.exports = (err, res) => {
 
   const config = configModule.getConfig();
   if (res && res.collectorConfig) {
-    utils.changeCollectorStatus(config.refocus.status,
-      res.collectorConfig.status);
-
-    utils.updateCollectorConfig(res);
-
-    if (res.collectorConfig.status === collectorStatus.RUNNING) {
+    const cc = res.collectorConfig;
+    utils.changeCollectorStatus(config.refocus.status, cc.status);
+    utils.updateCollectorConfig(cc);
+    if (cc.status === collectorStatus.RUNNING) {
       utils.addGenerators(res);
       utils.deleteGenerators(res);
       utils.updateGenerators(res);

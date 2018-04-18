@@ -15,6 +15,8 @@ const collect = require('../../src/remoteCollection/collect');
 const httpStatus = require('../../src/constants').httpStatus;
 const sinon = require('sinon');
 const request = require('superagent');
+const logger = require('winston');
+logger.configure({ level: 0 });
 require('superagent-proxy')(request);
 
 describe('test/remoteCollection/collect.js >', () => {
@@ -51,9 +53,10 @@ describe('test/remoteCollection/collect.js >', () => {
       };
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, remoteData);
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
 
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -126,13 +129,15 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .post('/login')
-        .reply(httpStatus.OK, token);
+        .reply(httpStatus.OK, token,
+          { 'Content-Type': 'application/json' });
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, remoteData);
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
 
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -176,7 +181,7 @@ describe('test/remoteCollection/collect.js >', () => {
         .get('/')
         .reply(httpStatus.SERVICE_UNAVAILABLE, serverError);
 
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.SERVICE_UNAVAILABLE);
@@ -201,7 +206,7 @@ describe('test/remoteCollection/collect.js >', () => {
           },
         },
       };
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.errno).to.equal('ENOTFOUND');
@@ -230,10 +235,11 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, { status: 'OK' });
+        .reply(httpStatus.OK, { status: 'OK' },
+          { 'Content-Type': 'application/json' });
 
       const spy = sinon.spy(request, 'get');
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
         spy.restore();
@@ -263,10 +269,11 @@ describe('test/remoteCollection/collect.js >', () => {
 
       nock(remoteUrl)
         .get('/status')
-        .reply(httpStatus.OK, { status: 'OK' });
+        .reply(httpStatus.OK, { status: 'OK' },
+          { 'Content-Type': 'application/json' });
 
       const spy = sinon.spy(request, 'get');
-      collect.collect(generator)
+      collect.prepareRemoteRequest(generator)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
         spy.restore();

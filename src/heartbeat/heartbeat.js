@@ -14,6 +14,7 @@ const debug = require('debug')('refocus-collector:heartbeat');
 const request = require('superagent');
 const configModule = require('../config/config');
 const listener = require('./listener');
+const httpUtils = require('../utils/httpUtils');
 const u = require('../utils/commonUtils');
 const sanitize = u.sanitize;
 
@@ -43,13 +44,7 @@ module.exports = () => {
     collectorConfig: changed,
   };
 
-  const req = request.post(urlToPost)
-    .send(requestbody)
-    .set('Authorization', collectorToken);
-  if (proxy) {
-    req.proxy(proxy); // set proxy for following request
-  }
-
-  return req.then((res) => listener(null, res.body))
+  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody)
+  .then((res) => listener(null, res.body))
   .catch((err) => listener(err, null));
 };

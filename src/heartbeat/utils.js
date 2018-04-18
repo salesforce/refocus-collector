@@ -16,10 +16,13 @@ const repeater = require('../repeater/repeater');
 const logger = require('winston');
 const commonUtils = require('../utils/commonUtils');
 const sanitize = commonUtils.sanitize;
-const queueUtils = require('../utils/queueUtils');
+const queue = require('../utils/queue');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
+const collect = require('../remoteCollection/collect').collect;
+const handleCollectResponse =
+  require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.
@@ -35,8 +38,8 @@ function changeCollectorStatus(currentStatus, newStatus) {
   }
 
   if (newStatus === collectorStatus.STOPPED) {
-    repeater.stopAllRepeat();
-    queueUtils.flushAllBufferedQueues();
+    repeater.stopAllRepeaters();
+    queue.flushAll();
     process.exit(0);
   }
 
@@ -50,21 +53,13 @@ function changeCollectorStatus(currentStatus, newStatus) {
 /**
  * Update the collector config with any changes from the heartbeat response.
  *
- * @param {Object} res - The Heartbeat Response object
+ * @param {Object} cc - The collectorConfig from the Heartbeat Response object
  */
-function updateCollectorConfig(res) {
-  const collectorConfig = res.collectorConfig;
-
-  // get a fresh copy of collector config
+function updateCollectorConfig(cc) {
   const config = configModule.getConfig();
-  debug('Heartbeat response collectorConfig to update', collectorConfig);
-
-  Object.keys(collectorConfig).forEach((key) => {
-    config.refocus[key] = collectorConfig[key];
-  });
-
+  Object.keys(cc).forEach((key) => config.refocus[key] = cc[key]);
   const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
-  debug('Collector config after updating', sanitized);
+  debug('exiting updateCollectorConfig %O', sanitized);
 } // updateCollectorConfig
 
 /**
@@ -116,63 +111,58 @@ function assignContext(ctx, def, collectorToken, res) {
  */
 function setupRepeater(generator) {
   if (commonUtils.isBulk(generator)) {
-    repeater.createGeneratorRepeater(generator);
+    repeater.createGeneratorRepeater(generator, collect, handleCollectResponse);
   } else {
-    // bulk is false
+    // FIXME bulk is false
     generator.subjects.forEach((s) => {
       const _g = JSON.parse(JSON.stringify(generator));
       _g.subjects = [s];
-      repeater.createGeneratorRepeater(_g);
+      repeater.createGeneratorRepeater(_g, collect, handleCollectResponse);
     });
   }
 } // setupRepeater
 
 /**
- * Create or update queue for sample generator
+ * Update queue for sample generator (if found), or create a new one.
+ *
  * @param  {String} qName - Queue name
- * @param  {String} refocusUserToken - User token
- * @param  {Object} collConf - The collectorConfig from the start or
- *  heartbeat response
+ * @param  {Object} collConf - The collectorConfig from the start or heartbeat
+ *  response
+ * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
-  if (!qName) {
-    // Throw error if qName is not provided.
-    debug('Error: qName not found. Supplied %s', qName);
-    throw new errors.ValidationError(
-      'Queue name should be provided for queue creation.'
-    );
-  }
-
-  const bq = queueUtils.getQueue(qName); // get queue
-  if (bq) { // sample queue for this generator already exists
+function createOrUpdateGeneratorQueue(qName, collConf) {
+  debug('createOrUpdateGeneratorQueue "%s" %O', qName, collConf);
+  if (!qName) throw new errors.ValidationError('Missing queue name');
+  if (queue.exists(qName)) { // sample queue for this generator already exists
     if (!collConf) {
-      debug('Error: missing or empty collector config.');
-      throw new errors.ValidationError('Collector config is required.');
+      throw new errors.ValidationError('Missing collector config');
     }
 
     // update queue params
     if (collConf.maxSamplesPerBulkRequest) {
-      bq._size = collConf.maxSamplesPerBulkRequest;
+      queue.updateSize(qName, collConf.maxSamplesPerBulkRequest);
     }
 
     if (collConf.sampleUpsertQueueTime) {
-      bq._flushTimeout = collConf.sampleUpsertQueueTime;
+      queue.updateFlushTimeout(qName, collConf.sampleUpsertQueueTime);
     }
-  } else { // create new sample queue for this generator
-    const cr = configModule.getConfig().refocus;
-    const queueParams = {
-      name: qName,
-      size: cr.maxSamplesPerBulkRequest,
-      flushTimeout: cr.sampleUpsertQueueTime,
-      verbose: false,
-      flushFunction: httpUtils.doBulkUpsert,
-      proxy: cr.proxy,
-      url: cr.url,
-      token: refocusUserToken,
-    };
-    queueUtils.createQueue(queueParams);
+
+    return queue.get(qName);
   }
-}
+
+  // queue not found, so create new one for this generator
+  const cr = configModule.getConfig().refocus;
+  return queue.create({
+    name: qName,
+    size: cr.maxSamplesPerBulkRequest,
+    flushTimeout: cr.sampleUpsertQueueTime,
+    verbose: false,
+    flushFunction: httpUtils.doBulkUpsert,
+    proxy: cr.proxy,
+    url: cr.url,
+    token: cr.collectorToken,
+  });
+} // createOrUpdateGeneratorQueue
 
 /**
  * Set up generator repeaters for each generator and add them to the collector
@@ -183,19 +173,23 @@ function createOrUpdateGeneratorQueue(qName, refocusUserToken, collConf) {
 function addGenerators(res) {
   const generators = res.generatorsAdded;
   const config = configModule.getConfig(); // Get a fresh copy
-  const token = config.refocus.collectorToken;
+  const cr = config.refocus;
   if (generators && Array.isArray(generators)) {
     // Create a new repeater for each generator and add to config.
     generators.forEach((g) => {
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
-          g.generatorTemplate.contextDefinition, token, res);
+          g.generatorTemplate.contextDefinition, cr.collectorToken, res);
       }
 
       // Add dataSourceProxy to connection, if specified
       if (g.generatorTemplate.connection.dataSourceProxy) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
+
+      // Add Refocus url/proxy to generator
+      g.refocus = { url: cr.url };
+      if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       config.generators[g.name] = g;
 
@@ -237,19 +231,23 @@ function deleteGenerators(res) {
 function updateGenerators(res) {
   const generators = res.generatorsUpdated;
   const config = configModule.getConfig(); // Get a fresh copy
-  const token = config.refocus.collectorToken;
+  const cr = config.refocus;
   if (generators && Array.isArray(generators)) {
     // Update the repeater for each generator and update in config.
     generators.forEach((g) => {
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
-          g.generatorTemplate.contextDefinition, token, res);
+          g.generatorTemplate.contextDefinition, cr.collectorToken, res);
       }
 
       // Add dataSourceProxy to connection, if specified
       if (g.generatorTemplate.connection.dataSourceProxy) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
+
+      // Add Refocus url/proxy to generator
+      g.refocus = { url: cr.url };
+      if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 

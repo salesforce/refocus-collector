@@ -15,13 +15,13 @@ const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 const configModule = require('../../src/config/config');
 const httpStatus = require('../../src/constants.js').httpStatus;
-const qUtils = require('../../src/utils/queueUtils');
+const q = require('../../src/utils/queue');
 const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
 const request = require('superagent');
+const sgt = require('../sgt');
 require('superagent-proxy')(request);
-const constants = require('./constants');
 
 describe('test/commands/start >', () => {
   const collectorName = 'collector1';
@@ -31,16 +31,25 @@ describe('test/commands/start >', () => {
   const collectorToken = 'zyxwvutsrqponmlkjihgfedcba';
   const refocusProxy = 'http://abcproxy.com';
   const dataSourceProxy = 'http://xyzproxy.com';
+
+  const missingCollectorNameError =
+    'error: You must specify a collector name.\n';
+  const missingUrlError =
+    'error: You must specify the url of the refocus instance.\n';
+  const missingTokenError = 'error: You must specify an access token.\n';
   const cmd = 'src/commands/refocus-collector-start.js';
+  const silence = { silent: true };
 
   describe('from command line >', () => {
+    afterEach(() => repeater.stopAllRepeaters());
+
     it('ok', (done) => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
         '--accessToken', accessToken, '--refocusProxy', refocusProxy,
         '--dataSourceProxy', dataSourceProxy,
       ];
-      const start = fork(cmd, args, constants.silence);
+      const start = fork(cmd, args, silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -51,9 +60,10 @@ describe('test/commands/start >', () => {
       const args = [
         '--refocusUrl', refocusUrl, '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, constants.silence);
-      start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingCollectorName));
+      const start = fork(cmd, args, silence);
+      start.stderr.on('data', (data) => {
+        expect(data.toString()).to.equal(missingCollectorNameError);
+      });
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -64,9 +74,10 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, constants.silence);
-      start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingUrl));
+      const start = fork(cmd, args, silence);
+      start.stderr.on('data', (data) => {
+        expect(data.toString()).to.equal(missingUrlError);
+      });
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -77,9 +88,10 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       ];
-      const start = fork(cmd, args, constants.silence);
-      start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingToken));
+      const start = fork(cmd, args, silence);
+      start.stderr.on('data', (data) => {
+        expect(data.toString()).to.equal(missingTokenError);
+      });
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -91,7 +103,7 @@ describe('test/commands/start >', () => {
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
         '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, constants.silence);
+      const start = fork(cmd, args, silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -127,8 +139,9 @@ describe('test/commands/start >', () => {
         },
       };
       const start = fork(cmd, args, opts);
-      start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingToken));
+      start.stderr.on('data', (data) => {
+        expect(data.toString()).to.equal(missingTokenError);
+      });
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -136,6 +149,7 @@ describe('test/commands/start >', () => {
     });
   });
 
+  // TODO fix all the nock errors here
   describe('execute directly >', () => {
     let config = configModule.getConfig();
     let version;
@@ -151,6 +165,24 @@ describe('test/commands/start >', () => {
     after(() => configModule.clearConfig());
 
     it('ok, no proxy', (done) => {
+      nock('https://example.api')
+      .get()
+      .times(100)
+      .reply({
+        statusCode: 200,
+        body: [],
+      }, { 'Content-Type': 'application/json' });
+
+      nock(refocusUrl, {
+        reqheaders: { authorization: 'some-dummy-token-gen1' },
+      })
+      .get('/v1/subjects')
+      .times(100)
+      .query({
+        absolutePath: 'Canada',
+      })
+      .reply(httpStatus.OK, [{ absolutePath: 'Foo.bar', name: 'bar' }]);
+
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
@@ -161,24 +193,16 @@ describe('test/commands/start >', () => {
           {
             name: 'Gen1',
             token: 'some-dummy-token-gen1',
-            generatorTemplate: {
-              name: 'gen-template-1',
-              connection: {
-                url: 'https://example.api',
-                bulk: true,
-              },
-            },
+            generatorTemplate: sgt,
+            aspects: [{ name: 'foo' }],
+            subjectQuery: '?absolutePath=Canada',
           },
           {
             name: 'Gen2',
             token: 'some-dummy-token-gen2',
-            generatorTemplate: {
-              name: 'gen-template-2',
-              connection: {
-                url: 'https://example.api',
-                bulk: true,
-              },
-            },
+            generatorTemplate: sgt,
+            aspects: [{ name: 'bar' }],
+            subjectQuery: '?absolutePath=Canada',
           },
         ],
       });
@@ -187,8 +211,8 @@ describe('test/commands/start >', () => {
         expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
-        const qGen1 = qUtils.getQueue('Gen1');
-        const qGen2 = qUtils.getQueue('Gen2');
+        const qGen1 = q.get('Gen1');
+        const qGen2 = q.get('Gen2');
         expect(qGen1._size).to.be.equal(100);
         expect(qGen2._size).to.be.equal(100);
         repeater.stop('heartbeat');
@@ -289,9 +313,9 @@ describe('test/commands/start >', () => {
     });
   });
 
-  it('heartbeat repeater fails?' /* , (done) => {
+  it('heartbeat repeater fails? TODO confirm that error was logged and thrown'
+  /* , (done) => {
     start.execute();
-    // TODO confirm that error was logged and thrown
     done();
   } */);
 });

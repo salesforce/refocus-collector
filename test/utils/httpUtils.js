@@ -12,16 +12,14 @@
 const expect = require('chai').expect;
 const httpUtils = require('../../src/utils/httpUtils');
 const request = require('superagent');
-const bulkUpsertPath = require('../../src/constants').bulkUpsertEndpoint;
 const mock = require('superagent-mocker')(request);
-const mockedResponse = require('../mockedResponse');
 const httpStatus = require('../../src/constants').httpStatus;
 const sinon = require('sinon');
 require('superagent-proxy')(request);
 const nock = require('nock');
+const mockedResponse = require('../mockedResponse');
 const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
-const findSubjectsEndpoint =
-  require('../../src/constants').findSubjectsEndpoint;
+const findSubjectsEndpoint = require('../../src/constants').findSubjectsEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
   const refocusUrl = 'http://dummy.refocus.url';
@@ -99,6 +97,23 @@ describe('test/utils/httpUtils.js >', () => {
       .catch((err) => {
         expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
         expect(err.response.body).deep.equal(errorResponse);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('missing token', (done) => {
+      const resumeEndpoint = `/v1/collectors/${collectorName}/resume`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: null },
+      })
+      .post(resumeEndpoint)
+      .reply(httpStatus.FORBIDDEN);
+
+      httpUtils.doPost(`${refocusUrl}${resumeEndpoint}`, null)
+      .then(() => done('Expecting 401 Forbidden error'))
+      .catch((err) => {
+        expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
         done();
       })
       .catch(done);

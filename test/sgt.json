@@ -1,0 +1,80 @@
+{
+  "name": "refocus-sgt-trust1",
+  "version": "1.0.0",
+  "description": "A Refocus Sample Generator Template for generating samples based on Salesforce's Trust1 API.",
+  "tags": [
+    "refocus",
+    "salesforce",
+    "status",
+    "trust",
+    "trust1"
+  ],
+  "author": {
+    "name": "Salesforce CX Tools",
+    "email": "SiteReliabilityTools@salesforce.com"
+  },
+  "connection": {
+    "method": "GET",
+    "headers": {
+      "Accept": "application/json"
+    },
+    "url": "{{baseTrustUrl}}/v1/instances/status/preview",
+    "bulk": true
+  },
+  "contextDefinition": {
+    "baseTrustUrl": {
+      "required": true,
+      "description": "The base url of your Trust1 API endpoint, e.g. 'https://api.status.salesforce.com'."
+    },
+    "errorValue": {
+      "required": false,
+      "default": "-1",
+      "description": "An error sample's value, e.g. '-1'."
+    },
+    "statusLinkUrl": {
+      "required": true,
+      "description": "The base url of your Trust1 endpoint for a sample's related links, e.g. 'http://status.salesforce.com/status/'."
+    },
+    "statusMap": {
+      "required": false,
+      "default": {
+        "OK": {
+          "value": "0"
+        },
+        "INFORMATIONAL_NONCORE": {
+          "value": "1"
+        },
+        "MAINTENANCE_NONCORE": {
+          "value": "1"
+        },
+        "MINOR_INCIDENT_NONCORE": {
+          "value": "2"
+        },
+        "MAJOR_INCIDENT_NONCORE": {
+          "value": "3"
+        },
+        "INFORMATIONAL_CORE": {
+          "value": "1",
+          "messageCode": "CORE"
+        },
+        "MAINTENANCE_CORE": {
+          "value": "1",
+          "messageCode": "CORE"
+        },
+        "MINOR_INCIDENT_CORE": {
+          "value": "2",
+          "messageCode": "CORE"
+        },
+        "MAJOR_INCIDENT_CORE": {
+          "value": "3",
+          "messageCode": "CORE"
+        }
+      },
+      "description": "An object which maps each Trust1 status enum value to a sample value, messageCode and messageBody."
+    }
+  },
+  "transform": {
+    "errorHandlers": {},
+    "default": "const e=aspects[0].name,s=`${ctx.baseTrustUrl}/v1/instances/status/preview`,t=[],a={};return subjects.forEach(e=>a[e.name.toLowerCase()]=e.absolutePath),res.body.filter(e=>e.hasOwnProperty('key')&&a[e.key.toLowerCase()]).forEach(s=>{const o=ctx.statusMap[s.status]||{messageBody:'',messageCode:''},n=a[s.key.toLowerCase()];t.push({messageBody:function(e,s){return'string'==typeof e&&e.length>4096?e.substring(0,4093)+'...':e}(o.messageBody||''),messageCode:o.messageCode||'',name:`${n}|${e}`,relatedLinks:[r(ctx.statusLinkUrl,s.key)],value:o.value||s.status}),delete a[s.key.toLowerCase()]}),Object.keys(a).forEach(o=>t.push({messageBody:`Status for ${o} not returned by ${s}.`,messageCode:'',name:`${a[o]}|${e}`,relatedLinks:[r(ctx.statusLinkUrl,o)],value:ctx.errorValue})),t;function r(e,s){return{name:'Trust',url:`${e}/${s}`}}"
+  }
+}
