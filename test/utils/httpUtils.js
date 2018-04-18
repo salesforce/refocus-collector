@@ -13,6 +13,7 @@ const expect = require('chai').expect;
 const httpUtils = require('../../src/utils/httpUtils');
 const request = require('superagent');
 const mock = require('superagent-mocker')(request);
+const mockedResponse = require('../mockedResponse');
 const httpStatus = require('../../src/constants').httpStatus;
 const sinon = require('sinon');
 require('superagent-proxy')(request);

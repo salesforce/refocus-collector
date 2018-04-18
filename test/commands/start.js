@@ -22,6 +22,7 @@ const sinon = require('sinon');
 const request = require('superagent');
 const sgt = require('../sgt');
 require('superagent-proxy')(request);
+const constants = require('./constants');
 
 describe('test/commands/start >', () => {
   const collectorName = 'collector1';
@@ -31,14 +32,7 @@ describe('test/commands/start >', () => {
   const collectorToken = 'zyxwvutsrqponmlkjihgfedcba';
   const refocusProxy = 'http://abcproxy.com';
   const dataSourceProxy = 'http://xyzproxy.com';
-
-  const missingCollectorNameError =
-    'error: You must specify a collector name.\n';
-  const missingUrlError =
-    'error: You must specify the url of the refocus instance.\n';
-  const missingTokenError = 'error: You must specify an access token.\n';
   const cmd = 'src/commands/refocus-collector-start.js';
-  const silence = { silent: true };
 
   describe('from command line >', () => {
     afterEach(() => repeater.stopAllRepeaters());
@@ -49,7 +43,7 @@ describe('test/commands/start >', () => {
         '--accessToken', accessToken, '--refocusProxy', refocusProxy,
         '--dataSourceProxy', dataSourceProxy,
       ];
-      const start = fork(cmd, args, silence);
+      const start = fork(cmd, args, constants.silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -60,10 +54,9 @@ describe('test/commands/start >', () => {
       const args = [
         '--refocusUrl', refocusUrl, '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, silence);
-      start.stderr.on('data', (data) => {
-        expect(data.toString()).to.equal(missingCollectorNameError);
-      });
+      const start = fork(cmd, args, constants.silence);
+      start.stderr.on('data', (data) =>
+        expect(data.toString()).to.equal(constants.error.missingCollectorName));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -74,10 +67,9 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, silence);
-      start.stderr.on('data', (data) => {
-        expect(data.toString()).to.equal(missingUrlError);
-      });
+      const start = fork(cmd, args, constants.silence);
+      start.stderr.on('data', (data) =>
+        expect(data.toString()).to.equal(constants.error.missingUrl));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -88,10 +80,9 @@ describe('test/commands/start >', () => {
       const args = [
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       ];
-      const start = fork(cmd, args, silence);
-      start.stderr.on('data', (data) => {
-        expect(data.toString()).to.equal(missingTokenError);
-      });
+      const start = fork(cmd, args, constants.silence);
+      start.stderr.on('data', (data) =>
+        expect(data.toString()).to.equal(constants.error.missingToken));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -103,7 +94,7 @@ describe('test/commands/start >', () => {
         '--collectorName', collectorName, '--refocusUrl', refocusUrl,
         '--accessToken', accessToken,
       ];
-      const start = fork(cmd, args, silence);
+      const start = fork(cmd, args, constants.silence);
       start.on('close', (code) => {
         expect(code).to.equal(0);
         done();
@@ -139,9 +130,8 @@ describe('test/commands/start >', () => {
         },
       };
       const start = fork(cmd, args, opts);
-      start.stderr.on('data', (data) => {
-        expect(data.toString()).to.equal(missingTokenError);
-      });
+      start.stderr.on('data', (data) =>
+        expect(data.toString()).to.equal(constants.error.missingToken));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
