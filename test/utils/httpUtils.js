@@ -18,7 +18,6 @@ const httpStatus = require('../../src/constants').httpStatus;
 const sinon = require('sinon');
 require('superagent-proxy')(request);
 const nock = require('nock');
-const mockedResponse = require('../mockedResponse');
 const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
 const findSubjectsEndpoint = require('../../src/constants').findSubjectsEndpoint;
 
