@@ -20,6 +20,8 @@ const sinon = require('sinon');
 require('superagent-proxy')(request);
 const nock = require('nock');
 const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
+const findSubjectsEndpoint =
+  require('../../src/constants').findSubjectsEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
   const refocusUrl = 'http://dummy.refocus.url';
@@ -184,6 +186,94 @@ describe('test/utils/httpUtils.js >', () => {
         null, sampleArr)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+        spy.restore();
+        done();
+      })
+      .catch((err) => {
+        spy.restore();
+        done(err);
+      });
+    });
+  });
+
+  describe('findSubjects >', () => {
+    const q = '?absolutePath=NorthAmerica.Canada';
+
+    it('ok, query starts with "?"', (done) => {
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
+      })
+      .get(findSubjectsEndpoint)
+      .query({ absolutePath: 'NorthAmerica.Canada' })
+      .reply(httpStatus.OK, mockedResponse.foundSubjects);
+
+      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q)
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('missing url', (done) => {
+      httpUtils.findSubjects(null, dummyUserToken, null, q)
+      .then(() => done(new Error('Expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('message', 'Missing refocus url');
+        done();
+      });
+    });
+
+    it('missing query', (done) => {
+      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, '')
+      .then(() => done(new Error('Expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('message', 'Missing subject query');
+        done();
+      });
+    });
+
+    it('missing token', (done) => {
+      httpUtils.findSubjects(refocusUrl, null, null, q)
+      .then(() => done(new Error('Expecting error')))
+      .catch((err) => {
+        expect(err).to.have.property('message', 'Missing token');
+        done();
+      });
+    });
+
+    it('ok, query does not start with "?"', (done) => {
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
+      })
+      .get(findSubjectsEndpoint)
+      .query({ absolutePath: 'NorthAmerica.Canada' })
+      .reply(httpStatus.OK, mockedResponse.foundSubjects);
+
+      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q.slice(1))
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('ok, request use proxy', (done) => {
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
+      })
+      .get(findSubjectsEndpoint)
+      .query({ absolutePath: 'NorthAmerica.Canada' })
+      .reply(httpStatus.OK, mockedResponse.foundSubjects);
+
+      const spy = sinon.spy(request, 'get');
+      httpUtils.findSubjects(refocusUrl, dummyUserToken, refocusProxy, q)
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
         spy.restore();
         done();
       })
