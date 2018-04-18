@@ -36,7 +36,5 @@ const config = cmdUtils.setupConfig(program);
 logger.log('Start =>', config.collectorName, config.refocus.url);
 cmdStart.execute()
 .catch((err) => {
-  logger.error(err.message);
-  logger.error(err.explanation);
-  logger.error(err.response);
+  logger.error(err.message, err.explanation, err.response);
 });

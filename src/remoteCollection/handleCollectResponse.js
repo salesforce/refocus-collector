@@ -128,21 +128,21 @@ function handleCollectResponse(collectResponse) {
     let samplesToEnqueue = [];
     if (func) {
       samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
-      logger.info(`{
-        generator: ${collectRes.name},
-        url: ${collectRes.preparedUrl},
-        numSamples: ${samplesToEnqueue.length},
-      }`);
+      logger.info({
+        generator: collectRes.name,
+        url: collectRes.preparedUrl,
+        numSamples: samplesToEnqueue.length,
+      });
     } else {
       const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
         `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
       samplesToEnqueue = errorSamples(collectRes, errorMessage);
-      logger.info(`{
-        generator: ${collectRes.name},
-        url: ${collectRes.preparedUrl},
-        error: ${errorMessage},
-        numSamples: ${samplesToEnqueue.length},
-      }`);
+      logger.info({
+        generator: collectRes.name,
+        url: collectRes.preparedUrl,
+        error: errorMessage,
+        numSamples: samplesToEnqueue.length,
+      });
     }
 
     // Enqueue using the sample generator name as the queue name.

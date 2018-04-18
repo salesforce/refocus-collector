@@ -13,18 +13,13 @@
 const expect = require('chai').expect;
 
 describe('test/commands/status >', () => {
-
   // TODO: child process fails on travis with error
   // /bin/sh: 1: refocus-collector: not found
   it('logs the expected result', (done) => {
     const { exec } = require('child_process');
     exec('refocus-collector status --collectorName=PRD_Collector_12345',
       (error, stdout, stderr) => {
-      if (error) {
-        console.error(`exec error: ${error}`);
-        return done(error);
-      }
-
+      if (error) return done(error);
       expect(stdout).to.contain('Status => PRD_Collector_12345');
       return done();
     });

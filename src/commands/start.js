@@ -19,7 +19,7 @@ const configModule = require('../config/config');
 const sanitize = require('../utils/commonUtils').sanitize;
 const repeater = require('../repeater/repeater');
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
-const sendHeartbeat = require('../heartbeat/heartbeat').sendHeartbeat;
+const heartbeat = require('../heartbeat/heartbeat');
 const hbUtils = require('../heartbeat/utils');
 const doPost = require('../utils/httpUtils.js').doPost;
 const errors = require('../errors');
@@ -60,13 +60,13 @@ function execute() {
     repeater.create({
       name: heartbeatRepeatName,
       interval: cr.heartbeatInterval,
-      func: sendHeartbeat,
+      func: heartbeat,
       onSuccess: debug,
       onFailure: debug,
       onProgress: debug,
     });
 
-    logger.info({ activity: 'cmdStart' });
+    logger.info({ activity: 'cmd:start' });
     debug('Exiting start.execute');
     return res;
   })

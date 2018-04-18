@@ -10,6 +10,7 @@
  * src/utils/schema.js
  */
 const Joi = require('joi');
+const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g; // jscs:ignore maximumLineLength
 
 const repeater = Joi.object().keys({
   name: Joi.string().required(),
@@ -26,7 +27,7 @@ const repeater = Joi.object().keys({
 
 const refocusInstance = Joi.object().keys({
   name: Joi.string().max(60),
-  url: Joi.string().regex(/((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\-]+|(?:www\.|[\-;:&=\+\$,\w]+@)[A-Za-z0-9\.\-]+)((?:\/[\+~%\/\.\w\-]*)?\??(?:[\-\+=&;%@\.\w]*)#?(?:[\.\!\/\\\w]*))?)/g).required(),  // jscs:ignore maximumLineLength
+  url: Joi.string().regex(urlRegex).required(),
   token: Joi.string().required(),
 });
 

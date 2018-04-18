@@ -114,7 +114,10 @@ function changeRepeatState(name, newState) {
 function stop(name) {
   changeRepeatState(name, 'stop');
   delete tracker[name];
-  logger.info(`Stopped the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:stopped',
+    name,
+  });
 } // stop
 
 /**
@@ -135,7 +138,10 @@ function stopAllRepeat() {
  */
 function pause(name) {
   changeRepeatState(name, 'pause');
-  logger.info(`Paused the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:paused',
+    name,
+  });
 } // pause
 
 /**
@@ -154,7 +160,10 @@ function pauseGenerators() {
  */
 function resume(name) {
   changeRepeatState(name, 'resume');
-  logger.info(`Resumed the repeater identified by: ${name}`);
+  logger.info({
+    activity: 'repeater:resumed',
+    name,
+  });
 } // resume
 
 /**
@@ -224,7 +233,7 @@ function create(def) {
   def.funcName = def.func.name;
   trackRepeater(def);
   logger.info({
-    activity: 'createdRepeater',
+    activity: 'repeater:created',
     name: def.name,
     funcName: def.func.name,
     interval: def.interval,

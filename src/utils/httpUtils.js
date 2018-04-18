@@ -11,7 +11,7 @@
  */
 'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:httpUtils');
-const errors = require('../errors');
+const ValidationError = require('../errors').ValidationError;
 const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
@@ -45,33 +45,43 @@ function doPost(url, token, proxy, body) {
  * @returns {Promise} contains a successful response, or failed error
  */
 function doBulkUpsert(url, userToken, proxy, arr) {
+  if (!userToken) {
+    const e = new ValidationError('doBulkUpsert missing token');
+    logger.error(e.message);
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    return Promise.resolve(e);
+  }
+
+  if (!Array.isArray(arr)) {
+    const e = new ValidationError('doBulkUpsert missing array of samples');
+    logger.error(e.message);
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    return Promise.resolve(e);
+  }
+
+  // Don't bother sending a POST if the array is empty.
+  if (arr.length === 0) return Promise.resolve(true);
+
   return new Promise((resolve, reject) => {
-    if (!userToken) {
-      // Throw error if user token not provided.
-      debug('Error: refocus user not found. Supplied %s', userToken);
-      reject(new errors.ValidationError(
-        'Added generators should have a token property.'
-      ));
-    }
-
-    if (!Array.isArray(arr)) {
-      // Throw error if no array is supplied
-      debug('Error: array of samples to post not found. Supplied %s', arr);
-      reject(new errors.ValidationError('bulk upsert needs an array of ' +
-        'samples to send. No samples array found.'
-      ));
-    }
-
     debug('Bulk upserting %d samples to %s', arr.length, url);
-
     doPost(url, userToken, proxy, arr)
     .end((err, res) => {
       if (err) {
-        logger.error('bulkUpsert returned an error: %o', err);
-        return reject(err);
+        logger.error(err.message);
+        /*
+         * Don't Promise.reject(...) this error, because there is no handler
+         * for the rejection.
+         */
+        return resolve(err);
       }
 
-      debug('bulkUpsert returned an OK response: %o', res);
+      debug('doBulkUpsert returned an OK response: %O', res.body);
       return resolve(res);
     });
   });

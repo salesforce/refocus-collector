@@ -59,5 +59,5 @@ program.on('--help', () => {
 try {
   program.parse(process.argv);
 } catch (err) {
-  logger.error(`${err.message}\n\n${err}`);
+  logger.error(err.message);
 }

@@ -12,26 +12,21 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 const fork = require('child_process').fork;
+const constants = require('./constants');
 
 describe('test/commands/pause >', () => {
   const collectorName = 'collector1';
   const refocusUrl = 'http://www.refocus-pause-test.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
   const refocusProxy = 'http://abcproxy.com';
-  const missingCollectorNameError = 'error: You must specify a ' +
-    'collector name.\n';
-  const missingUrlError = 'error: You must specify the url of the ' +
-    'refocus instance.\n';
-  const missingTokenError = 'error: You must specify an access token.\n';
+  const cmd = 'src/commands/refocus-collector-pause.js';
 
   it('ok', (done) => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken, '--refocusProxy', refocusProxy,
     ];
-    const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
+    const pause = fork(cmd, args, constants.silence);
     pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -42,12 +37,9 @@ describe('test/commands/pause >', () => {
     const args = [
       '--refocusUrl', refocusUrl, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
-    pause.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingCollectorNameError);
-    });
+    const pause = fork(cmd, args, constants.silence);
+    pause.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(constants.error.missingCollectorName));
     pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -58,12 +50,9 @@ describe('test/commands/pause >', () => {
     const args = [
       '--collectorName', collectorName, '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
-    pause.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingUrlError);
-    });
+    const pause = fork(cmd, args, constants.silence);
+    pause.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(constants.error.missingUrl));
     pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -74,12 +63,9 @@ describe('test/commands/pause >', () => {
     const args = [
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
     ];
-    const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
-    pause.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const pause = fork(cmd, args, constants.silence);
+    pause.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(constants.error.missingToken));
     pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();
@@ -91,9 +77,7 @@ describe('test/commands/pause >', () => {
       '--collectorName', collectorName, '--refocusUrl', refocusUrl,
       '--accessToken', accessToken,
     ];
-    const opts = { silent: true };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
+    const pause = fork(cmd, args, constants.silence);
     pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -111,8 +95,7 @@ describe('test/commands/pause >', () => {
         RC_REFOCUS_PROXY: refocusProxy,
       },
     };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
+    const pause = fork(cmd, args, opts);
     pause.on('close', (code) => {
       expect(code).to.equal(0);
       done();
@@ -127,11 +110,9 @@ describe('test/commands/pause >', () => {
         RC_REFOCUS_URL: refocusUrl,
       },
     };
-    const pause = fork('src/commands/refocus-collector-pause.js',
-      args, opts);
-    pause.stderr.on('data', (data) => {
-      expect(data.toString()).to.equal(missingTokenError);
-    });
+    const pause = fork(cmd, args, opts);
+    pause.stderr.on('data', (data) =>
+      expect(data.toString()).to.equal(constants.error.missingToken));
     pause.on('close', (code) => {
       expect(code).to.equal(1);
       done();

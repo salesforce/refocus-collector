@@ -396,9 +396,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     function checkLogs(expected) {
       expect(winston.info.calledOnce).to.be.true;
-      expect(winston.info.args[0][0]).contains('generator: mockGenerator');
       expect(winston.info.args[0][0])
-        .contains(`numSamples: ${expected.length}`);
+        .to.have.property('generator', 'mockGenerator');
+      expect(winston.info.args[0][0])
+        .to.have.property('numSamples', expected.length);
       const queue = queueUtils.getQueue(generatorName);
       expect(queue.items.length).to.be.equal(expected.length);
       expect(queue.items[0]).to.eql(expected[0]);
