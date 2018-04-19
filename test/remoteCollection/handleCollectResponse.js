@@ -370,7 +370,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const generator = {
       name: 'mockGenerator',
       subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
-      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      aspects: [{ name: 'A1' }, { name: 'A2' }],
       context: { a: 'a', b: 'b' },
       res: { body: 'aaa' },
       generatorTemplate: {

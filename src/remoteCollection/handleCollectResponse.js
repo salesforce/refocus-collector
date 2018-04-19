@@ -104,8 +104,8 @@ function prepareTransformArgs(generator) {
  * @param  {Promise} collectResponse - Response from the "collect" function.
  *  This resolves to the generator object along with the "res" attribute which
  *  maps to the response from the remote data source
- * @returns {Promise} - which resolves to the response of the sample bulk
- *  upsert API or an error.
+ * @returns {Promise} - which resolves to the queue length after enqueuing, or
+ *  an error.
  * @throws {ValidationError} if thrown by validateCollectResponse
  */
 function handleCollectResponse(collectResponse) {
@@ -146,8 +146,11 @@ function handleCollectResponse(collectResponse) {
     // Validate each of the samples.
     samplesToEnqueue.forEach(commonUtils.validateSample);
 
-    // Enqueue to the named queue (sample generator name).
-    queue.enqueue(collectRes.name, samplesToEnqueue);
+    /*
+     * Enqueue to the named queue (sample generator name). Return the new queue
+     * size.
+     */
+    return queue.enqueue(collectRes.name, samplesToEnqueue);
   })
   .catch((err) => {
     /*

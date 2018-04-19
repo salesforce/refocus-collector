@@ -27,7 +27,7 @@ module.exports = () => {
   const timestamp = Date.now();
   const config = configModule.getConfig();
   const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
-  debug('heartbeat config.refocus', sanitized);
+  debug('heartbeat config.refocus %O', sanitized);
   const collectorName = config.name;
   const refocusUrl = config.refocus.url;
   const collectorToken = config.refocus.collectorToken;

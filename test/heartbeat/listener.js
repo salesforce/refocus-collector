@@ -47,7 +47,7 @@ describe('test/heartbeat/listener.js >', () => {
     generatorsAdded: [
       {
         name: 'Core_Trust1',
-        aspects: [{ name: 'A1', timeout: '1m' }],
+        aspects: [{ name: 'A1' }],
         generatorTemplateName: 'refocus-trust1-collector',
         subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
         context: { baseTrustUrl: 'https://example.api', },
@@ -295,7 +295,7 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsAdded: [
         {
           name: 'ABC_DATA',
-          aspects: [{ name: 'A', timeout: '1m' }],
+          aspects: [{ name: 'A' }],
           interval: 6000,
           generatorTemplateName: 'refocus-trust1-collector',
           generatorTemplate: sgt,
@@ -305,7 +305,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
         {
           name: 'Fghijkl_Mnopq',
-          aspects: [{ name: 'A', timeout: '1m' }],
+          aspects: [{ name: 'A' }],
           interval: 1000,
           context: { baseTrustUrl: 'https://fghijkl.data.mnopq.com', },
           generatorTemplate: sgt,
@@ -345,7 +345,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
       generatorsAdded: {
         name: 'Fghijkl_Mnopq',
-        aspects: [{ name: 'A', timeout: '1m' }],
+        aspects: [{ name: 'A' }],
         interval: 1000,
         context: { baseTrustUrl: 'https://example.api', },
       },
@@ -354,7 +354,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
       generatorsUpdated: {
         name: 'Fghijkl_Mnopq',
-        aspects: [{ name: 'A', timeout: '1m' }],
+        aspects: [{ name: 'A' }],
         interval: 1000,
         context: { baseTrustUrl: 'https://example.api', },
       },

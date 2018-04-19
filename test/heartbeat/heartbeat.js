@@ -27,7 +27,7 @@ const refocusUrl = 'http://refocusheartbeatmock.com';
 
 const generator1 = {
   name: 'Core_Trust1_heartbeat',
-  aspects: [{ name: 'A1', timeout: '1m' }],
+  aspects: [{ name: 'A1' }],
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseTrustUrl: 'https://example.api', },
@@ -42,7 +42,7 @@ const generator1 = {
 
 const generator1Updated = {
   name: 'Core_Trust1_heartbeat',
-  aspects: [{ name: 'A1', timeout: '1m' }],
+  aspects: [{ name: 'A1' }],
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseTrustUrl: 'https://example.api', },
@@ -58,7 +58,7 @@ const generator1Updated = {
 const generator2 = {
   name: 'generator2_heartbeat',
   interval: 6000,
-  aspects: [{ name: 'A2', timeout: '1m' }],
+  aspects: [{ name: 'A2' }],
   subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
@@ -76,7 +76,7 @@ const generator2 = {
 const generator3 = {
   name: 'generator3_heartbeat',
   interval: 6000,
-  aspects: [{ name: 'A3', timeout: '1m' }],
+  aspects: [{ name: 'A3' }],
   subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: sgt,
@@ -317,9 +317,9 @@ describe('test/heartbeat/heartbeat.js >', () => {
         generator1Updated.generatorTemplate);
 
       // make sure generator2 and generator 3 are added
-      expect(res.generators[generator2.name]).to.deep.equal(generator2);
-      expect(res.generators[generator3.name].name)
-        .to.deep.equal(generator3.name);
+      expect(res.generators[generator2.name].name).to.equal(generator2.name);
+      expect(res.generators[generator3.name].name).to.equal(generator3.name);
+
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
       })
@@ -408,9 +408,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
         generator1Updated.generatorTemplate);
 
       // make sure generator2 and generator 3 are added
-      expect(res.generators[generator2.name]).to.deep.equal(generator2);
-      expect(res.generators[generator3.name].name)
-        .to.deep.equal(generator3.name);
+      expect(res.generators[generator2.name].name).to.equal(generator2.name);
+      expect(res.generators[generator3.name].name).to.equal(generator3.name);
 
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },

@@ -110,6 +110,7 @@ function assignContext(ctx, def, collectorToken, res) {
  * @param {Object} generator - Generator object from the heartbeat
  */
 function setupRepeater(generator) {
+  debug('setupRepeater %O', generator);
   if (commonUtils.isBulk(generator)) {
     repeater.createGeneratorRepeater(generator, collect, handleCollectResponse);
   } else {
