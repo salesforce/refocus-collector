@@ -28,7 +28,23 @@ const bulkUpsertPostError = {
   ],
 };
 
+const foundSubjects = [
+  {
+    absolutePath: 'NorthAmerica.Canada.Ontario',
+    name: 'Ontario',
+    isPublished: true,
+    tags: ['Province', 'English'],
+  },
+  {
+    absolutePath: 'NorthAmerica.Canada.Quebec',
+    name: 'Quebec',
+    isPublished: true,
+    tags: ['Province', 'French'],
+  },
+];
+
 module.exports = {
   bulkUpsertPostError,
   bulkUpsertPostOk,
+  foundSubjects,
 };

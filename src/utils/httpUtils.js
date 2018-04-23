@@ -15,6 +15,7 @@ const ValidationError = require('../errors').ValidationError;
 const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
+const findSubjectsEndpoint = require('../constants').findSubjectsEndpoint;
 const logger = require('winston');
 
 /**
@@ -81,13 +82,54 @@ function doBulkUpsert(url, userToken, proxy, arr) {
         return resolve(err);
       }
 
-      debug('doBulkUpsert returned an OK response: %O', res.body);
+      debug('doBulkUpsert returned OK %O', res.body);
       return resolve(res);
     });
   });
-}
+} // doBulkUpsert
+
+/**
+ * Find Refocus subjects using query parameters.
+ *
+ * @param  {String} url - The Refocus url.
+ * @param  {String} token - The Authorization token to use.
+ * @param  {String} proxy - Optional proxy url
+ * @param {String} qry - the query string
+ * @returns {Promise} array of subjects matching the query
+ */
+function findSubjects(url, token, proxy, qry) {
+  debug('findSubjects(url=%s, token=%s, proxy=%s, qry=%s)', url,
+    token ? 'HAS_TOKEN' : 'MISSING', proxy, qry);
+  if (!url) {
+    const e = new ValidationError('Missing refocus url');
+    logger.error('findSubjects', e.message);
+    return Promise.reject(e);
+  }
+
+  if (!qry) {
+    const e = new ValidationError('Missing subject query');
+    logger.error('findSubjects', e.message);
+    return Promise.reject(e);
+  }
+
+  if (!token) {
+    const e = new ValidationError('Missing token');
+    logger.error('findSubjects', e.message);
+    return Promise.reject(e);
+  }
+
+  const req = request.get(url + findSubjectsEndpoint)
+    .query(qry.startsWith('?') ? qry.slice(1) : qry)
+    .set('Authorization', token);
+  if (proxy) req.proxy(proxy);
+  return req.then((res) => {
+    debug('findSubjects returning %O', res.body);
+    return res;
+  });
+} // getSubjects
 
 module.exports = {
   doBulkUpsert,
   doPost,
+  findSubjects,
 };

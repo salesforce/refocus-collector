@@ -12,9 +12,17 @@
 const repeater = require('../../src/repeater/repeater');
 const tracker = repeater.tracker;
 const expect = require('chai').expect;
+const ref = { url: 'mock.refocus.com' };
+const logger = require('winston');
+logger.configure({ level: 0 });
 
 describe('test/repeater/repeater.js >', () => {
+  after(() => repeater.stopAllRepeaters());
+
   describe('createGeneratorRepeater >', () => {
+    const dummyFunc = (x) => x;
+    const dummyOnProgress = (x) => x;
+
     it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
@@ -29,9 +37,12 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(def.interval);
       expect(ret.name).to.equal('Generator0');
@@ -54,14 +65,17 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(def.interval);
       expect(ret.name).to.equal('Generator0.1');
       expect(ret.funcName).to.equal('func');
-      expect(ret.onProgress.name).to.equal('handleCollectResponse');
+      expect(ret.onProgress.name).to.equal('dummyOnProgress');
       expect(tracker['Generator0.1']._bulk).to.equal(ret.handle);
       done();
     });
@@ -81,9 +95,12 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      const ret = repeater.createGeneratorRepeater(def);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
+        dummyOnProgress);
       setTimeout(() => {
         expect(ret.handle).to.not.equal(undefined);
         expect(ret.interval).to.equal(def.interval);
@@ -109,19 +126,22 @@ describe('test/repeater/repeater.js >', () => {
             bulk: true,
           },
         },
+        refocus: ref,
+        subjectQuery: '?absolutePath=oneSubject',
         subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
-      repeater.createGeneratorRepeater(obj);
+      repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
       obj.name = 'Generator0.2';
-      obj.interval = 60;
+      obj.interval = 60000;
       repeater.stop(obj.name);
-      const ret = repeater.createGeneratorRepeater(obj);
+      const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
+        dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
-      expect(ret.interval).to.equal(obj.interval);
-      expect(ret.name).to.equal('Generator0.2');
-      expect(ret.funcName).to.equal('func');
-      expect(ret.onProgress.name).to.equal('handleCollectResponse');
-      expect(tracker['Generator0.2']._bulk).to.equal(ret.handle);
+      expect(ret).to.have.property('interval', obj.interval);
+      expect(ret).to.have.property('name', 'Generator0.2');
+      expect(ret).to.have.property('funcName', 'func');
+      expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
+      expect(tracker['Generator0.2']).to.have.property('_bulk', ret.handle);
       done();
     });
   });
@@ -255,7 +275,8 @@ describe('test/repeater/repeater.js >', () => {
         func: stub,
       };
       let oldCount = 0;
-      repeater.create(def);
+      const g4 = repeater.create(def);
+      expect(g4).to.have.property('name', 'Generator4');
       setTimeout(() => {
         // proves repeat ran
         expect(currentCount).to.be.at.least(1);
@@ -330,9 +351,9 @@ describe('test/repeater/repeater.js >', () => {
     });
   });
 
-  describe('stopAllRepeat >', () => {
+  describe('stopAllRepeaters >', () => {
     it('OK even when tracker is empty', (done) => {
-      const _tracker = repeater.stopAllRepeat();
+      const _tracker = repeater.stopAllRepeaters();
       expect(_tracker).to.deep.equal({});
       done();
     });
@@ -347,7 +368,7 @@ describe('test/repeater/repeater.js >', () => {
       };
 
       repeater.create(def);
-      const _tracker = repeater.stopAllRepeat();
+      const _tracker = repeater.stopAllRepeaters();
       expect(_tracker).to.deep.equal({});
       done();
     });
@@ -414,8 +435,7 @@ describe('test/repeater/repeater.js >', () => {
         expect(count1).to.be.above(count1BeforePause);
         expect(count2).to.be.above(count2BeforePause);
 
-        repeater.stopAllRepeat();
-
+        repeater.stopAllRepeaters();
         return done();
       }, 90);
     });
@@ -436,8 +456,7 @@ describe('test/repeater/repeater.js >', () => {
         // proves that pause did not effect the heartbeat repeat
         expect(count).to.be.above(0);
 
-        repeater.stopAllRepeat();
-
+        repeater.stopAllRepeaters();
         return done();
       }, 25);
     });
@@ -504,7 +523,7 @@ describe('test/repeater/repeater.js >', () => {
     it('missing interval', (done) => {
       try {
         repeater.create({ name: 'Gen', func: () => {} });
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -517,7 +536,7 @@ describe('test/repeater/repeater.js >', () => {
     it('wrong typeof interval', (done) => {
       try {
         repeater.create({ name: 'Gen', interval: '10', func: () => {} });
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError') {
           return done();
@@ -532,7 +551,7 @@ describe('test/repeater/repeater.js >', () => {
 
       try {
         repeater.create(def);
-        return done('Expecting ValidationError');
+        return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError' &&
           err.message === 'Duplicate repeater name violation: Gen') {

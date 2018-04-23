@@ -14,28 +14,30 @@ const commonUtils = require('../../src/utils/commonUtils');
 const sanitize = commonUtils.sanitize;
 const config = require('../../src/config/config');
 
-describe('test/utils/commonUtils.js - common utils unit tests >', () => {
-  it('isBulk', (done) => {
-    const gen = {
-      generatorTemplate: {
-        connection: {
-          bulk: true,
+describe('test/utils/commonUtils.js >', () => {
+  describe('isBulk >', () => {
+    it('isBulk', (done) => {
+      const gen = {
+        generatorTemplate: {
+          connection: {
+            bulk: true,
+          },
         },
-      },
-    };
-    expect(commonUtils.isBulk(gen)).to.be.true;
-    gen.generatorTemplate.connection.bulk = false;
-    expect(commonUtils.isBulk(gen)).to.be.false;
-    delete gen.generatorTemplate.connection.bulk;
-    expect(commonUtils.isBulk(gen)).to.be.false;
-    delete gen.generatorTemplate.connection;
-    expect(commonUtils.isBulk(gen)).to.be.false;
-    delete gen.generatorTemplate;
-    expect(commonUtils.isBulk(gen)).to.be.false;
-    done();
+      };
+      expect(commonUtils.isBulk(gen)).to.be.true;
+      gen.generatorTemplate.connection.bulk = false;
+      expect(commonUtils.isBulk(gen)).to.be.false;
+      delete gen.generatorTemplate.connection.bulk;
+      expect(commonUtils.isBulk(gen)).to.be.false;
+      delete gen.generatorTemplate.connection;
+      expect(commonUtils.isBulk(gen)).to.be.false;
+      delete gen.generatorTemplate;
+      expect(commonUtils.isBulk(gen)).to.be.false;
+      done();
+    });
   });
 
-  describe('sanitize', () => {
+  describe('sanitize >', () => {
     it('should not sanitize when keys are not passed as array', (done) => {
       const obj = {
         token: 'a310u',
@@ -88,10 +90,8 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
   });
 
   describe('collector metadata >', () => {
-
     it('getCurrentMetadata()', (done) => {
       const metadata = commonUtils.getCurrentMetadata();
-
       expect(metadata).to.be.an('object');
 
       const osKeys = ['arch', 'hostname', 'platform', 'release', 'type', 'username'];
@@ -181,6 +181,5 @@ describe('test/utils/commonUtils.js - common utils unit tests >', () => {
 
       done();
     });
-
   });
 });

@@ -166,10 +166,9 @@ module.exports = {
    * @returns {Boolean}
    */
   isBulk(generator) {
-    const gt = generator.generatorTemplate;
-    const connection = gt && gt.connection;
-    const bulk = connection && connection.bulk;
-    return Boolean(bulk);
-  }, // encrypt
-
+    if (!generator) return false;
+    if (!generator.generatorTemplate) return false;
+    if (!generator.generatorTemplate.connection) return false;
+    return generator.generatorTemplate.connection.bulk || false;
+  }, // isBulk
 };

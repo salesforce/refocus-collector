@@ -13,7 +13,7 @@ const debug = require('debug')('refocus-collector:handleCollectResponse');
 const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
-const queueUtils = require('../utils/queueUtils');
+const queue = require('../utils/queue');
 const httpStatus = require('../constants').httpStatus;
 const commonUtils = require('../utils/commonUtils');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
@@ -64,7 +64,8 @@ function validateCollectResponse(cr) {
 
   try {
     // Response "Content-Type" header matches request "Accept" header?
-    debug('validateCollectResponse', cr.preparedHeaders, cr.res.headers);
+    debug('validateCollectResponse headers %O, %O', cr.preparedHeaders,
+      cr.res.headers);
     RefocusCollectorEval.validateResponseType(cr.preparedHeaders,
       cr.res.headers);
   } catch (err) {
@@ -90,7 +91,7 @@ function prepareTransformArgs(generator) {
   if (commonUtils.isBulk(generator)) {
     args.subjects = generator.subjects;
   } else {
-    args.subject = generator.subjects[0];
+    args.subject = generator.subjects[0]; // FIXME once bulk is working
   }
 
   return args;
@@ -98,21 +99,18 @@ function prepareTransformArgs(generator) {
 
 /**
  * Handles the response from the remote data source by calling the transform
- * function. It also calls the sample bulk upsert api to send the data to the
- * configured refocus instance immediately. In the later versions,
- * instead of calling the sample bulk upsert API immediately, we can start
- * storing the sample in an in-memory sample queue.
+ * function, then enqueuing the samples from that response for bulk upsert.
  *
  * @param  {Promise} collectResponse - Response from the "collect" function.
  *  This resolves to the generator object along with the "res" attribute which
  *  maps to the response from the remote data source
- * @returns {Promise} - which resolves to the response of the sample bulk
- *  upsert API or an error.
+ * @returns {Promise} - which resolves to the queue length after enqueuing, or
+ *  an error.
  * @throws {ValidationError} if thrown by validateCollectResponse
  */
 function handleCollectResponse(collectResponse) {
-  debug('Entered handleCollectResponse');
   return collectResponse.then((collectRes) => {
+    debug('handleCollectResponse %O', collectRes);
     validateCollectResponse(collectRes);
     const tr = collectRes.generatorTemplate.transform;
     const args = prepareTransformArgs(collectRes);
@@ -145,15 +143,22 @@ function handleCollectResponse(collectResponse) {
       });
     }
 
-    // Enqueue using the sample generator name as the queue name.
-    queueUtils.enqueueFromArray(collectRes.name, samplesToEnqueue,
-      commonUtils.validateSample);
+    // Validate each of the samples.
+    samplesToEnqueue.forEach(commonUtils.validateSample);
+
+    /*
+     * Enqueue to the named queue (sample generator name). Return the new queue
+     * size.
+     */
+    return queue.enqueue(collectRes.name, samplesToEnqueue);
   })
   .catch((err) => {
-    debug(err);
-    logger.error('handleCollectResponse threw an error: ', err.name,
-      err.message);
-    return Promise.reject(err);
+    /*
+     * Don't Promise.reject(...) this error, because there is no handler for
+     * the rejection.
+     */
+    logger.error('handleCollectResponse error: ', err.name, err.message);
+    return Promise.resolve(err);
   });
 } // handleCollectResponse
 

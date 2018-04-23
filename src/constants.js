@@ -14,8 +14,11 @@
 
 module.exports = {
 
-  // bulk upsert path, use with refocus url
+  // bulk upsert path, use with config.refocus.url
   bulkUpsertEndpoint: '/v1/samples/upsert/bulk',
+
+  // subject find, use with config.refocus.url
+  findSubjectsEndpoint: '/v1/subjects',
 
   httpStatus: {
     OK: 200,
