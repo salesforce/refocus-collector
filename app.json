@@ -1,0 +1,25 @@
+{
+  "name": "Refocus Collector",
+  "description": "Refocus Collector",
+  "repository": "https://github.com/salesforce/refocus-collector",
+  "keywords": ["node", "refocus", "salesforce", "collector", "refocus-collector"],
+  "scripts": {
+    "postdeploy": "npm link"
+  },
+  "env": {
+    "RC_ACCESS_TOKEN": {
+      "description": "A valid Refocus access token for your Refocus instance"
+    },
+    "RC_COLLECTOR_NAME": {
+      "description": "A unique name for this collector (up to 60 chars)"
+    },
+    "RC_REFOCUS_URL": {
+      "description": "The url of your Refocus instance"
+    }
+  },
+  "formation": {
+    "collector": {
+      "quantity": 1,
+    }
+  }
+}
