@@ -124,6 +124,7 @@ function prepareRemoteRequest(generator) {
  * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
 function collect(generator) {
+  debug('Entered "collect" for "%s"', generator.name);
   return findSubjects(generator.refocus.url, generator.token,
     generator.refocus.proxy, generator.subjectQuery)
   .then((subjects) => generator.subjects = subjects.body || [])

@@ -13,6 +13,7 @@
 const debug = require('debug')('refocus-collector:queue');
 const Queue = require('buffered-queue');
 const qmap = {}; // private map which will contain all the queues by name
+const sanitize = require('./commonUtils').sanitize;
 
 /**
  * Create a buffered queue object using the queueParams, and add it to the
@@ -23,7 +24,8 @@ const qmap = {}; // private map which will contain all the queues by name
  * @returns {Object} The new buffered queue object
  */
 function create(queueParams) {
-  debug('Create queue %O', queueParams);
+  const sanitized = sanitize(queueParams, ['token']);
+  debug('Create queue %O', sanitized);
   const q = new Queue(queueParams.name, {
     size: queueParams.size,
     flushTimeout: queueParams.flushTimeout,

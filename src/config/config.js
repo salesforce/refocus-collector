@@ -116,7 +116,7 @@ function getDefaultConfig() {
  */
 function initializeConfig() {
   config = getDefaultConfig();
-  debug('Initialized config: %o', config);
+  debug('Initialized config: %O', config);
 } // initializeConfig
 
 /**

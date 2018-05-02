@@ -13,7 +13,6 @@ const debug = require('debug')('refocus-collector:repeater');
 const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors');
-const collect = require('../remoteCollection/collect').collect;
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const u = require('../utils/commonUtils');
@@ -189,7 +188,7 @@ function resumeGenerators() {
  * @throws {ValidationError} - Invalid repeater def or name collision
  */
 function validateDefinition(def) {
-  debug('validateDefinition', def);
+  debug('validateDefinition %O', def);
   const val = repeaterSchema.validate(def);
   if (val.error) {
     throw new errors.ValidationError(val.error.message);
@@ -222,6 +221,7 @@ function validateDefinition(def) {
  */
 function create(def) {
   validateDefinition(def);
+  debug('Creating %O', def);
   const handle = repeat(def.func);
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,

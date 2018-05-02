@@ -110,8 +110,10 @@ function assignContext(ctx, def, collectorToken, res) {
  * @param {Object} generator - Generator object from the heartbeat
  */
 function setupRepeater(generator) {
-  debug('setupRepeater %O', generator);
+  const sanitized = sanitize(generator, ['token']);
+  debug('setupRepeater %O', sanitized);
   if (commonUtils.isBulk(generator)) {
+    debug('Generator %s is bulk', generator.name);
     repeater.createGeneratorRepeater(generator, collect, handleCollectResponse);
   } else {
     // FIXME bulk is false
@@ -131,8 +133,9 @@ function setupRepeater(generator) {
  *  response
  * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, collConf) {
-  debug('createOrUpdateGeneratorQueue "%s" %O', qName, collConf);
+function createOrUpdateGeneratorQueue(qName, token, collConf) {
+  debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
+    qName, token ? 'HAS TOKEN' : 'MISSING TOKEN', collConf);
   if (!qName) throw new errors.ValidationError('Missing queue name');
   if (queue.exists(qName)) { // sample queue for this generator already exists
     if (!collConf) {
@@ -161,7 +164,7 @@ function createOrUpdateGeneratorQueue(qName, collConf) {
     flushFunction: httpUtils.doBulkUpsert,
     proxy: cr.proxy,
     url: cr.url,
-    token: cr.collectorToken,
+    token: token,
   });
 } // createOrUpdateGeneratorQueue
 
@@ -192,12 +195,16 @@ function addGenerators(res) {
       g.refocus = { url: cr.url };
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
+      // TODO remove me once generator returns interval
+      if (!g.interval) g.interval = 15000;
+
       config.generators[g.name] = g;
 
       // queue name same as generator name
       createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
       setupRepeater(g);
-      debug('Generator added: %O', g);
+      const sanitized = sanitize(g, ['token']);
+      debug('Generator added: %O', sanitized);
     });
   } else {
     debug('No generators to add.');
@@ -249,6 +256,9 @@ function updateGenerators(res) {
       // Add Refocus url/proxy to generator
       g.refocus = { url: cr.url };
       if (cr.proxy) g.refocus.proxy = cr.proxy;
+
+      // TODO remove me once generator returns interval
+      if (!g.interval) g.interval = 15000;
 
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 

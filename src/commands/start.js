@@ -40,7 +40,7 @@ function execute() {
   return doPost(url, cr.accessToken, cr.proxy, body)
   .then((res) => {
     const sanitized = sanitize(res.body, ['token']);
-    debug('start execute response body', sanitized);
+    debug('start execute response body %O', sanitized);
 
     cr.collectorToken = res.body.token;
 
