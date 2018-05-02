@@ -196,7 +196,7 @@ function addGenerators(res) {
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       // TODO remove me once generator returns interval
-      if (!g.interval) g.interval = 15000;
+      if (!g.interval) g.interval = 55000;
 
       config.generators[g.name] = g;
 
@@ -258,7 +258,7 @@ function updateGenerators(res) {
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       // TODO remove me once generator returns interval
-      if (!g.interval) g.interval = 15000;
+      if (!g.interval) g.interval = 55000;
 
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
