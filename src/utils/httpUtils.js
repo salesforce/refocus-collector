@@ -85,6 +85,10 @@ function doBulkUpsert(url, userToken, proxy, arr) {
       }
 
       debug('doBulkUpsert returned OK %O', res.body);
+      logger.info({
+        activity: 'bulkUpsert',
+        numSamples: arr.length,
+      });
       return resolve(res);
     });
   });
