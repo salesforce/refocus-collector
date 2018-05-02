@@ -71,6 +71,7 @@ function execute() {
     return res;
   })
   .catch((err) => {
+    debug('doPost error %O', err);
     throw new errors.CollectorStartError('',
       `POST ${url} failed: ${err.status} ${err.message}`);
   });
