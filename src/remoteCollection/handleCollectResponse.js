@@ -128,6 +128,7 @@ function handleCollectResponse(collectResponse) {
     if (func) {
       samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
       logger.info({
+        activity: 'enqueued:samples',
         generator: collectRes.name,
         url: collectRes.preparedUrl,
         numSamples: samplesToEnqueue.length,
@@ -137,6 +138,7 @@ function handleCollectResponse(collectResponse) {
         `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
       samplesToEnqueue = errorSamples(collectRes, errorMessage);
       logger.info({
+        activity: 'enqueued:errorSamples',
         generator: collectRes.name,
         url: collectRes.preparedUrl,
         error: errorMessage,
