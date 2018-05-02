@@ -69,11 +69,13 @@ function doBulkUpsert(url, userToken, proxy, arr) {
   // Don't bother sending a POST if the array is empty.
   if (arr.length === 0) return Promise.resolve(true);
 
+  url += bulkUpsertEndpoint;
   return new Promise((resolve, reject) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
     doPost(url, userToken, proxy, arr)
     .end((err, res) => {
       if (err) {
+        debug('doBulkUpsert err %O', err);
         logger.error(err.message);
         /*
          * Don't Promise.reject(...) this error, because there is no handler
