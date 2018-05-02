@@ -127,23 +127,10 @@ function handleCollectResponse(collectResponse) {
     let samplesToEnqueue = [];
     if (func) {
       samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
-      logger.info({
-        activity: 'enqueued:samples',
-        generator: collectRes.name,
-        url: collectRes.preparedUrl,
-        numSamples: samplesToEnqueue.length,
-      });
     } else {
       const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
         `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
       samplesToEnqueue = errorSamples(collectRes, errorMessage);
-      logger.info({
-        activity: 'enqueued:errorSamples',
-        generator: collectRes.name,
-        url: collectRes.preparedUrl,
-        error: errorMessage,
-        numSamples: samplesToEnqueue.length,
-      });
     }
 
     // Validate each of the samples.
@@ -153,6 +140,12 @@ function handleCollectResponse(collectResponse) {
      * Enqueue to the named queue (sample generator name). Return the new queue
      * size.
      */
+    logger.info({
+      activity: 'enqueued:samples',
+      generator: collectRes.name,
+      url: collectRes.preparedUrl,
+      numSamples: samplesToEnqueue.length,
+    });
     return queue.enqueue(collectRes.name, samplesToEnqueue);
   })
   .catch((err) => {
