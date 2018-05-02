@@ -30,6 +30,7 @@ const sanitize = require('../utils/commonUtils').sanitize;
 module.exports = (err, res) => {
   debug('entered heartbeat listener');
   if (err) {
+    debug('heartbeat listener error %O', err);
     logger.error('The heartbeat listener was called with an error: ',
       err.message);
     return err;
