@@ -110,7 +110,8 @@ function prepareTransformArgs(generator) {
  */
 function handleCollectResponse(collectResponse) {
   return collectResponse.then((collectRes) => {
-    debug('handleCollectResponse %O', collectRes);
+    debug('handleCollectResponse status %s, body %O', collectRes.res.status,
+      collectRes.res.body);
     validateCollectResponse(collectRes);
     const tr = collectRes.generatorTemplate.transform;
     const args = prepareTransformArgs(collectRes);
