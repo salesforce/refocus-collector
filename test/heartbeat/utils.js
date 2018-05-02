@@ -326,7 +326,7 @@ describe('test/heartbeat/utils.js >', () => {
       const qpresent = q.get('qName1');
       expect(qpresent).to.be.false;
 
-      hu.createOrUpdateGeneratorQueue('qName1', collectorConfig);
+      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
       const qGen1 = q.get('qName1');
       expect(qGen1._size).to.be.equal(100);
       done();
@@ -344,7 +344,7 @@ describe('test/heartbeat/utils.js >', () => {
 
       const qpresent = q.get('qName1');
       expect(qpresent._size).to.be.equal(10);
-      hu.createOrUpdateGeneratorQueue('qName1', collectorConfig);
+      hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
       const qUpdated = q.get('qName1');
       expect(qUpdated._size).to.be.equal(1000);
       done();
@@ -352,7 +352,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('Not ok, queue name null', (done) => {
       try {
-        hu.createOrUpdateGeneratorQueue(null, collectorConfig);
+        hu.createOrUpdateGeneratorQueue(null, token, collectorConfig);
         done('Expecting error');
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
@@ -363,7 +363,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     it('Not ok, heartbeat response null', (done) => {
       try {
-        hu.createOrUpdateGeneratorQueue('qName1', null);
+        hu.createOrUpdateGeneratorQueue('qName1', token, null);
         done(new Error('Expecting error'));
       } catch (err) {
         expect(err).to.have.property('name', 'ValidationError');
