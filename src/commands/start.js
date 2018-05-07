@@ -59,7 +59,7 @@ function execute() {
      */
     repeater.create({
       name: heartbeatRepeatName,
-      interval: cr.heartbeatInterval,
+      interval: cr.heartbeatIntervalMillis,
       func: heartbeat,
       onSuccess: debug,
       onFailure: debug,
