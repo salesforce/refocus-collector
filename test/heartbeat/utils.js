@@ -28,7 +28,7 @@ describe('test/heartbeat/utils.js >', () => {
 
   const hbResponse = {
     collectorConfig: {
-      heartbeatInterval: 50,
+      heartbeatIntervalMillis: 50,
       status: 'Running',
     },
     encryptionAlgorithm,
@@ -266,7 +266,7 @@ describe('test/heartbeat/utils.js >', () => {
     it('different queues are created for different generators', (done) => {
       const heartbeatResp = {
         collectorConfig: {
-          heartbeatInterval: 50,
+          heartbeatIntervalMillis: 50,
         },
         timestamp: Date.now(),
         generatorsAdded: [
@@ -310,7 +310,7 @@ describe('test/heartbeat/utils.js >', () => {
   describe('createOrUpdateGeneratorQueue >', () => {
     const token = 'abcdefg-hijklmnop';
     const collectorConfig = {
-      heartbeatInterval: 50,
+      heartbeatIntervalMillis: 50,
       maxSamplesPerBulkRequest: 1000,
       sampleUpsertQueueTime: 4000,
     };

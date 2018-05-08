@@ -39,7 +39,7 @@ describe('test/heartbeat/listener.js >', () => {
 
   const hbResponse = {
     collectorConfig: {
-      heartbeatInterval: 50,
+      heartbeatIntervalMillis: 50,
       maxSamplesPerBulkRequest: 10,
       status: 'Running',
     },
@@ -71,8 +71,8 @@ describe('test/heartbeat/listener.js >', () => {
 
   it('collector config should be updated', (done) => {
     const updatedConfig = listener(null, hbResponse);
-    expect(updatedConfig.refocus.heartbeatInterval)
-      .to.equal(hbResponse.collectorConfig.heartbeatInterval);
+    expect(updatedConfig.refocus.heartbeatIntervalMillis)
+      .to.equal(hbResponse.collectorConfig.heartbeatIntervalMillis);
     expect(updatedConfig.refocus.status)
       .to.equal(hbResponse.collectorConfig.status);
     done();
@@ -82,7 +82,7 @@ describe('test/heartbeat/listener.js >', () => {
     'should be setup', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -109,7 +109,7 @@ describe('test/heartbeat/listener.js >', () => {
   it('updated generators should be updated in the config', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -149,7 +149,7 @@ describe('test/heartbeat/listener.js >', () => {
   it.skip('SGT with bulk=false should be handled', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -179,7 +179,7 @@ describe('test/heartbeat/listener.js >', () => {
   it.skip('SGT update from bulk=true to bulk=false', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -203,7 +203,7 @@ describe('test/heartbeat/listener.js >', () => {
     expect(tracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
     const updatedRes = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 50,
         status: 'Running',
       },
@@ -234,7 +234,7 @@ describe('test/heartbeat/listener.js >', () => {
   it.skip('SGT update from bulk=false to bulk=true', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -259,7 +259,7 @@ describe('test/heartbeat/listener.js >', () => {
     expect(tracker.bulktrueToBulkFalse_2.NA2).not.equal(undefined);
     const updatedRes = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -288,7 +288,7 @@ describe('test/heartbeat/listener.js >', () => {
   (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -318,7 +318,7 @@ describe('test/heartbeat/listener.js >', () => {
     expect(updatedConfig.generators.ABC_DATA).to.not.equal(undefined);
     const resDel = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -339,7 +339,7 @@ describe('test/heartbeat/listener.js >', () => {
     'generators(Added|Deleted|Updated) as an array', (done) => {
     const res = {
       collectorConfig: {
-        heartbeatInterval: 50,
+        heartbeatIntervalMillis: 50,
         maxSamplesPerBulkRequest: 10,
         status: 'Running',
       },
@@ -360,7 +360,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
     };
     const ret = listener(null, res);
-    expect(ret.refocus.heartbeatInterval).to.equal(50);
+    expect(ret.refocus.heartbeatIntervalMillis).to.equal(50);
     done();
   });
 
@@ -377,7 +377,7 @@ describe('test/heartbeat/listener.js >', () => {
       thisSgt.contextDefinition.baseTrustUrl.encrypted = false;
       const res = {
         collectorConfig: {
-          heartbeatInterval: 50,
+          heartbeatIntervalMillis: 50,
           maxSamplesPerBulkRequest: 10,
           status: 'Running',
         },
@@ -417,7 +417,7 @@ describe('test/heartbeat/listener.js >', () => {
     (done) => {
       const res = {
         collectorConfig: {
-          heartbeatInterval: 50,
+          heartbeatIntervalMillis: 50,
           maxSamplesPerBulkRequest: 10,
           status: 'Running',
         },
@@ -505,7 +505,7 @@ describe('test/heartbeat/listener.js >', () => {
       'true, decryption should happen', (done) => {
       const res = {
         collectorConfig: {
-          heartbeatInterval: 50,
+          heartbeatIntervalMillis: 50,
           maxSamplesPerBulkRequest: 10,
           status: 'Running',
         },

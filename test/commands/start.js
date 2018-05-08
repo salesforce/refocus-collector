@@ -179,6 +179,11 @@ describe('test/commands/start >', () => {
       .post('/v1/collectors/start', { name: collectorName, version })
       .reply(httpStatus.CREATED, {
         token: collectorToken,
+        collectorConfig: {
+          heartbeatIntervalMillis: 15000,
+          maxSamplesPerBulkUpsert: 1000,
+          sampleUpsertQueueTimeMillis: 1000,
+        },
         generatorsAdded: [
           {
             name: 'Gen1',
