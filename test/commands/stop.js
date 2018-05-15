@@ -14,7 +14,7 @@ const expect = require('chai').expect;
 const fork = require('child_process').fork;
 const constants = require('./constants');
 
-describe('test/commands/stop >', () => {
+describe('test/commands/stop.js >', () => {
   const collectorName = 'collector1';
   const refocusUrl = 'http://www.refocus-stop-test.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';

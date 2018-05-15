@@ -14,6 +14,7 @@ const tracker = repeater.tracker;
 const expect = require('chai').expect;
 const ref = { url: 'mock.refocus.com' };
 const logger = require('winston');
+const MILLIS = 1000;
 logger.configure({ level: 0 });
 
 describe('test/repeater/repeater.js >', () => {
@@ -26,7 +27,7 @@ describe('test/repeater/repeater.js >', () => {
     it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -44,7 +45,7 @@ describe('test/repeater/repeater.js >', () => {
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
-      expect(ret.interval).to.equal(def.interval);
+      expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
       expect(ret.funcName).to.equal('func');
       expect(tracker.Generator0._bulk).to.equal(ret.handle);
@@ -54,7 +55,7 @@ describe('test/repeater/repeater.js >', () => {
     it('should set onProgress callback to handleCollectResponse', (done) => {
       const def = {
         name: 'Generator0.1',
-        interval: 6000,
+        intervalSecs: 6,
         context: {},
         generatorTemplate: {
           connection: {
@@ -72,7 +73,7 @@ describe('test/repeater/repeater.js >', () => {
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
-      expect(ret.interval).to.equal(def.interval);
+      expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0.1');
       expect(ret.funcName).to.equal('func');
       expect(ret.onProgress.name).to.equal('dummyOnProgress');
@@ -84,7 +85,7 @@ describe('test/repeater/repeater.js >', () => {
     'generator repeater is created', (done) => {
       const def = {
         name: 'Generator0.11',
-        interval: 10,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -103,7 +104,7 @@ describe('test/repeater/repeater.js >', () => {
         dummyOnProgress);
       setTimeout(() => {
         expect(ret.handle).to.not.equal(undefined);
-        expect(ret.interval).to.equal(def.interval);
+        expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
         expect(ret.name).to.equal('Generator0.11');
         expect(ret.funcName).to.equal('func');
         expect(tracker['Generator0.11']._bulk).to.equal(ret.handle);
@@ -115,7 +116,7 @@ describe('test/repeater/repeater.js >', () => {
     'to handleCollectResponse', (done) => {
       const obj = {
         name: 'Generator0.2',
-        interval: 6000,
+        intervalSecs: 6,
         context: {},
         generatorTemplate: {
           connection: {
@@ -132,12 +133,12 @@ describe('test/repeater/repeater.js >', () => {
       };
       repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
       obj.name = 'Generator0.2';
-      obj.interval = 60000;
+      obj.intervalSecs = 60;
       repeater.stop(obj.name);
       const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
         dummyOnProgress);
       expect(ret.handle).to.not.equal(undefined);
-      expect(ret).to.have.property('interval', obj.interval);
+      expect(ret).to.have.property('interval', MILLIS * obj.intervalSecs);
       expect(ret).to.have.property('name', 'Generator0.2');
       expect(ret).to.have.property('funcName', 'func');
       expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');

@@ -280,6 +280,7 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
+            intervalSecs: 2,
             subjectQuery: '?absolutePath=Canada',
           },
           {
@@ -292,6 +293,7 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
+            intervalSecs: 3,
             subjectQuery: '?absolutePath=Canada',
           },
         ],

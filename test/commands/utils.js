@@ -14,7 +14,7 @@ const expect = require('chai').expect;
 const configModule = require('../../src/config/config');
 const cmdUtils = require('../../src/commands/utils');
 
-describe('test/commands/utils >', () => {
+describe('test/commands/utils.js >', () => {
   describe('validateArgs >', () => {
     it('ok, valid args', (done) => {
       const args = {
