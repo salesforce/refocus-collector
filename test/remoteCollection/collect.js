@@ -30,7 +30,7 @@ describe('test/remoteCollection/collect.js >', () => {
       const remoteUrl = 'http://bart.gov.api/';
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -79,7 +79,7 @@ describe('test/remoteCollection/collect.js >', () => {
       const remoteUrl = 'http://www.xyz.com/';
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -163,7 +163,7 @@ describe('test/remoteCollection/collect.js >', () => {
       const remoteUrl1 = 'http://randonUnAvailableUrl.false/';
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -195,7 +195,7 @@ describe('test/remoteCollection/collect.js >', () => {
       'the "res" attribute', (done) => {
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -220,7 +220,7 @@ describe('test/remoteCollection/collect.js >', () => {
       const remoteUrl = 'http://www.xyz.com/';
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {
@@ -255,7 +255,7 @@ describe('test/remoteCollection/collect.js >', () => {
       const remoteUrl = 'http://www.xyz.com/';
       const generator = {
         name: 'Generator0',
-        interval: 600,
+        intervalSecs: 1,
         context: {},
         generatorTemplate: {
           connection: {

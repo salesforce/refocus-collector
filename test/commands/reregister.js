@@ -14,7 +14,7 @@ const expect = require('chai').expect;
 const fork = require('child_process').fork;
 const constants = require('./constants');
 
-describe('test/commands/reregister >', () => {
+describe('test/commands/reregister.js >', () => {
   const collectorName = 'collector1';
   const refocusUrl = 'http://www.example.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';

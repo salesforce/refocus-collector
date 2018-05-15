@@ -37,7 +37,7 @@ const generator1 = {
     url: refocusUrl,
   },
   token: 'mygeneratorusertoken',
-  interval: 6000,
+  intervalSecs: 6,
 };
 
 const generator1Updated = {
@@ -52,12 +52,12 @@ const generator1Updated = {
     url: refocusUrl,
   },
   token: 'mygeneratorusertoken',
-  interval: 12000,
+  intervalSecs: 12,
 };
 
 const generator2 = {
   name: 'generator2_heartbeat',
-  interval: 6000,
+  intervalSecs: 6,
   aspects: [{ name: 'A2' }],
   subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
@@ -75,7 +75,7 @@ const generator2 = {
 
 const generator3 = {
   name: 'generator3_heartbeat',
-  interval: 6000,
+  intervalSecs: 6,
   aspects: [{ name: 'A3' }],
   subjectQuery: '?absolutePath=S1.S2',
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],

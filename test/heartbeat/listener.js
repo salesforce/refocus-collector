@@ -54,7 +54,7 @@ describe('test/heartbeat/listener.js >', () => {
         collectors: [{ name: 'agent1' }],
         generatorTemplate: sgt,
         token: 'asd123asd',
-        interval: 6000,
+        intervalSecs: 6,
       },
     ],
     generatorsUpdated: [],
@@ -94,7 +94,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseTrustUrl: 'https://example.api' },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -121,7 +121,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseTrustUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -130,7 +130,7 @@ describe('test/heartbeat/listener.js >', () => {
     hbResponse.generatorsUpdated = [
       {
         name: 'Core_Trust3',
-        interval: 1000,
+        intervalSecs: 1,
         context: { baseTrustUrl: 'https://example.api', },
         generatorTemplate: sgt,
         subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -162,7 +162,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseTrustUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -191,7 +191,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
           context: { baseTrustUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -216,7 +216,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
           context: { baseTrustUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -247,7 +247,7 @@ describe('test/heartbeat/listener.js >', () => {
           subjects: [{ absolutePath: 'NA1' }, { absolutePath: 'NA2' }],
           context: { baseTrustUrl: 'https://example.api', },
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -272,7 +272,7 @@ describe('test/heartbeat/listener.js >', () => {
           context: { baseTrustUrl: 'https://example.api', },
           subjects: [{ absolutePath: 'NA4' }, { absolutePath: 'NA2' }],
           collectors: [{ name: 'agent1' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ],
@@ -296,7 +296,7 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'ABC_DATA',
           aspects: [{ name: 'A' }],
-          interval: 6000,
+          intervalSecs: 6,
           generatorTemplateName: 'refocus-trust1-collector',
           generatorTemplate: sgt,
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -306,7 +306,7 @@ describe('test/heartbeat/listener.js >', () => {
         {
           name: 'Fghijkl_Mnopq',
           aspects: [{ name: 'A' }],
-          interval: 1000,
+          intervalSecs: 1,
           context: { baseTrustUrl: 'https://fghijkl.data.mnopq.com', },
           generatorTemplate: sgt,
           subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
@@ -346,7 +346,7 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsAdded: {
         name: 'Fghijkl_Mnopq',
         aspects: [{ name: 'A' }],
-        interval: 1000,
+        intervalSecs: 1,
         context: { baseTrustUrl: 'https://example.api', },
       },
       generatorsDeleted: {
@@ -355,7 +355,7 @@ describe('test/heartbeat/listener.js >', () => {
       generatorsUpdated: {
         name: 'Fghijkl_Mnopq',
         aspects: [{ name: 'A' }],
-        interval: 1000,
+        intervalSecs: 1,
         context: { baseTrustUrl: 'https://example.api', },
       },
     };
@@ -364,7 +364,7 @@ describe('test/heartbeat/listener.js >', () => {
     done();
   });
 
-  describe('with encrypted context attributes', () => {
+  describe('with encrypted context attributes >', () => {
     const password = 'reallylongsecretpassword';
     const token = 'alphanumerictoken';
     const secret = 'collectortoken' + hbResponse.timestamp;
@@ -394,7 +394,7 @@ describe('test/heartbeat/listener.js >', () => {
               token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
-            interval: 6000,
+            intervalSecs: 6000,
             token: 'asd123asd',
           },
         ],
@@ -451,7 +451,7 @@ describe('test/heartbeat/listener.js >', () => {
               token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
-            interval: 6000,
+            intervalSecs: 6000,
             token: 'asd123asd',
           },
         ],
@@ -488,7 +488,7 @@ describe('test/heartbeat/listener.js >', () => {
             token: encrypt(newToken, secret, encryptionAlgorithm),
           },
           collectors: [{ name: 'agent2' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ];
@@ -539,7 +539,7 @@ describe('test/heartbeat/listener.js >', () => {
               token: encrypt(token, secret, encryptionAlgorithm),
             },
             collectors: [{ name: 'agent1' }],
-            interval: 6000,
+            intervalSecs: 6,
             token: 'asd123asd',
           },
         ],
@@ -576,7 +576,7 @@ describe('test/heartbeat/listener.js >', () => {
             token: encrypt(newToken, secret, encryptionAlgorithm),
           },
           collectors: [{ name: 'agent2' }],
-          interval: 6000,
+          intervalSecs: 6,
           token: 'asd123asd',
         },
       ];

@@ -24,7 +24,7 @@ const sgt = require('../sgt');
 require('superagent-proxy')(request);
 const constants = require('./constants');
 
-describe('test/commands/start >', () => {
+describe('test/commands/start.js >', () => {
   const collectorName = 'collector1';
   const refocusUrl = 'http://www.example.com';
   const accessToken = 'abcdefghijklmnopqrstuvwxyz';
@@ -190,6 +190,7 @@ describe('test/commands/start >', () => {
             token: 'some-dummy-token-gen1',
             generatorTemplate: sgt,
             aspects: [{ name: 'foo' }],
+            intervalSecs: 5,
             subjectQuery: '?absolutePath=Canada',
           },
           {
@@ -197,6 +198,7 @@ describe('test/commands/start >', () => {
             token: 'some-dummy-token-gen2',
             generatorTemplate: sgt,
             aspects: [{ name: 'bar' }],
+            intervalSecs: 3,
             subjectQuery: '?absolutePath=Canada',
           },
         ],

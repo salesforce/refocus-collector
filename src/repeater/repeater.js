@@ -252,7 +252,7 @@ function create(def) {
 function createGeneratorRepeater(generator, func, onProgress) {
   return create({
     name: generator.name,
-    interval: generator.interval,
+    interval: 1000 * generator.intervalSecs, // convert to millis
     func: () => func(generator),
     onProgress,
     bulk: u.isBulk(generator),

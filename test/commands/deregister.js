@@ -12,7 +12,7 @@
 'use strict'; // eslint-disable-line strict
 const expect = require('chai').expect;
 
-describe('test/commands/deregister >', () => {
+describe('test/commands/deregister.js >', () => {
   // TODO: child process fails on travis with error
   // /bin/sh: 1: refocus-collector: not found
   it('logs the expected result', (done) => {
