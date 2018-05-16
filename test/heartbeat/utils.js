@@ -303,8 +303,8 @@ describe('test/heartbeat/utils.js >', () => {
       hu.addGenerators(heartbeatResp);
       const qGen1 = q.get(genName1);
       const qGen2 = q.get(genName2);
-      expect(qGen1._size).to.be.equal(100);
-      expect(qGen2._size).to.be.equal(100);
+      expect(qGen1._size).to.be.equal(1000);
+      expect(qGen2._size).to.be.equal(1000);
       done();
     });
   });
@@ -313,7 +313,7 @@ describe('test/heartbeat/utils.js >', () => {
     const token = 'abcdefg-hijklmnop';
     const collectorConfig = {
       heartbeatIntervalMillis: 50,
-      maxSamplesPerBulkRequest: 1000,
+      maxSamplesPerBulkUpsert: 1000,
       sampleUpsertQueueTime: 4000,
     };
 
@@ -330,7 +330,7 @@ describe('test/heartbeat/utils.js >', () => {
 
       hu.createOrUpdateGeneratorQueue('qName1', token, collectorConfig);
       const qGen1 = q.get('qName1');
-      expect(qGen1._size).to.be.equal(100);
+      expect(qGen1._size).to.be.equal(1000);
       done();
     });
 

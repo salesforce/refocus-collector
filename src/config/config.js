@@ -57,7 +57,7 @@ function getDefaultConfig() {
    *     // from the "collectorConfig" attribute of the
    *     // POST /v1/collectors/:key/heartbeat response
    *     heartbeatIntervalMillis: [INTEGER],
-   *     maxSamplesPerBulkRequest: [INTEGER],
+   *     maxSamplesPerBulkUpsert: [INTEGER],
    *     sampleUpsertQueueTime: [INTEGER],
    *
    *     // plus any other parameters returned in the "collectorConfig" attribute
@@ -97,7 +97,7 @@ function getDefaultConfig() {
     // overridden from response from Refocus
     refocus: {
       heartbeatIntervalMillis: 15000,
-      maxSamplesPerBulkRequest: 100,
+      maxSamplesPerBulkUpsert: 1000,
       sampleUpsertQueueTimeMillis: 1000,
     },
     generators: {},

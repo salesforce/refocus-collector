@@ -40,7 +40,7 @@ describe('test/heartbeat/listener.js >', () => {
   const hbResponse = {
     collectorConfig: {
       heartbeatIntervalMillis: 50,
-      maxSamplesPerBulkRequest: 10,
+      maxSamplesPerBulkUpsert: 10,
       status: 'Running',
     },
     encryptionAlgorithm,
@@ -83,7 +83,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -110,7 +110,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -150,7 +150,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -180,7 +180,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -204,7 +204,7 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedRes = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 50,
+        maxSamplesPerBulkUpsert: 50,
         status: 'Running',
       },
       generatorsUpdated: [
@@ -235,7 +235,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -260,7 +260,7 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedRes = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsUpdated: [
@@ -289,7 +289,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: [
@@ -319,7 +319,7 @@ describe('test/heartbeat/listener.js >', () => {
     const resDel = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsDeleted: [
@@ -340,7 +340,7 @@ describe('test/heartbeat/listener.js >', () => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
-        maxSamplesPerBulkRequest: 10,
+        maxSamplesPerBulkUpsert: 10,
         status: 'Running',
       },
       generatorsAdded: {
@@ -378,7 +378,7 @@ describe('test/heartbeat/listener.js >', () => {
       const res = {
         collectorConfig: {
           heartbeatIntervalMillis: 50,
-          maxSamplesPerBulkRequest: 10,
+          maxSamplesPerBulkUpsert: 10,
           status: 'Running',
         },
         encryptionAlgorithm,
@@ -418,7 +418,7 @@ describe('test/heartbeat/listener.js >', () => {
       const res = {
         collectorConfig: {
           heartbeatIntervalMillis: 50,
-          maxSamplesPerBulkRequest: 10,
+          maxSamplesPerBulkUpsert: 10,
           status: 'Running',
         },
         encryptionAlgorithm,
@@ -506,7 +506,7 @@ describe('test/heartbeat/listener.js >', () => {
       const res = {
         collectorConfig: {
           heartbeatIntervalMillis: 50,
-          maxSamplesPerBulkRequest: 10,
+          maxSamplesPerBulkUpsert: 10,
           status: 'Running',
         },
         encryptionAlgorithm,

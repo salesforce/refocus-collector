@@ -210,8 +210,8 @@ describe('test/commands/start.js >', () => {
         expect(repeater.tracker).to.have.property('heartbeat');
         const qGen1 = q.get('Gen1');
         const qGen2 = q.get('Gen2');
-        expect(qGen1._size).to.be.equal(100);
-        expect(qGen2._size).to.be.equal(100);
+        expect(qGen1._size).to.be.equal(1000);
+        expect(qGen2._size).to.be.equal(1000);
         repeater.stop('heartbeat');
         done();
       })

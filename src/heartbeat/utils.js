@@ -143,8 +143,8 @@ function createOrUpdateGeneratorQueue(qName, token, collConf) {
     }
 
     // update queue params
-    if (collConf.maxSamplesPerBulkRequest) {
-      queue.updateSize(qName, collConf.maxSamplesPerBulkRequest);
+    if (collConf.maxSamplesPerBulkUpsert) {
+      queue.updateSize(qName, collConf.maxSamplesPerBulkUpsert);
     }
 
     if (collConf.sampleUpsertQueueTime) {
@@ -158,7 +158,7 @@ function createOrUpdateGeneratorQueue(qName, token, collConf) {
   const cr = configModule.getConfig().refocus;
   return queue.create({
     name: qName,
-    size: cr.maxSamplesPerBulkRequest,
+    size: cr.maxSamplesPerBulkUpsert,
     flushTimeout: cr.sampleUpsertQueueTime,
     verbose: false,
     flushFunction: httpUtils.doBulkUpsert,
