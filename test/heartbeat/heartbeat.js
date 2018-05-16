@@ -93,7 +93,7 @@ const errorResponse = {
 const hbResponseNoSG = {
   collectorConfig: {
     heartbeatIntervalMillis: 50,
-    maxSamplesPerBulkRequest: 10,
+    maxSamplesPerBulkUpsert: 10,
     sampleUpsertQueueTime: 100,
     status: 'Running',
   },
@@ -105,7 +105,7 @@ const hbResponseNoSG = {
 const hbResponseWithSG = {
   collectorConfig: {
     heartbeatIntervalMillis: 20,
-    maxSamplesPerBulkRequest: 100,
+    maxSamplesPerBulkUpsert: 100,
     status: 'Running',
   },
   generatorsAdded: [
@@ -118,7 +118,7 @@ const hbResponseWithSG = {
 const hbResponseStatusPaused = {
   collectorConfig: {
     heartbeatIntervalMillis: 20,
-    maxSamplesPerBulkRequest: 100,
+    maxSamplesPerBulkUpsert: 100,
     status: 'Paused',
   },
   generatorsAdded: [
@@ -130,7 +130,7 @@ const hbResponseStatusPaused = {
 const hbResponseStatusStopped = {
   collectorConfig: {
     heartbeatIntervalMillis: 120,
-    maxSamplesPerBulkRequest: 300,
+    maxSamplesPerBulkUpsert: 300,
     status: 'Stopped',
   },
 };
@@ -138,7 +138,7 @@ const hbResponseStatusStopped = {
 const hbResponseWithSGToDelete = {
   collectorConfig: {
     heartbeatIntervalMillis: 99,
-    maxSamplesPerBulkRequest: 999,
+    maxSamplesPerBulkUpsert: 999,
     status: 'Running',
   },
   generatorsAdded: [
@@ -154,7 +154,7 @@ const hbResponseWithSGToDelete = {
 const hbResponseWithSGToUpdate = {
   collectorConfig: {
     heartbeatIntervalMillis: 120,
-    maxSamplesPerBulkRequest: 7000,
+    maxSamplesPerBulkUpsert: 7000,
     status: 'Running',
   },
   generatorsAdded: [
