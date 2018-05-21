@@ -144,14 +144,17 @@ module.exports = {
     }
 
     function doTraverse(obj) {
-      keys.forEach((key) => {
-        if (obj.hasOwnProperty(key) && typeof obj[key] === 'string') {
-          obj[key] = '...' + obj[key].slice(-5);
-        }
-      });
-      Object.keys(obj)
-      .filter((k) => typeof obj[k] === 'object' && !Array.isArray(obj[k]))
-      .forEach((k) => obj[k] = doTraverse(obj[k]));
+      if (obj) {
+        keys.forEach((key) => {
+          if (obj.hasOwnProperty(key) && typeof obj[key] === 'string') {
+            obj[key] = '...' + obj[key].slice(-5);
+          }
+        });
+        Object.keys(obj)
+        .filter((k) => typeof obj[k] === 'object' && !Array.isArray(obj[k]))
+        .forEach((k) => obj[k] = doTraverse(obj[k]));
+      }
+
       return obj;
     }
 
