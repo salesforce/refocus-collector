@@ -22,7 +22,6 @@ const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const heartbeat = require('../heartbeat/heartbeat');
 const hbUtils = require('../heartbeat/utils');
 const doPost = require('../utils/httpUtils.js').doPost;
-const checkFor429 = require('../utils/httpUtils.js').checkFor429;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
 
