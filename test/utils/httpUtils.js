@@ -28,6 +28,7 @@ describe('test/utils/httpUtils.js >', () => {
   const collectorName = 'collector1_for_httpUtils';
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
   const refocusProxy = 'http://abcProxy.com';
+  const intervalSecs = 400;
 
   describe('doPost >', () => {
     it('post ok, with body', (done) => {
@@ -84,7 +85,7 @@ describe('test/utils/httpUtils.js >', () => {
       const errorResponse = {
         error: 'Forbidden error with heartbeat',
       };
-      const reregisterEndpoint = `/v1/collectors/${collectorName}/reregersiter`;
+      const reregisterEndpoint = `/v1/collectors/${collectorName}/reregister`;
       nock(refocusUrl, {
         reqheaders: { authorization: '1nv5l19aT0k3n' },
       })
@@ -97,6 +98,31 @@ describe('test/utils/httpUtils.js >', () => {
       .catch((err) => {
         expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
         expect(err.response.body).deep.equal(errorResponse);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('post ok, returns 429 error but retries and succeeds', (done) => {
+      const errorResponse = {
+        error: 'Too many requests',
+      };
+      const responseHeader = {
+        'Retry-After': .2,
+      };
+      const reregisterEndpoint = `/v1/collectors/${collectorName}/reregister`;
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyToken },
+      })
+      .post(reregisterEndpoint, { name: collectorName })
+      .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
+      .post(reregisterEndpoint, { name: collectorName })
+      .reply(httpStatus.OK);
+
+      httpUtils.doPost(refocusUrl + reregisterEndpoint,
+        dummyToken, null, { name: collectorName })
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
         done();
       })
       .catch(done);
@@ -133,7 +159,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('arr arg is not an array', (done) => {
-      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, 'Hi')
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, intervalSecs, null, 'Hi')
       .then((res) =>
         expect(res).to.have.property('name', 'ValidationError'))
       .then(() => done())
@@ -151,7 +177,7 @@ describe('test/utils/httpUtils.js >', () => {
     it('test to show handling failed bulkUpsert response');
 
     it('empty array is ok no-op', (done) => {
-      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, null, [])
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken, intervalSecs, null, [])
       .then((res) => done())
       .catch(done);
     });
@@ -178,10 +204,11 @@ describe('test/utils/httpUtils.js >', () => {
         .reply(httpStatus.OK, { status: 'OK' });
 
       const spy = sinon.spy(request, 'post');
-      httpUtils.doBulkUpsert(refocusUrl + bulkUpsertEndpoint, dummyUserToken,
-        refocusProxy, sampleArr)
-      .then(() => {
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken,
+        intervalSecs, refocusProxy, sampleArr)
+      .then((res) => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
+        expect(res.status).to.equal(httpStatus.OK);
         spy.restore();
         done();
       })
@@ -197,10 +224,11 @@ describe('test/utils/httpUtils.js >', () => {
         .reply(httpStatus.OK, { status: 'OK' });
 
       const spy = sinon.spy(request, 'post');
-      httpUtils.doBulkUpsert(refocusUrl + bulkUpsertEndpoint, dummyUserToken,
-        null, sampleArr)
-      .then(() => {
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken,
+        intervalSecs, null, sampleArr)
+      .then((res) => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+        expect(res.status).to.equal(httpStatus.OK);
         spy.restore();
         done();
       })
@@ -208,6 +236,59 @@ describe('test/utils/httpUtils.js >', () => {
         spy.restore();
         done(err);
       });
+    });
+
+    it('ok, retry on 429', (done) => {
+      const errorResponse = {
+        error: 'Too many requests',
+      };
+      const responseHeader = {
+        'Retry-After': .2,
+      };
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
+      })
+      .post(bulkUpsertEndpoint, sampleArr)
+      .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
+      .post(bulkUpsertEndpoint, sampleArr)
+      .reply(httpStatus.OK, mockedResponse.bulkUpsertPostOk);
+
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken,
+        intervalSecs, null, sampleArr)
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        expect(res.body).to.deep.equal(mockedResponse.bulkUpsertPostOk);
+        done();
+      })
+      .catch(done);
+    });
+
+    it('drop request because retrying for too long', (done) => {
+      const errorResponse = {
+        error: 'Too many requests',
+      };
+      const responseHeader = {
+        'retry-after': .2,
+      };
+      nock(refocusUrl)
+        .post(bulkUpsertEndpoint, sampleArr)
+        .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
+        .post(bulkUpsertEndpoint, sampleArr)
+        .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
+
+        // this request should not take place, because we've spent more
+        // than intervalSecs time on retrying
+        .post(bulkUpsertEndpoint, sampleArr)
+        .reply(httpStatus.OK, { status: 'OK' });
+
+      httpUtils.doBulkUpsert(refocusUrl, dummyUserToken,
+        intervalSecs, null, sampleArr)
+      .then((res) => {
+        const timeSpent = /[0-9]+/.exec(res);
+        expect(res).to.equal(`doBulkUpsert request dropped after ${timeSpent} milliseconds`);
+        done();
+      })
+      .catch(done);
     });
   });
 
@@ -296,6 +377,32 @@ describe('test/utils/httpUtils.js >', () => {
         spy.restore();
         done(err);
       });
+    });
+
+    it('ok, returns 429 error but retries and succeeds', (done) => {
+      const errorResponse = {
+        error: 'Too many requests',
+      };
+      const responseHeader = {
+        'Retry-After': .2,
+      };
+      nock(refocusUrl, {
+        reqheaders: { authorization: dummyUserToken },
+      })
+      .get(findSubjectsEndpoint)
+      .query({ absolutePath: 'NorthAmerica.Canada' })
+      .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
+      .get(findSubjectsEndpoint)
+      .query({ absolutePath: 'NorthAmerica.Canada' })
+      .reply(httpStatus.OK, mockedResponse.foundSubjects);
+
+      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q)
+      .then((res) => {
+        expect(res.status).to.equal(httpStatus.OK);
+        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        done();
+      })
+      .catch(done);
     });
   });
 });

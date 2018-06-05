@@ -30,6 +30,7 @@ module.exports = {
     FORBIDDEN: 403,
     NOT_FOUND: 404,
     NOT_ALLOWED: 405,
+    TOO_MANY_REQUESTS: 429,
     SERVICE_UNAVAILABLE: 503,
   },
 

@@ -28,24 +28,66 @@ const logger = require('winston');
  * @param  {Object} body - The optional post body.
  * @returns {Promise} which resolves to the post response
  */
-function doPost(url, token, proxy, body) {
-  const req = request.post(url)
-    .send(body || {})
-    .set('Authorization', token);
-  if (proxy) req.proxy(proxy);
-  return req;
+function doPost(url, token, proxy, body, intervalSecs = Infinity) {
+  const start = Date.now();
+  return new Promise((resolve, reject) => {
+    makeRequestWithRetry(makeRequest, resolve, reject);
+
+    function makeRequest() {
+      const timeSpent = Date.now() - start;
+
+      if (timeSpent >= intervalSecs) {
+        debug('doBulkUpsert request dropped after %d milliseconds', timeSpent);
+        logger.info({
+          activity: 'abandonBulkUpsert',
+          timeSpent: timeSpent,
+        });
+        return new Promise((resolve, reject) => {
+          reject(`doBulkUpsert request dropped after ${timeSpent} milliseconds`);
+        });
+      }
+
+      const req = request.post(url)
+        .send(body || {})
+        .set('Authorization', token);
+      if (proxy) req.proxy(proxy);
+      return req;
+    }
+  });
 } // doPost
+
+/**
+ * Retry api requests on 429 errors
+ *
+ * @param  {Function} makeRequest - The request to attempt
+ * @param  {Function} resolve - The resolve function from the calling Promise
+ * @param  {Function} reject - The reject function from the calling Promise
+ * @returns {Promise} which contains successful response or failed error
+ */
+function makeRequestWithRetry(makeRequest, resolve, reject) {
+  return makeRequest().then(res => resolve(res), err => {
+    // console.log('status: ', err.status)
+    if (err.status === 429) {
+      const waitTime = err.response.headers['retry-after'] * 1000; //convert to milliseconds
+      setTimeout(() => makeRequestWithRetry(makeRequest, resolve, reject), waitTime);
+    } else {
+      reject(err);
+    }
+  });
+}
 
 /**
  * Send the upsert and handle any errors in the response.
  *
- * @param {Array} arr is the array of samples to upsert;
+ * @param {String} url - The url to post to.
  * @param {String} userToken - The authorization token to be set in the headers
- * @throws {ValidationError} if argument(s) is missing,
- * or in a wrong format.
+ * @param {Number} intervalSecs - time until generator has new data available
+ * @param {String} proxy - Optional proxy url
+ * @param {Array} arr is the array of samples to upsert;
+ * @throws {ValidationError} if argument(s) is missing, or in a wrong format.
  * @returns {Promise} contains a successful response, or failed error
  */
-function doBulkUpsert(url, userToken, proxy, arr) {
+function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   if (!userToken) {
     const e = new ValidationError('doBulkUpsert missing token');
     logger.error(e.message);
@@ -72,24 +114,24 @@ function doBulkUpsert(url, userToken, proxy, arr) {
   url += bulkUpsertEndpoint;
   return new Promise((resolve, reject) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
-    doPost(url, userToken, proxy, arr)
-    .end((err, res) => {
-      if (err) {
-        debug('doBulkUpsert err %O', err);
-        logger.error(err.message);
-        /*
-         * Don't Promise.reject(...) this error, because there is no handler
-         * for the rejection.
-         */
-        return resolve(err);
-      }
-
+    doPost(url, userToken, proxy, arr, intervalSecs)
+    .then(res => {
       debug('doBulkUpsert returned OK %O', res.body);
       logger.info({
         activity: 'bulkUpsert',
         numSamples: arr.length,
       });
       return resolve(res);
+    },
+
+    err => {
+      debug('doBulkUpsert err %O', err);
+      logger.error(err.message);
+      /*
+       * Don't Promise.reject(...) this error, because there is no handler
+       * for the rejection.
+       */
+      return resolve(err);
     });
   });
 } // doBulkUpsert
@@ -101,6 +143,7 @@ function doBulkUpsert(url, userToken, proxy, arr) {
  * @param  {String} token - The Authorization token to use.
  * @param  {String} proxy - Optional proxy url
  * @param {String} qry - the query string
+ * @throws {ValidationError} if argument(s) is missing
  * @returns {Promise} array of subjects matching the query
  */
 function findSubjects(url, token, proxy, qry) {
@@ -124,13 +167,19 @@ function findSubjects(url, token, proxy, qry) {
     return Promise.reject(e);
   }
 
-  const req = request.get(url + findSubjectsEndpoint)
-    .query(qry.startsWith('?') ? qry.slice(1) : qry)
-    .set('Authorization', token);
-  if (proxy) req.proxy(proxy);
-  return req.then((res) => {
-    debug('findSubjects returning %O', res.body);
-    return res;
+  return new Promise((resolve, reject) => {
+    makeRequestWithRetry(makeRequest, resolve, reject);
+
+    function makeRequest() {
+      const req = request.get(url + findSubjectsEndpoint)
+        .query(qry.startsWith('?') ? qry.slice(1) : qry)
+        .set('Authorization', token);
+      if (proxy) req.proxy(proxy);
+      return req.then((res) => {
+        debug('findSubjects returning %O', res.body);
+        return res;
+      });
+    }
   });
 } // getSubjects
 
