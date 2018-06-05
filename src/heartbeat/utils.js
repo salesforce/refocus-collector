@@ -129,11 +129,13 @@ function setupRepeater(generator) {
  * Update queue for sample generator (if found), or create a new one.
  *
  * @param  {String} qName - Queue name
+ * @param  {String} token - The Authorization token to use.
+ * @param  {Number} intervalSecs - time before generator will have new data available
  * @param  {Object} collConf - The collectorConfig from the start or heartbeat
  *  response
  * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, token, collConf) {
+function createOrUpdateGeneratorQueue(qName, token, intervalSecs, collConf) {
   debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
     qName, token ? 'HAS TOKEN' : 'MISSING TOKEN', collConf);
   if (!qName) throw new errors.ValidationError('Missing queue name');
@@ -165,6 +167,7 @@ function createOrUpdateGeneratorQueue(qName, token, collConf) {
     proxy: cr.proxy,
     url: cr.url,
     token: token,
+    intervalSecs: intervalSecs,
   });
 } // createOrUpdateGeneratorQueue
 
@@ -198,7 +201,7 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
+      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs, res.collectorConfig || {});
       setupRepeater(g);
       const sanitized = sanitize(g, ['token']);
       debug('Generator added: %O', sanitized);
