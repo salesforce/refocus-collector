@@ -19,7 +19,7 @@ const sinon = require('sinon');
 require('superagent-proxy')(request);
 const nock = require('nock');
 const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
-const findSubjectsEndpoint = require('../../src/constants').findSubjectsEndpoint;
+const subjectsEndpoint = require('../../src/constants').attachSubjectsToGeneratorEndpoint;
 
 describe('test/utils/httpUtils.js >', () => {
   const refocusUrl = 'http://dummy.refocus.url';
@@ -292,28 +292,41 @@ describe('test/utils/httpUtils.js >', () => {
     });
   });
 
-  describe('findSubjects >', () => {
+  describe('attachSubjectsToGenerator >', () => {
     const q = '?absolutePath=NorthAmerica.Canada';
+    const generator = {
+      refocus: {
+        url: refocusUrl,
+        proxy: refocusProxy,
+      },
+      token: dummyUserToken,
+      subjectQuery: q,
+    };
 
     it('ok, query starts with "?"', (done) => {
       nock(refocusUrl, {
         reqheaders: { authorization: dummyUserToken },
       })
-      .get(findSubjectsEndpoint)
+      .get(subjectsEndpoint)
       .query({ absolutePath: 'NorthAmerica.Canada' })
       .reply(httpStatus.OK, mockedResponse.foundSubjects);
 
-      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q)
+      const g = JSON.parse(JSON.stringify(generator));
+      g.refocus.proxy = null;
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then((res) => {
-        expect(res.status).to.equal(httpStatus.OK);
-        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
         done();
       })
       .catch(done);
     });
 
     it('missing url', (done) => {
-      httpUtils.findSubjects(null, dummyUserToken, null, q)
+      const g = JSON.parse(JSON.stringify(generator));
+      g.refocus = {};
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then(() => done(new Error('Expecting error')))
       .catch((err) => {
         expect(err).to.have.property('message', 'Missing refocus url');
@@ -322,7 +335,11 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('missing query', (done) => {
-      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, '')
+      const g = JSON.parse(JSON.stringify(generator));
+      g.subjectQuery = '';
+      g.refocus.proxy = null;
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then(() => done(new Error('Expecting error')))
       .catch((err) => {
         expect(err).to.have.property('message', 'Missing subject query');
@@ -331,7 +348,11 @@ describe('test/utils/httpUtils.js >', () => {
     });
 
     it('missing token', (done) => {
-      httpUtils.findSubjects(refocusUrl, null, null, q)
+      const g = JSON.parse(JSON.stringify(generator));
+      g.token = null;
+      g.refocus.proxy = null;
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then(() => done(new Error('Expecting error')))
       .catch((err) => {
         expect(err).to.have.property('message', 'Missing token');
@@ -343,14 +364,17 @@ describe('test/utils/httpUtils.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: dummyUserToken },
       })
-      .get(findSubjectsEndpoint)
+      .get(subjectsEndpoint)
       .query({ absolutePath: 'NorthAmerica.Canada' })
       .reply(httpStatus.OK, mockedResponse.foundSubjects);
 
-      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q.slice(1))
+      const g = JSON.parse(JSON.stringify(generator));
+      g.refocus.proxy = null;
+      g.subjectQuery = q.slice(1);
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then((res) => {
-        expect(res.status).to.equal(httpStatus.OK);
-        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
         done();
       })
       .catch(done);
@@ -360,15 +384,16 @@ describe('test/utils/httpUtils.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: dummyUserToken },
       })
-      .get(findSubjectsEndpoint)
+      .get(subjectsEndpoint)
       .query({ absolutePath: 'NorthAmerica.Canada' })
       .reply(httpStatus.OK, mockedResponse.foundSubjects);
 
+      const g = JSON.parse(JSON.stringify(generator));
+
       const spy = sinon.spy(request, 'get');
-      httpUtils.findSubjects(refocusUrl, dummyUserToken, refocusProxy, q)
+      httpUtils.attachSubjectsToGenerator(g)
       .then((res) => {
-        expect(res.status).to.equal(httpStatus.OK);
-        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
         expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
         spy.restore();
         done();
@@ -389,17 +414,19 @@ describe('test/utils/httpUtils.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: dummyUserToken },
       })
-      .get(findSubjectsEndpoint)
+      .get(subjectsEndpoint)
       .query({ absolutePath: 'NorthAmerica.Canada' })
       .reply(httpStatus.TOO_MANY_REQUESTS, errorResponse, responseHeader)
-      .get(findSubjectsEndpoint)
+      .get(subjectsEndpoint)
       .query({ absolutePath: 'NorthAmerica.Canada' })
       .reply(httpStatus.OK, mockedResponse.foundSubjects);
 
-      httpUtils.findSubjects(refocusUrl, dummyUserToken, null, q)
+      const g = JSON.parse(JSON.stringify(generator));
+      g.refocus.proxy = null;
+
+      httpUtils.attachSubjectsToGenerator(g)
       .then((res) => {
-        expect(res.status).to.equal(httpStatus.OK);
-        expect(res.body).to.deep.equal(mockedResponse.foundSubjects);
+        expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
         done();
       })
       .catch(done);

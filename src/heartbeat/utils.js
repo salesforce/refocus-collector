@@ -20,9 +20,12 @@ const queue = require('../utils/queue');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
-const collect = require('../remoteCollection/collect').collect;
+const collectBulk = require('../remoteCollection/collect').collectBulk;
+const collectNonBulk = require('../remoteCollection/collect').collectNonBulk;
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
+const handleCollectResponseNonBulk =
+  require('../remoteCollection/handleCollectResponse').handleCollectResponseNonBulk;
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.
@@ -114,14 +117,10 @@ function setupRepeater(generator) {
   debug('setupRepeater %O', sanitized);
   if (commonUtils.isBulk(generator)) {
     debug('Generator %s is bulk', generator.name);
-    repeater.createGeneratorRepeater(generator, collect, handleCollectResponse);
+    repeater.createGeneratorRepeater(generator, collectBulk, handleCollectResponse);
   } else {
-    // FIXME bulk is false
-    generator.subjects.forEach((s) => {
-      const _g = JSON.parse(JSON.stringify(generator));
-      _g.subjects = [s];
-      repeater.createGeneratorRepeater(_g, collect, handleCollectResponse);
-    });
+    debug('Generator %s is non-bulk', generator.name);
+    repeater.createGeneratorRepeater(generator, collectNonBulk, handleCollectResponseNonBulk);
   }
 } // setupRepeater
 

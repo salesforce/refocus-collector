@@ -18,7 +18,7 @@ module.exports = {
   bulkUpsertEndpoint: '/v1/samples/upsert/bulk',
 
   // subject find, use with config.refocus.url
-  findSubjectsEndpoint: '/v1/subjects',
+  attachSubjectsToGeneratorEndpoint: '/v1/subjects',
 
   httpStatus: {
     OK: 200,

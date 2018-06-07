@@ -243,7 +243,7 @@ function create(def) {
  *
  * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
+ *  {Number} intervalSecs - required, repeat interval in milliseconds
  * @param {Function} func - pass in the function to call on each interval
  * @param {Function} onProgress - pass in the function call after each
  *  repetition

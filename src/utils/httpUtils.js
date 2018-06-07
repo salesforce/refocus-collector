@@ -15,7 +15,7 @@ const ValidationError = require('../errors').ValidationError;
 const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
-const findSubjectsEndpoint = require('../constants').findSubjectsEndpoint;
+const attachSubjectsToGeneratorEndpoint = require('../constants').attachSubjectsToGeneratorEndpoint;
 const logger = require('winston');
 
 /**
@@ -139,31 +139,37 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
 /**
  * Find Refocus subjects using query parameters.
  *
- * @param  {String} url - The Refocus url.
- * @param  {String} token - The Authorization token to use.
- * @param  {String} proxy - Optional proxy url
- * @param {String} qry - the query string
+ * @param {Object} generator - Generator object from the heartbeat. Contains:
+ *  {String} url - The Refocus url.
+ *  {String} token - The Authorization token to use.
+ *  {String} proxy - Optional proxy url
+ *  {String} qry - the query string
  * @throws {ValidationError} if argument(s) is missing
  * @returns {Promise} array of subjects matching the query
  */
-function findSubjects(url, token, proxy, qry) {
-  debug('findSubjects(url=%s, token=%s, proxy=%s, qry=%s)', url,
+function attachSubjectsToGenerator(generator) {
+  const url = generator.refocus.url;
+  const token = generator.token;
+  const proxy = generator.refocus.proxy;
+  const qry = generator.subjectQuery;
+
+  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, qry=%s)', url,
     token ? 'HAS_TOKEN' : 'MISSING', proxy, qry);
   if (!url) {
     const e = new ValidationError('Missing refocus url');
-    logger.error('findSubjects', e.message);
+    logger.error('attachSubjectsToGenerator', e.message);
     return Promise.reject(e);
   }
 
   if (!qry) {
     const e = new ValidationError('Missing subject query');
-    logger.error('findSubjects', e.message);
+    logger.error('attachSubjectsToGenerator', e.message);
     return Promise.reject(e);
   }
 
   if (!token) {
     const e = new ValidationError('Missing token');
-    logger.error('findSubjects', e.message);
+    logger.error('attachSubjectsToGenerator', e.message);
     return Promise.reject(e);
   }
 
@@ -171,20 +177,21 @@ function findSubjects(url, token, proxy, qry) {
     makeRequestWithRetry(makeRequest, resolve, reject);
 
     function makeRequest() {
-      const req = request.get(url + findSubjectsEndpoint)
+      const req = request.get(url + attachSubjectsToGeneratorEndpoint)
         .query(qry.startsWith('?') ? qry.slice(1) : qry)
         .set('Authorization', token);
       if (proxy) req.proxy(proxy);
       return req.then((res) => {
-        debug('findSubjects returning %O', res.body);
-        return res;
+        debug('attachSubjectsToGenerator returning %O', res.body);
+        generator.subjects = res.body || [];
+        return generator;
       });
     }
   });
-} // getSubjects
+} // attachSubjectsToGenerator
 
 module.exports = {
   doBulkUpsert,
   doPost,
-  findSubjects,
+  attachSubjectsToGenerator,
 };

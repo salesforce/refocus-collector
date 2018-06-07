@@ -17,6 +17,7 @@ const queue = require('../utils/queue');
 const httpStatus = require('../constants').httpStatus;
 const commonUtils = require('../utils/commonUtils');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
+const prepareRemoteRequest = require('../remoteCollection/collect').prepareRemoteRequest;
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -98,6 +99,26 @@ function prepareTransformArgs(generator) {
 } // prepareTransformArgs
 
 /**
+ * Takes each subject from the generator and makes a separate request
+ * to the appropriate endpoint. Then enqueues each sample with handleCollectResponse
+ *
+ * @param  {Promise} generatorPromise - Promise that resolves to generator object
+ * @returns {Promise} - which resolves to the queue length after enqueuing, or
+ *  an error.
+ * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
+ */
+function handleCollectResponseNonBulk(generatorPromise) {
+  return generatorPromise.then((g) => {
+    // need to clone generator because we are doing async operation with generator data
+    g.subjects.forEach((subject) => {
+      const _g = JSON.parse(JSON.stringify(g));
+      _g.subjects = [subject];
+      handleCollectResponse(prepareRemoteRequest(_g));
+    });
+  });
+} // handleCollectResponseNonBulk
+
+/**
  * Handles the response from the remote data source by calling the transform
  * function, then enqueuing the samples from that response for bulk upsert.
  *
@@ -160,6 +181,7 @@ function handleCollectResponse(collectResponse) {
 
 module.exports = {
   handleCollectResponse,
+  handleCollectResponseNonBulk,
   validateCollectResponse, // export for testing only
   prepareTransformArgs, // export for testing only
 };
