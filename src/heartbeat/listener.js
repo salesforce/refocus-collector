@@ -38,7 +38,6 @@ module.exports = (err, res) => {
 
   const config = configModule.getConfig();
   if (res && res.collectorConfig) {
-    console.log(res);
     const cc = res.collectorConfig;
     utils.changeCollectorStatus(config.refocus.status, cc.status);
     utils.updateCollectorConfig(cc);

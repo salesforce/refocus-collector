@@ -96,7 +96,6 @@ function sendRemoteRequest(generator) {
  * @throws {ValidationError} if thrown by prepareUrl
  */
 function prepareRemoteRequest(generator) {
-  // console.log(generator);
   if (generator.generatorTemplate.connection.simple_oauth) {
     const method = generator.generatorTemplate.connection.simple_oauth;
     const simpleOauth = generator.simple_oauth;

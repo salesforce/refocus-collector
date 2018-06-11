@@ -335,7 +335,6 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     function checkLogs(expected) {
-      console.log(winston.info.args);
       expect(winston.info.calledOnce).to.be.true;
       expect(winston.info.args[0][0])
         .to.have.property('generator', 'mockGenerator');
