@@ -39,15 +39,7 @@ const tracker = {};
  * @param  {Object} def - Repeater definition object
  */
 function trackRepeater(def) {
-  if (!def.hasOwnProperty('bulk')) {
-    tracker[def.name] = def.handle;
-  } else if (def.bulk === true) {
-    tracker[def.name] = { _bulk: def.handle };
-  } else if (def.bulk === false && tracker[def.name]) {
-    tracker[def.name][def.subjects[0].absolutePath] = def.handle;
-  } else if (def.bulk === false && !tracker[def.name]) {
-    tracker[def.name] = { [def.subjects[0].absolutePath]: def.handle };
-  }
+  tracker[def.name] = def.handle;
 } // trackRepeater
 
 /**

@@ -66,9 +66,9 @@ function doPost(url, token, proxy, body, intervalSecs = Infinity) {
  */
 function makeRequestWithRetry(makeRequest, resolve, reject) {
   return makeRequest().then(res => resolve(res), err => {
-    // console.log('status: ', err.status)
     if (err.status === 429) {
       const waitTime = err.response.headers['retry-after'] * 1000; //convert to milliseconds
+      debug('Request got 429 error. Retrying after %d milliseconds...', waitTime);
       setTimeout(() => makeRequestWithRetry(makeRequest, resolve, reject), waitTime);
     } else {
       reject(err);

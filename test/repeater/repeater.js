@@ -24,7 +24,7 @@ describe('test/repeater/repeater.js >', () => {
     const dummyFunc = (x) => x;
     const dummyOnProgress = (x) => x;
 
-    it('should start a new generator repeat', (done) => {
+    it.only('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
         intervalSecs: 1,
@@ -44,11 +44,12 @@ describe('test/repeater/repeater.js >', () => {
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
+      console.log(ret);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
       expect(ret.funcName).to.equal('func');
-      expect(tracker.Generator0._bulk).to.equal(ret.handle);
+      expect(tracker.Generator0).to.equal(ret.handle);
       done();
     });
 

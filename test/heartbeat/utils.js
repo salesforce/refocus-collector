@@ -303,6 +303,7 @@ describe('test/heartbeat/utils.js >', () => {
       hu.addGenerators(heartbeatResp);
       const qGen1 = q.get(genName1);
       const qGen2 = q.get(genName2);
+      console.log(qGen1);
       expect(qGen1._size).to.be.equal(1000);
       expect(qGen2._size).to.be.equal(1000);
       done();
