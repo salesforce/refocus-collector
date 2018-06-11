@@ -102,7 +102,7 @@ describe('test/heartbeat/listener.js >', () => {
     const updatedConfig = listener(null, res);
     expect(updatedConfig.generators.Core_Trust2)
       .to.deep.equal(res.generatorsAdded[0]);
-    expect(tracker.Core_Trust2._bulk).not.equal(undefined);
+    expect(tracker.Core_Trust2).not.equal(undefined);
     done();
   });
 

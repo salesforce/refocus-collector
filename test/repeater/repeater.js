@@ -24,7 +24,7 @@ describe('test/repeater/repeater.js >', () => {
     const dummyFunc = (x) => x;
     const dummyOnProgress = (x) => x;
 
-    it.only('should start a new generator repeat', (done) => {
+    it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
         intervalSecs: 1,
@@ -44,7 +44,6 @@ describe('test/repeater/repeater.js >', () => {
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
-      console.log(ret);
       expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
@@ -78,7 +77,7 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret.name).to.equal('Generator0.1');
       expect(ret.funcName).to.equal('func');
       expect(ret.onProgress.name).to.equal('dummyOnProgress');
-      expect(tracker['Generator0.1']._bulk).to.equal(ret.handle);
+      expect(tracker['Generator0.1']).to.equal(ret.handle);
       done();
     });
 
@@ -108,7 +107,7 @@ describe('test/repeater/repeater.js >', () => {
         expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
         expect(ret.name).to.equal('Generator0.11');
         expect(ret.funcName).to.equal('func');
-        expect(tracker['Generator0.11']._bulk).to.equal(ret.handle);
+        expect(tracker['Generator0.11']).to.equal(ret.handle);
         return done();
       }, 20);
     });
@@ -143,7 +142,7 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret).to.have.property('name', 'Generator0.2');
       expect(ret).to.have.property('funcName', 'func');
       expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
-      expect(tracker['Generator0.2']).to.have.property('_bulk', ret.handle);
+      expect(tracker['Generator0.2']).to.equal(ret.handle);
       done();
     });
   });
