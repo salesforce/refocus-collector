@@ -26,27 +26,22 @@ const logger = require('winston');
  * @param  {String} token - The Authorization token to use.
  * @param  {String} proxy - Optional proxy url
  * @param  {Object} body - The optional post body.
+ * @param  {Number} cutOff - Time (in milliseconds) to wait until we abandon the post request
  * @returns {Promise} which resolves to the post response
  */
-function doPost(url, token, proxy, body, intervalSecs = Infinity) {
+function doPost(url, token, proxy, body, cutOff = Infinity) {
   const start = Date.now();
   return new Promise((resolve, reject) => {
-    makeRequestWithRetry(makeRequest, resolve, reject);
+    makeRequestWithRetry({
+      makeRequest,
+      resolve,
+      reject,
+      numAttempts: 1,
+      start,
+      cutOff,
+    });
 
     function makeRequest() {
-      const timeSpent = Date.now() - start;
-
-      if (timeSpent >= intervalSecs) {
-        debug('doBulkUpsert request dropped after %d milliseconds', timeSpent);
-        logger.info({
-          activity: 'abandonBulkUpsert',
-          timeSpent: timeSpent,
-        });
-        return new Promise((resolve, reject) => {
-          reject(`doBulkUpsert request dropped after ${timeSpent} milliseconds`);
-        });
-      }
-
       const req = request.post(url)
         .send(body || {})
         .set('Authorization', token);
@@ -59,18 +54,40 @@ function doPost(url, token, proxy, body, intervalSecs = Infinity) {
 /**
  * Retry api requests on 429 errors
  *
- * @param  {Function} makeRequest - The request to attempt
- * @param  {Function} resolve - The resolve function from the calling Promise
- * @param  {Function} reject - The reject function from the calling Promise
+ * @param  {Object} reqInfo - object that has parameters for the request:
+ *  {Function} makeRequest - The request to attempt
+ *  {Function} resolve - The resolve function from the calling Promise
+ *  {Function} reject - The reject function from the calling Promise
+ *  {Number} numAttempts - Number of times this request has been attempted
+ *  {Number} start - timestamp for when request began
+ *  {Number} cutOff - time in milliseconds that we retry the request before dropping it
  * @returns {Promise} which contains successful response or failed error
  */
-function makeRequestWithRetry(makeRequest, resolve, reject) {
-  return makeRequest().then(res => resolve(res), err => {
+function makeRequestWithRetry(reqInfo) {
+  const { makeRequest, resolve, reject, numAttempts, start, cutOff } = reqInfo;
+  const timeSpent = Date.now() - start;
+
+  if (timeSpent >= cutOff) {
+    debug(`Request dropped after ${timeSpent} milliseconds`);
+    logger.info({
+      activity: 'dropRequest',
+      timeSpent,
+      cutOff,
+    });
+    reject(`Request dropped after ${timeSpent} milliseconds`);
+  }
+
+  return makeRequest().then((res) => resolve(res), (err) => {
     if (err.status === 429) {
-      const waitTime = err.response.headers['retry-after'] * 1000; //convert to milliseconds
-      debug('Request got 429 error. Retrying after %d milliseconds...', waitTime);
-      setTimeout(() => makeRequestWithRetry(makeRequest, resolve, reject), waitTime);
+      // Retry with backoff. Convert waitTime to milliseconds
+      const waitTime = (err.response.headers['retry-after'] + 1) * numAttempts * 1000;
+      debug(`Attempt #${numAttempts} was a 429. Retrying in ${waitTime} milliseconds...`);
+
+      // debug(err.response.error.path);
+      reqInfo.numAttempts = numAttempts + 1;
+      setTimeout(() => makeRequestWithRetry(reqInfo), waitTime);
     } else {
+      // debug(err.response.error.path, err.response.error.status);
       reject(err);
     }
   });
@@ -115,7 +132,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   return new Promise((resolve, reject) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
     doPost(url, userToken, proxy, arr, intervalSecs)
-    .then(res => {
+    .then((res) => {
       debug('doBulkUpsert returned OK %O', res.body);
       logger.info({
         activity: 'bulkUpsert',
@@ -124,7 +141,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
       return resolve(res);
     },
 
-    err => {
+    (err) => {
       debug('doBulkUpsert err %O', err);
       logger.error(err.message);
       /*
@@ -143,25 +160,24 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
  *  {String} url - The Refocus url.
  *  {String} token - The Authorization token to use.
  *  {String} proxy - Optional proxy url
- *  {String} qry - the query string
+ *  {String} subjectQuery - the query string
  * @throws {ValidationError} if argument(s) is missing
  * @returns {Promise} array of subjects matching the query
  */
 function attachSubjectsToGenerator(generator) {
-  const url = generator.refocus.url;
-  const token = generator.token;
-  const proxy = generator.refocus.proxy;
-  const qry = generator.subjectQuery;
+  const { url, proxy } = generator.refocus;
+  const { token, subjectQuery, intervalSecs } = generator;
+  const start = Date.now();
 
-  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, qry=%s)', url,
-    token ? 'HAS_TOKEN' : 'MISSING', proxy, qry);
+  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, subjectQuery=%s)', url,
+    token ? 'HAS_TOKEN' : 'MISSING', proxy, subjectQuery);
   if (!url) {
     const e = new ValidationError('Missing refocus url');
     logger.error('attachSubjectsToGenerator', e.message);
     return Promise.reject(e);
   }
 
-  if (!qry) {
+  if (!subjectQuery) {
     const e = new ValidationError('Missing subject query');
     logger.error('attachSubjectsToGenerator', e.message);
     return Promise.reject(e);
@@ -174,11 +190,18 @@ function attachSubjectsToGenerator(generator) {
   }
 
   return new Promise((resolve, reject) => {
-    makeRequestWithRetry(makeRequest, resolve, reject);
+    makeRequestWithRetry({
+      makeRequest,
+      resolve,
+      reject,
+      numAttempts: 1,
+      start,
+      cutOff: intervalSecs,
+    });
 
     function makeRequest() {
       const req = request.get(url + attachSubjectsToGeneratorEndpoint)
-        .query(qry.startsWith('?') ? qry.slice(1) : qry)
+        .query(subjectQuery.startsWith('?') ? subjectQuery.slice(1) : subjectQuery)
         .set('Authorization', token);
       if (proxy) req.proxy(proxy);
       return req.then((res) => {

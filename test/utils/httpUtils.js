@@ -28,7 +28,7 @@ describe('test/utils/httpUtils.js >', () => {
   const collectorName = 'collector1_for_httpUtils';
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
   const refocusProxy = 'http://abcProxy.com';
-  const intervalSecs = 400;
+  const intervalSecs = 1400;
 
   describe('doPost >', () => {
     it('post ok, with body', (done) => {
@@ -285,11 +285,11 @@ describe('test/utils/httpUtils.js >', () => {
         intervalSecs, null, sampleArr)
       .then((res) => {
         const timeSpent = /[0-9]+/.exec(res);
-        expect(res).to.equal(`doBulkUpsert request dropped after ${timeSpent} milliseconds`);
+        expect(res).to.equal(`Request dropped after ${timeSpent} milliseconds`);
         done();
       })
       .catch(done);
-    });
+    }).timeout(5000);
   });
 
   describe('attachSubjectsToGenerator >', () => {

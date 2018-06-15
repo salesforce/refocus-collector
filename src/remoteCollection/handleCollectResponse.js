@@ -103,18 +103,21 @@ function prepareTransformArgs(generator) {
  * to the appropriate endpoint. Then enqueues each sample with handleCollectResponse
  *
  * @param  {Promise} generatorPromise - Promise that resolves to generator object
- * @returns {Promise} - which resolves to the queue length after enqueuing, or
- *  an error.
+ * @returns {Promise} - which resolves to the queue length after enqueuing all samples,
+ * or an error.
  * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
 function handleCollectResponseNonBulk(generatorPromise) {
   return generatorPromise.then((g) => {
     // need to clone generator because we are doing async operation with generator data
-    g.subjects.forEach((subject) => {
+    for (let subject of g.subjects) {
       const _g = JSON.parse(JSON.stringify(g));
       _g.subjects = [subject];
-      handleCollectResponse(prepareRemoteRequest(_g));
-    });
+      let qLength = handleCollectResponse(prepareRemoteRequest(_g));
+
+      // return qLength if this is the final subject we enqueue
+      if (subject === g.subjects[g.subjects.length - 1]) return qLength;
+    }
   });
 } // handleCollectResponseNonBulk
 

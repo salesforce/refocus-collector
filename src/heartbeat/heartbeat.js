@@ -34,6 +34,7 @@ module.exports = () => {
   const proxy = config.refocus.proxy;
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const urlToPost = refocusUrl + heartbeatEndpoint;
+  const cutOff = config.refocus.heartbeatIntervalMillis / 2; // half of length of heartbeat
 
   const existing = configModule.getConfig().metadata;
   const current = u.getCurrentMetadata();
@@ -44,7 +45,7 @@ module.exports = () => {
     collectorConfig: changed,
   };
 
-  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody)
+  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody, cutOff)
   .then((res) => listener(null, res.body))
   .catch((err) => listener(err, null));
 };
