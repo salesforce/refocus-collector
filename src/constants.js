@@ -18,7 +18,11 @@ module.exports = {
   bulkUpsertEndpoint: '/v1/samples/upsert/bulk',
 
   // subject find, use with config.refocus.url
-  attachSubjectsToGeneratorEndpoint: '/v1/subjects',
+  findSubjectsEndpoint: '/v1/subjects',
+
+  // fraction of heartbeat interval time before abandoning the request.
+  // a value of 2 would be 1/2 of heartbeat interval time, 3 is 1/3, etc.
+  heartbeatCutoffFraction: 2,
 
   httpStatus: {
     OK: 200,

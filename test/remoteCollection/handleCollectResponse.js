@@ -21,7 +21,7 @@ const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
-const handleCollectResponseNonBulk = hcr.handleCollectResponseNonBulk;
+const handleCollectResponseBySubject = hcr.handleCollectResponseBySubject;
 const prepareTransformArgs = hcr.prepareTransformArgs;
 const q = require('../../src/utils/queue');
 const httpStatus = require('../../src/constants').httpStatus;
@@ -367,7 +367,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     }
   });
 
-  describe('handleCollectResponseNonBulk >', () => {
+  describe('handleCollectResponseBySubject >', () => {
     const generatorName = 'mockGenerator';
     configModule.initializeConfig();
     const config = configModule.getConfig();
@@ -416,7 +416,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .times(2)
         .reply(httpStatus.OK, {});
 
-      handleCollectResponseNonBulk(Promise.resolve(generator))
+      handleCollectResponseBySubject(Promise.resolve(generator))
       .then((qLength) => {
         expect(q.get(generatorName)).to.not.be.equal(undefined);
         expect(qLength).to.be.equal(expected.length);

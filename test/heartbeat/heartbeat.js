@@ -64,7 +64,7 @@ const generator2 = {
   subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
     connection: {
-      url: refocusUrl,
+      url: 'http://www.abc.com',
       bulk: false,
     },
     transform: sgt.transform,

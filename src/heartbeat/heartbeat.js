@@ -16,6 +16,7 @@ const configModule = require('../config/config');
 const listener = require('./listener');
 const httpUtils = require('../utils/httpUtils');
 const u = require('../utils/commonUtils');
+const heartbeatCutoffFraction = require('../constants').heartbeatCutoffFraction;
 const sanitize = u.sanitize;
 
 /**
@@ -34,7 +35,7 @@ module.exports = () => {
   const proxy = config.refocus.proxy;
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const urlToPost = refocusUrl + heartbeatEndpoint;
-  const cutOff = config.refocus.heartbeatIntervalMillis / 2; // half of length of heartbeat
+  const cutoff = config.refocus.heartbeatIntervalMillis / heartbeatCutoffFraction;
 
   const existing = configModule.getConfig().metadata;
   const current = u.getCurrentMetadata();
@@ -45,7 +46,7 @@ module.exports = () => {
     collectorConfig: changed,
   };
 
-  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody, cutOff)
+  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody, cutoff)
   .then((res) => listener(null, res.body))
   .catch((err) => listener(err, null));
 };

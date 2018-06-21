@@ -15,7 +15,7 @@ const ValidationError = require('../errors').ValidationError;
 const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
-const attachSubjectsToGeneratorEndpoint = require('../constants').attachSubjectsToGeneratorEndpoint;
+const findSubjectsEndpoint = require('../constants').findSubjectsEndpoint;
 const logger = require('winston');
 
 /**
@@ -26,10 +26,10 @@ const logger = require('winston');
  * @param  {String} token - The Authorization token to use.
  * @param  {String} proxy - Optional proxy url
  * @param  {Object} body - The optional post body.
- * @param  {Number} cutOff - Time (in milliseconds) to wait until we abandon the post request
+ * @param  {Number} cutoff - Time (in milliseconds) to wait until we abandon the post request
  * @returns {Promise} which resolves to the post response
  */
-function doPost(url, token, proxy, body, cutOff = Infinity) {
+function doPost(url, token, proxy, body, cutoff = Infinity) {
   const start = Date.now();
   return new Promise((resolve, reject) => {
     makeRequestWithRetry({
@@ -38,7 +38,7 @@ function doPost(url, token, proxy, body, cutOff = Infinity) {
       reject,
       numAttempts: 1,
       start,
-      cutOff,
+      cutoff,
     });
 
     function makeRequest() {
@@ -60,19 +60,19 @@ function doPost(url, token, proxy, body, cutOff = Infinity) {
  *  {Function} reject - The reject function from the calling Promise
  *  {Number} numAttempts - Number of times this request has been attempted
  *  {Number} start - timestamp for when request began
- *  {Number} cutOff - time in milliseconds that we retry the request before dropping it
+ *  {Number} cutoff - time in milliseconds that we retry the request before dropping it
  * @returns {Promise} which contains successful response or failed error
  */
 function makeRequestWithRetry(reqInfo) {
-  const { makeRequest, resolve, reject, numAttempts, start, cutOff } = reqInfo;
+  const { makeRequest, resolve, reject, numAttempts, start, cutoff } = reqInfo;
   const timeSpent = Date.now() - start;
 
-  if (timeSpent >= cutOff) {
+  if (timeSpent >= cutoff) {
     debug(`Request dropped after ${timeSpent} milliseconds`);
     logger.info({
       activity: 'dropRequest',
       timeSpent,
-      cutOff,
+      cutoff,
     });
     reject(`Request dropped after ${timeSpent} milliseconds`);
   }
@@ -162,7 +162,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
  *  {String} proxy - Optional proxy url
  *  {String} subjectQuery - the query string
  * @throws {ValidationError} if argument(s) is missing
- * @returns {Promise} array of subjects matching the query
+ * @returns {Promise} Promise which resolves to generator object with subject array attached.
  */
 function attachSubjectsToGenerator(generator) {
   const { url, proxy } = generator.refocus;
@@ -196,11 +196,11 @@ function attachSubjectsToGenerator(generator) {
       reject,
       numAttempts: 1,
       start,
-      cutOff: intervalSecs,
+      cutoff: intervalSecs,
     });
 
     function makeRequest() {
-      const req = request.get(url + attachSubjectsToGeneratorEndpoint)
+      const req = request.get(url + findSubjectsEndpoint)
         .query(subjectQuery.startsWith('?') ? subjectQuery.slice(1) : subjectQuery)
         .set('Authorization', token);
       if (proxy) req.proxy(proxy);

@@ -21,11 +21,11 @@ const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
 const collectBulk = require('../remoteCollection/collect').collectBulk;
-const collectNonBulk = require('../remoteCollection/collect').collectNonBulk;
+const collectBySubject = require('../remoteCollection/collect').collectBySubject;
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
-const handleCollectResponseNonBulk =
-  require('../remoteCollection/handleCollectResponse').handleCollectResponseNonBulk;
+const handleCollectResponseBySubject =
+  require('../remoteCollection/handleCollectResponse').handleCollectResponseBySubject;
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.
@@ -119,8 +119,8 @@ function setupRepeater(generator) {
     debug('Generator %s is bulk', generator.name);
     repeater.createGeneratorRepeater(generator, collectBulk, handleCollectResponse);
   } else {
-    debug('Generator %s is non-bulk', generator.name);
-    repeater.createGeneratorRepeater(generator, collectNonBulk, handleCollectResponseNonBulk);
+    debug('Generator %s is by subject', generator.name);
+    repeater.createGeneratorRepeater(generator, collectBySubject, handleCollectResponseBySubject);
   }
 } // setupRepeater
 
@@ -129,12 +129,12 @@ function setupRepeater(generator) {
  *
  * @param  {String} qName - Queue name
  * @param  {String} token - The Authorization token to use.
- * @param  {Number} intervalSecs - time before generator will have new data available
+ * @param  {Number} flushFunctionCutoff - time before we quit retrying the flush function
  * @param  {Object} collConf - The collectorConfig from the start or heartbeat
  *  response
  * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, token, intervalSecs, collConf) {
+function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collConf) {
   debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
     qName, token ? 'HAS TOKEN' : 'MISSING TOKEN', collConf);
   if (!qName) throw new errors.ValidationError('Missing queue name');
@@ -166,7 +166,7 @@ function createOrUpdateGeneratorQueue(qName, token, intervalSecs, collConf) {
     proxy: cr.proxy,
     url: cr.url,
     token: token,
-    intervalSecs: intervalSecs,
+    flushFunctionCutoff,
   });
 } // createOrUpdateGeneratorQueue
 

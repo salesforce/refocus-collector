@@ -35,7 +35,7 @@ function create(queueParams) {
     debug('%s on flush, data length %d, queueParams %O',
       name, data.length, queueParams);
     queueParams.flushFunction(queueParams.url, queueParams.token,
-       queueParams.intervalSecs, queueParams.proxy, data);
+       queueParams.flushFunctionCutoff, queueParams.proxy, data);
   });
   qmap[queueParams.name] = q;
   debug('Created %O', q);

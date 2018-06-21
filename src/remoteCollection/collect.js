@@ -136,13 +136,13 @@ function collectBulk(generator) {
  * @param  {Object} generator - The generator object
  * @returns {Promise} - which resolves to a generator object with subjects list
  */
-function collectNonBulk(generator) {
-  debug('Entered "collectNonBulk" for "%s"', generator.name);
+function collectBySubject(generator) {
+  debug('Entered "collectBySubject" for "%s"', generator.name);
   return attachSubjectsToGenerator(generator);
-} // collectNonBulk
+} // collectBySubject
 
 module.exports = {
   collectBulk,
-  collectNonBulk,
+  collectBySubject,
   prepareRemoteRequest,
 };

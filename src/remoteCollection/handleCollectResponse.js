@@ -107,7 +107,7 @@ function prepareTransformArgs(generator) {
  * or an error.
  * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
-function handleCollectResponseNonBulk(generatorPromise) {
+function handleCollectResponseBySubject(generatorPromise) {
   return generatorPromise.then((g) => {
     // need to clone generator because we are doing async operation with generator data
     for (let subject of g.subjects) {
@@ -119,7 +119,7 @@ function handleCollectResponseNonBulk(generatorPromise) {
       if (subject === g.subjects[g.subjects.length - 1]) return qLength;
     }
   });
-} // handleCollectResponseNonBulk
+} // handleCollectResponseBySubject
 
 /**
  * Handles the response from the remote data source by calling the transform
@@ -184,7 +184,7 @@ function handleCollectResponse(collectResponse) {
 
 module.exports = {
   handleCollectResponse,
-  handleCollectResponseNonBulk,
+  handleCollectResponseBySubject,
   validateCollectResponse, // export for testing only
   prepareTransformArgs, // export for testing only
 };
