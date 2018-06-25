@@ -20,9 +20,9 @@ module.exports = {
   // subject find, use with config.refocus.url
   findSubjectsEndpoint: '/v1/subjects',
 
-  // fraction of heartbeat interval time before abandoning the request.
-  // a value of 2 would be 1/2 of heartbeat interval time, 3 is 1/3, etc.
-  heartbeatCutoffFraction: 2,
+  // percentage of heartbeat interval time before abandoning the request.
+  // a value of .5 would be 1/2 of heartbeat interval time, .25 is 1/4, etc.
+  heartbeatCutoffPercentage: 0.5,
 
   httpStatus: {
     OK: 200,
