@@ -57,7 +57,8 @@ provide an object with the following attributes:
 samples. The function must return an array of samples. Your function body has access to these variables:
   - `context` - a reference to the sample generator context data, with defaults applied.
   - `aspects` - an array of one or more aspects as specified by the sample generator.
-  - `subjects` - an array of one or more subjects as specified by the sample generator.
+  - `subjects` - if connection.bulk is true, it is an array of one or more subjects as specified by the sample generator.
+  - `subject` - if connection.bulk is false, it is a reference to the subject
   - `res` - a reference to the HTTP response. See https://nodejs.org/api/http.html#http_class_http_incomingmessage for more
   details on the format of the HTTP response. Typically, you'll want to check `res.status` for the HTTP status code, and
   `res.body` for the actual body of the response.
