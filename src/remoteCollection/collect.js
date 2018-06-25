@@ -77,7 +77,7 @@ function sendRemoteRequest(generator) {
       }
 
       if (res) {
-        debug('sendRemoteRequest returned OK %O', res);
+        debug('sendRemoteRequest returned OK');
         generator.res = res;
       }
 

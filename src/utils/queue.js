@@ -33,7 +33,7 @@ function create(queueParams) {
   });
   q.on('flush', (data, name) => {
     debug('%s on flush, data length %d, queueParams %O',
-      name, data.length, queueParams);
+      name, data.length, sanitized);
     queueParams.flushFunction(queueParams.url, queueParams.token,
        queueParams.flushFunctionCutoff, queueParams.proxy, data);
   });
