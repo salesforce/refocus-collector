@@ -17,6 +17,7 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
 const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
+const handleCollectResponse = require('../../src/remoteCollection/handleCollectResponse');
 const sgt = require('../sgt');
 const sinon = require('sinon');
 const logger = require('winston');
@@ -66,6 +67,7 @@ const generator2 = {
       url: 'http://www.abc.com',
       bulk: false,
     },
+    transform: sgt.transform,
   },
   refocus: {
     url: refocusUrl,
@@ -277,7 +279,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       reqheaders: { authorization: 'mygeneratorusertoken' },
     })
     .get('/v1/subjects')
-    .times(2)
+    .times(4)
     .query({
       absolutePath: 'S1.S2',
     })
@@ -340,22 +342,21 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('Ok, collector status in heartbeat full cycle ' +
     'Running->Pause->Running->Stop', (done) => {
+    const reply = [{ absolutePath: 'S1.S2', name: 'S1' }, { absolutePath: 'S1.S2', name: 'S2' }];
+
+    // set up mock endpoints to get subjects from
+    // generator2 endpoint
     nock(refocusUrl, {
       reqheaders: { authorization: 'mygeneratorusertoken' },
     })
     .get('/v1/subjects')
-    .times(2)
+    .times(3)
     .query({
       absolutePath: 'S1.S2',
     })
-    .reply(httpStatus.OK, [{ absolutePath: 'S1.S2', name: 'S1' }]);
+    .reply(httpStatus.OK, reply);
 
-    nock(refocusUrl, {
-      reqheaders: { authorization: collectorToken },
-    })
-    .post(heartbeatEndpoint)
-    .reply(httpStatus.OK, hbResponseWithSG);
-
+    // generator1 endpoint
     nock(refocusUrl, {
       reqheaders: { authorization: 'mygeneratorusertoken' },
     })
@@ -369,12 +370,22 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
     nock('https://example.api')
     .get('/v1/instances/status/preview')
+    .times(2)
     .reply(httpStatus.OK, [], { 'Content-Type': 'application/json' });
+
+    // mock response for first heartbeat
+    nock(refocusUrl, {
+      reqheaders: { authorization: collectorToken },
+    })
+    .post(heartbeatEndpoint)
+    .reply(httpStatus.OK, hbResponseWithSG);
 
     // send heartbeat with status = running
     heartbeat()
     .then((res) => {
       expect(res.refocus).to.include(hbResponseWithSG.collectorConfig);
+
+      // mock response for second heartbeat.
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
       })
@@ -389,6 +400,8 @@ describe('test/heartbeat/heartbeat.js >', () => {
     .then((res) => {
       expect(spyPause.calledOnce).to.equal(true);
       expect(res.refocus).to.include(hbResponseStatusPaused.collectorConfig);
+
+      // mock response for third heartbeat
       nock(refocusUrl, {
         reqheaders: { authorization: collectorToken },
       })

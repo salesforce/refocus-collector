@@ -15,7 +15,7 @@ const get = require('just-safe-get');
 const set = require('just-safe-set');
 require('superagent-proxy')(request);
 const constants = require('../constants');
-const findSubjects = require('../utils/httpUtils').findSubjects;
+const attachSubjectsToGenerator = require('../utils/httpUtils').attachSubjectsToGenerator;
 const rce = require('@salesforce/refocus-collector-eval');
 const AUTH_HEADER = 'headers.Authorization';
 
@@ -77,7 +77,7 @@ function sendRemoteRequest(generator) {
       }
 
       if (res) {
-        debug('sendRemoteRequest returned OK %O', res);
+        debug('sendRemoteRequest returned OK');
         generator.res = res;
       }
 
@@ -123,15 +123,26 @@ function prepareRemoteRequest(generator) {
  *  attribute carrying the response from the remote data source
  * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
-function collect(generator) {
-  debug('Entered "collect" for "%s"', generator.name);
-  return findSubjects(generator.refocus.url, generator.token,
-    generator.refocus.proxy, generator.subjectQuery)
-  .then((subjects) => generator.subjects = subjects.body || [])
-  .then(() => prepareRemoteRequest(generator));
-} // collect
+function collectBulk(generator) {
+  debug('Entered "collectBulk" for "%s"', generator.name);
+  return attachSubjectsToGenerator(generator)
+  .then((g) => prepareRemoteRequest(g));
+} // collectBulk
+
+/**
+ * Retrieves the list of subjects to collect data for, sets the array of
+ * subjects into the generator
+ *
+ * @param  {Object} generator - The generator object
+ * @returns {Promise} - which resolves to a generator object with subjects list
+ */
+function collectBySubject(generator) {
+  debug('Entered "collectBySubject" for "%s"', generator.name);
+  return attachSubjectsToGenerator(generator);
+} // collectBySubject
 
 module.exports = {
-  collect,
-  prepareRemoteRequest, // export for testing only
+  collectBulk,
+  collectBySubject,
+  prepareRemoteRequest,
 };

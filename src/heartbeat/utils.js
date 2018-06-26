@@ -20,9 +20,12 @@ const queue = require('../utils/queue');
 const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
-const collect = require('../remoteCollection/collect').collect;
+const collectBulk = require('../remoteCollection/collect').collectBulk;
+const collectBySubject = require('../remoteCollection/collect').collectBySubject;
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
+const handleCollectResponseBySubject =
+  require('../remoteCollection/handleCollectResponse').handleCollectResponseBySubject;
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.
@@ -114,14 +117,10 @@ function setupRepeater(generator) {
   debug('setupRepeater %O', sanitized);
   if (commonUtils.isBulk(generator)) {
     debug('Generator %s is bulk', generator.name);
-    repeater.createGeneratorRepeater(generator, collect, handleCollectResponse);
+    repeater.createGeneratorRepeater(generator, collectBulk, handleCollectResponse);
   } else {
-    // FIXME bulk is false
-    generator.subjects.forEach((s) => {
-      const _g = JSON.parse(JSON.stringify(generator));
-      _g.subjects = [s];
-      repeater.createGeneratorRepeater(_g, collect, handleCollectResponse);
-    });
+    debug('Generator %s is by subject', generator.name);
+    repeater.createGeneratorRepeater(generator, collectBySubject, handleCollectResponseBySubject);
   }
 } // setupRepeater
 
@@ -129,11 +128,13 @@ function setupRepeater(generator) {
  * Update queue for sample generator (if found), or create a new one.
  *
  * @param  {String} qName - Queue name
+ * @param  {String} token - The Authorization token to use.
+ * @param  {Number} flushFunctionCutoff - time before we quit retrying the flush function
  * @param  {Object} collConf - The collectorConfig from the start or heartbeat
  *  response
  * @returns {Object} the buffered queue object
  */
-function createOrUpdateGeneratorQueue(qName, token, collConf) {
+function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collConf) {
   debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
     qName, token ? 'HAS TOKEN' : 'MISSING TOKEN', collConf);
   if (!qName) throw new errors.ValidationError('Missing queue name');
@@ -165,6 +166,7 @@ function createOrUpdateGeneratorQueue(qName, token, collConf) {
     proxy: cr.proxy,
     url: cr.url,
     token: token,
+    flushFunctionCutoff,
   });
 } // createOrUpdateGeneratorQueue
 
@@ -198,7 +200,7 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, res.collectorConfig || {});
+      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs, res.collectorConfig || {});
       setupRepeater(g);
       const sanitized = sanitize(g, ['token']);
       debug('Generator added: %O', sanitized);

@@ -39,15 +39,7 @@ const tracker = {};
  * @param  {Object} def - Repeater definition object
  */
 function trackRepeater(def) {
-  if (!def.hasOwnProperty('bulk')) {
-    tracker[def.name] = def.handle;
-  } else if (def.bulk === true) {
-    tracker[def.name] = { _bulk: def.handle };
-  } else if (def.bulk === false && tracker[def.name]) {
-    tracker[def.name][def.subjects[0].absolutePath] = def.handle;
-  } else if (def.bulk === false && !tracker[def.name]) {
-    tracker[def.name] = { [def.subjects[0].absolutePath]: def.handle };
-  }
+  tracker[def.name] = def.handle;
 } // trackRepeater
 
 /**
@@ -243,7 +235,7 @@ function create(def) {
  *
  * @param {Object} generator - The sample generator object
  *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
+ *  {Number} intervalSecs - required, repeat interval in milliseconds
  * @param {Function} func - pass in the function to call on each interval
  * @param {Function} onProgress - pass in the function call after each
  *  repetition

@@ -20,7 +20,7 @@ const sanitize = require('./commonUtils').sanitize;
  * module-level map of buffered queue objects.
  *
  * @param  {Object} queueParams - Queue parameters, including name, size,
- *  flushTimeout, verbose, flushFunction, token and proxy (optional).
+ *  flushTimeout, verbose, flushFunction, token, intervalSecs, and proxy (optional).
  * @returns {Object} The new buffered queue object
  */
 function create(queueParams) {
@@ -33,9 +33,9 @@ function create(queueParams) {
   });
   q.on('flush', (data, name) => {
     debug('%s on flush, data length %d, queueParams %O',
-      name, data.length, queueParams);
+      name, data.length, sanitized);
     queueParams.flushFunction(queueParams.url, queueParams.token,
-      queueParams.proxy, data);
+       queueParams.flushFunctionCutoff, queueParams.proxy, data);
   });
   qmap[queueParams.name] = q;
   debug('Created %O', q);

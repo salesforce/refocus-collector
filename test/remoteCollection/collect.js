@@ -44,7 +44,7 @@ describe('test/remoteCollection/collect.js >', () => {
               '{ name: "UnionCity|Delay", value: 2 }]',
           },
         },
-        subject: { absolutePath: 'EastBay' },
+        subjects: [{ absolutePath: 'EastBay' }],
       };
       const remoteData = {
         station: [{ name: 'Fremont|Delay', value: 10 },
@@ -68,7 +68,7 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(collectRes.generatorTemplate).to.deep
           .equal(generator.generatorTemplate);
         expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subject).to.deep.equal(generator.subject);
+        expect(collectRes.subjects).to.deep.equal(generator.subjects);
 
         done();
       })
@@ -94,7 +94,7 @@ describe('test/remoteCollection/collect.js >', () => {
               '{ name: "UnionCity|Delay", value: 2 }]',
           },
         },
-        subject: { absolutePath: 'EastBay' },
+        subjects: [{ absolutePath: 'EastBay' }],
         simple_oauth: {
           credentials: {
             client: {
@@ -149,7 +149,7 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(collectRes.generatorTemplate).to.deep
           .equal(generator.generatorTemplate);
         expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subject).to.deep.equal(generator.subject);
+        expect(collectRes.subjects).to.deep.equal(generator.subjects);
         expect(collectRes.res.request.header.Authorization)
           .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
 

@@ -21,6 +21,7 @@ const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
 const handleCollectResponse = hcr.handleCollectResponse;
+const handleCollectResponseBySubject = hcr.handleCollectResponseBySubject;
 const prepareTransformArgs = hcr.prepareTransformArgs;
 const q = require('../../src/utils/queue');
 const httpStatus = require('../../src/constants').httpStatus;
@@ -364,6 +365,65 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         },
       ];
     }
+  });
+
+  describe('handleCollectResponseBySubject >', () => {
+    const generatorName = 'mockGenerator';
+    configModule.initializeConfig();
+    const config = configModule.getConfig();
+    before(() => {
+      const qParams = {
+        name: generatorName,
+        size: config.refocus.maxSamplesPerBulkUpsert,
+        flushTimeout: config.refocus.sampleUpsertQueueTime,
+        verbose: false,
+        flushFunction: httpUtils.doBulkUpsert,
+      };
+      q.create(qParams);
+    });
+
+    after(() => {
+      configModule.clearConfig();
+    });
+
+    const generator = {
+      name: generatorName,
+      intervalSecs: 6,
+      subjects: [{ absolutePath: 'S1.S2', name: 'S1' }, { absolutePath: 'S1.S2', name: 'S2' }],
+      aspects: [{ name: 'A1' }, { name: 'A2' }],
+      context: {},
+      generatorTemplate: {
+        connection: {
+          url: refocusUrl,
+          bulk: false,
+        },
+        transform: {
+          default: 'if (subject.name === "S1") {' +
+            'return [{ name: "S1.S2|A1", value: "10" }]; }' +
+            'else { return [{ name: "S1.S2|A2", value: "2" }]; }',
+          errorHandlers: {},
+        },
+      },
+    };
+
+    const expected = [
+      { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
+    ];
+
+    it('OK', (done) => {
+      nock(refocusUrl)
+        .get('/')
+        .times(2)
+        .reply(httpStatus.OK, {});
+
+      handleCollectResponseBySubject(Promise.resolve(generator))
+      .then((qLength) => {
+        expect(q.get(generatorName)).to.not.be.equal(undefined);
+        expect(qLength).to.be.equal(expected.length);
+        done();
+      })
+      .catch(done);
+    });
   });
 
   describe('prepareTransformArgs >', () => {

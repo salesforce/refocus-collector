@@ -20,6 +20,10 @@ module.exports = {
   // subject find, use with config.refocus.url
   findSubjectsEndpoint: '/v1/subjects',
 
+  // percentage of heartbeat interval time before abandoning the request.
+  // a value of .5 would be 1/2 of heartbeat interval time, .25 is 1/4, etc.
+  heartbeatCutoffPercentage: 0.5,
+
   httpStatus: {
     OK: 200,
     CREATED: 201,
@@ -30,6 +34,7 @@ module.exports = {
     FORBIDDEN: 403,
     NOT_FOUND: 404,
     NOT_ALLOWED: 405,
+    TOO_MANY_REQUESTS: 429,
     SERVICE_UNAVAILABLE: 503,
   },
 

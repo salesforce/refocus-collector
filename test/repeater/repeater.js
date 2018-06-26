@@ -48,7 +48,7 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
       expect(ret.funcName).to.equal('func');
-      expect(tracker.Generator0._bulk).to.equal(ret.handle);
+      expect(tracker.Generator0).to.equal(ret.handle);
       done();
     });
 
@@ -77,7 +77,7 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret.name).to.equal('Generator0.1');
       expect(ret.funcName).to.equal('func');
       expect(ret.onProgress.name).to.equal('dummyOnProgress');
-      expect(tracker['Generator0.1']._bulk).to.equal(ret.handle);
+      expect(tracker['Generator0.1']).to.equal(ret.handle);
       done();
     });
 
@@ -107,7 +107,7 @@ describe('test/repeater/repeater.js >', () => {
         expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
         expect(ret.name).to.equal('Generator0.11');
         expect(ret.funcName).to.equal('func');
-        expect(tracker['Generator0.11']._bulk).to.equal(ret.handle);
+        expect(tracker['Generator0.11']).to.equal(ret.handle);
         return done();
       }, 20);
     });
@@ -142,7 +142,7 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret).to.have.property('name', 'Generator0.2');
       expect(ret).to.have.property('funcName', 'func');
       expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
-      expect(tracker['Generator0.2']).to.have.property('_bulk', ret.handle);
+      expect(tracker['Generator0.2']).to.equal(ret.handle);
       done();
     });
   });
