@@ -32,7 +32,7 @@ const generator1 = {
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseTrustUrl: 'https://example.api', },
-  collectors: [{ name: 'agent1' }],
+  possibleCollectors: [{ name: 'agent1' }],
   generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,
@@ -47,7 +47,7 @@ const generator1Updated = {
   generatorTemplateName: 'refocus-trust1-collector',
   subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
   context: { baseTrustUrl: 'https://example.api', },
-  collectors: [{ name: 'agent1' }],
+  possibleCollectors: [{ name: 'agent1' }],
   generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,
