@@ -154,6 +154,57 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         done();
       }
     });
+
+    it('no schema defined', (done) => {
+      const resSchema = undefined;
+
+      const cr = {
+        res: {
+          statusCode: 200,
+          body: {
+            a: 'a',
+            b: 'b',
+          },
+        },
+        preparedUrl: 'abc.com',
+        name: 'Foo',
+      };
+      expect(() => validateCollectResponse(cr, resSchema)).to.not.throw();
+      done();
+    });
+
+    it('schema defined - validateResponseBody called', (done) => {
+      const resSchema = JSON.stringify({
+        type: 'object',
+        required: ['body'],
+        properties: {
+          body: {
+            type: 'object',
+            required: ['a', 'b'],
+            properties: {
+              a: { type: 'string' },
+              b: { type: 'string' },
+            },
+          },
+        },
+      });
+
+      const cr = {
+        res: {
+          statusCode: 200,
+          body: {
+            a: 'a',
+          },
+        },
+        preparedUrl: 'abc.com',
+        name: 'Foo',
+      };
+      expect(() => validateCollectResponse(cr, resSchema)).to.throw(
+        errors.ValidationError,
+        "Response validation failed - /body - should have required property 'b'"
+      );
+      done();
+    });
   });
 
   describe('handleCollectResponse >', () => {
@@ -222,6 +273,19 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
             '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
               + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
           },
+          responseSchema: JSON.stringify({
+            type: 'object',
+            required: ['body'],
+            properties: {
+              body: {
+                type: 'object',
+                required: ['text'],
+                properties: {
+                  text: { type: 'string' },
+                },
+              },
+            },
+          }),
         },
       },
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
@@ -317,7 +381,8 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     it('no match - default error handler', (done) => {
       collectRes.res.statusCode = 400;
       collectRes.res.statusMessage = 'MOCK 400';
-      const expected = defaultErrorSamples(400, 'MOCK 400');
+      const message = `abc.com returned HTTP status 400: MOCK 400`;
+      const expected = defaultErrorSamples(message);
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
       .then(done)
@@ -328,7 +393,31 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       collectRes.generatorTemplate.transform.errorHandlers = {};
       collectRes.res.statusCode = 404;
       collectRes.res.statusMessage = 'MOCK 404';
-      const expected = defaultErrorSamples(404, 'MOCK 404');
+      const message = `abc.com returned HTTP status 404: MOCK 404`;
+      const expected = defaultErrorSamples(message);
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('invalid response (no status code) - default error handler', (done) => {
+      delete collectRes.res.statusCode;
+      const message = 'Invalid response from abc.com: ' +
+        'missing HTTP status code (abc.com)';
+      const expected = defaultErrorSamples(message);
+      handleCollectResponse(Promise.resolve(collectRes))
+      .then(() => checkLogs(expected))
+      .then(done)
+      .catch(done);
+    });
+
+    it('invalid response (schema mismatch) - default error handler', (done) => {
+      collectRes.res.statusCode = 200;
+      delete collectRes.res.body.text;
+      const message = 'Response validation failed - /body - ' +
+        "should have required property 'text' (abc.com)";
+      const expected = defaultErrorSamples(message);
       handleCollectResponse(Promise.resolve(collectRes))
       .then(() => checkLogs(expected))
       .then(done)
@@ -347,20 +436,20 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       expect(queue.items[1]).to.eql(expected[1]);
     }
 
-    function defaultErrorSamples(statusCode, statusMessage) {
+    function defaultErrorSamples(message) {
       return [
         {
           name: 'S1.S2|A1',
           value: 'ERROR',
           messageCode: 'ERROR',
-          messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
+          messageBody: message,
           relatedLinks: [],
         },
         {
           name: 'S1.S2|A2',
           value: 'ERROR',
           messageCode: 'ERROR',
-          messageBody: `abc.com returned HTTP status ${statusCode}: ${statusMessage}`,
+          messageBody: message,
           relatedLinks: [],
         },
       ];

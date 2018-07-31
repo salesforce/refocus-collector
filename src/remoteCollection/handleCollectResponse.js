@@ -29,7 +29,7 @@ const prepareRemoteRequest = require('../remoteCollection/collect').prepareRemot
  * @throws {ValidationError} If the argument is not an object or is missing
  *  "res" or "name" attributes.
  */
-function validateCollectResponse(cr) {
+function validateCollectResponse(cr, resSchema) {
   if (!cr || typeof cr !== 'object' || Array.isArray(cr)) {
     throw new errors.ValidationError('The argument passed to the ' +
       '"handleCollectResponse" function must be an object, must not be ' +
@@ -63,14 +63,12 @@ function validateCollectResponse(cr) {
     + `invalid HTTP status code "${cr.res.statusCode}"`);
   }
 
-  try {
-    // Response "Content-Type" header matches request "Accept" header?
-    debug('validateCollectResponse headers %O, %O', cr.preparedHeaders,
-      cr.res.headers);
-    RefocusCollectorEval.validateResponseType(cr.preparedHeaders,
-      cr.res.headers);
-  } catch (err) {
-    throw new errors.ValidationError(err.message);
+  // Response "Content-Type" header matches request "Accept" header?
+  RefocusCollectorEval.validateResponseType(cr.preparedHeaders, cr.res.headers);
+
+  // Response matches schema?
+  if (resSchema) {
+    RefocusCollectorEval.validateResponseBody(cr.res, resSchema);
   }
 
 } // validateCollectResponse
@@ -136,8 +134,15 @@ function handleCollectResponse(collectResponse) {
   return collectResponse.then((collectRes) => {
     debug('handleCollectResponse status %s, body %O', collectRes.res.status,
       collectRes.res.body);
-    validateCollectResponse(collectRes);
     const tr = collectRes.generatorTemplate.transform;
+
+    try {
+      validateCollectResponse(collectRes, tr.responseSchema);
+    } catch (err) {
+      const errorMessage = `${err.message} (${collectRes.preparedUrl})`;
+      return enqueueSamples(errorSamples(collectRes, errorMessage));
+    }
+
     const args = prepareTransformArgs(collectRes);
     const status = collectRes.res.statusCode;
 
@@ -148,29 +153,30 @@ function handleCollectResponse(collectResponse) {
      * samples.
      */
     const func = RefocusCollectorEval.getTransformFunction(tr, status);
-    let samplesToEnqueue = [];
     if (func) {
-      samplesToEnqueue = RefocusCollectorEval.safeTransform(func, args);
+      return enqueueSamples(RefocusCollectorEval.safeTransform(func, args));
     } else {
       const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
         `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
-      samplesToEnqueue = errorSamples(collectRes, errorMessage);
+      return enqueueSamples(errorSamples(collectRes, errorMessage));
     }
 
-    // Validate each of the samples.
-    samplesToEnqueue.forEach(commonUtils.validateSample);
+    function enqueueSamples(samplesToEnqueue) {
+      // Validate each of the samples.
+      samplesToEnqueue.forEach(commonUtils.validateSample);
 
-    /*
-     * Enqueue to the named queue (sample generator name). Return the new queue
-     * size.
-     */
-    logger.info({
-      activity: 'enqueued:samples',
-      generator: collectRes.name,
-      url: collectRes.preparedUrl,
-      numSamples: samplesToEnqueue.length,
-    });
-    return queue.enqueue(collectRes.name, samplesToEnqueue);
+      /*
+       * Enqueue to the named queue (sample generator name). Return the new queue
+       * size.
+       */
+      logger.info({
+        activity: 'enqueued:samples',
+        generator: collectRes.name,
+        url: collectRes.preparedUrl,
+        numSamples: samplesToEnqueue.length,
+      });
+      return queue.enqueue(collectRes.name, samplesToEnqueue);
+    }
   })
   .catch((err) => {
     /*
