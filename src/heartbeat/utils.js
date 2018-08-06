@@ -189,7 +189,7 @@ function addGenerators(res) {
       }
 
       // Add dataSourceProxy to connection, if specified
-      if (g.generatorTemplate.connection.dataSourceProxy) {
+      if (config.dataSourceProxy) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
 
@@ -248,7 +248,7 @@ function updateGenerators(res) {
       }
 
       // Add dataSourceProxy to connection, if specified
-      if (g.generatorTemplate.connection.dataSourceProxy) {
+      if (config.dataSourceProxy) {
         g.generatorTemplate.connection.dataSourceProxy = config.dataSourceProxy;
       }
 
