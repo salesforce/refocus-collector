@@ -61,7 +61,7 @@ function changeCollectorStatus(currentStatus, newStatus) {
 function updateCollectorConfig(cc) {
   const config = configModule.getConfig();
   Object.keys(cc).forEach((key) => config.refocus[key] = cc[key]);
-  const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
+  const sanitized = sanitize(config.refocus, configModule.attributesToSanitize);
   debug('exiting updateCollectorConfig %O', sanitized);
 } // updateCollectorConfig
 
@@ -104,23 +104,25 @@ function assignContext(ctx, def, collectorToken, res) {
 
 /**
  * Creates a repeater based on the bulk attribute of the of the generator
- * object that is passed as as argument. When the bulk attribute is true, it
- * creates a repeater using the passed in generator. When the bulk attribute
- * is false, it runs through the subjects array and creates a new generator
- * object for each subject, using the generator passed in as the argument),
- * and setting the "subjects" array to contain just the one subject.
+ * object, passing in either the "collectBulk" function or the
+ * "collectBySubject" function, and the appropriate handler for each collect
+ * function.
  *
  * @param {Object} generator - Generator object from the heartbeat
+ * @throws {ValidationError} - Thrown by repeater.createGeneratorRepeater
  */
 function setupRepeater(generator) {
-  const sanitized = sanitize(generator, ['token']);
-  debug('setupRepeater %O', sanitized);
-  if (commonUtils.isBulk(generator)) {
-    debug('Generator %s is bulk', generator.name);
-    repeater.createGeneratorRepeater(generator, collectBulk, handleCollectResponse);
-  } else {
-    debug('Generator %s is by subject', generator.name);
-    repeater.createGeneratorRepeater(generator, collectBySubject, handleCollectResponseBySubject);
+  const genIsBulk = commonUtils.isBulk(generator);
+  debug('setupRepeater (%s) for generator %O',
+    genIsBulk ? 'bulk' : 'by subject', sanitize(generator));
+  const collFunc = genIsBulk ? collectBulk : collectBySubject;
+  const handlerFunc =
+    genIsBulk ? handleCollectResponse : handleCollectResponseBySubject;
+  try {
+    repeater.createGeneratorRepeater(generator, collFunc, handlerFunc);
+  } catch (err) {
+    logger.error('setupRepeater could not set up a repeater for generator ' +
+      `"${generator.name}":\n`, err);
   }
 } // setupRepeater
 
@@ -200,10 +202,10 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs, res.collectorConfig || {});
+      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
+        res.collectorConfig || {});
       setupRepeater(g);
-      const sanitized = sanitize(g, ['token']);
-      debug('Generator added: %O', sanitized);
+      debug('Generator added: %O', sanitize(g));
     });
   } else {
     debug('No generators to add.');
@@ -261,7 +263,7 @@ function updateGenerators(res) {
       // Repeaters cannot be updated--stop old ones and create new ones.
       repeater.stop(g.name);
       setupRepeater(g);
-      debug('Generator updated: %O', g);
+      debug('Generator updated: %O', sanitize(g));
     });
   } else {
     debug('No generators to update.');

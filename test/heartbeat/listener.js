@@ -79,7 +79,7 @@ describe('test/heartbeat/listener.js >', () => {
   });
 
   it('added generators should be added to the config and the repeat tracker ' +
-    'should be setup', (done) => {
+    'should be setup; pause/resume after heartbeat error', (done) => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
@@ -103,6 +103,16 @@ describe('test/heartbeat/listener.js >', () => {
     expect(updatedConfig.generators.Core_Trust2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.Core_Trust2).not.equal(undefined);
+
+    // send error to listener, check for paused generator repeaters
+    listener(new Error('this is error'));
+    expect(repeater.paused).to.have.property('size', 1);
+    expect(repeater.paused).to.include('Core_Trust2');
+
+    // send ok response to listener, check for resumed generator repeaters
+    const afterOK = listener(null, res);
+    expect(repeater.paused).to.have.property('size', 0);
+
     done();
   });
 

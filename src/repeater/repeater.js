@@ -33,6 +33,13 @@ const u = require('../utils/commonUtils');
  */
 const tracker = {};
 
+// Track the names of paused repeaters.
+const paused = new Set();
+
+function notHeartbeat(key) {
+  return key !== heartbeatRepeatName;
+} // notHeartbeat
+
 /**
  * Update the tracker object to track the new repeater.
  *
@@ -62,8 +69,9 @@ function onSuccess(results) {
 } // onSuccess
 
 /**
- * The default function that is called when the task function invocation
- * throws an error.
+ * The default function that is called when the task function invocation throws
+ * an error.
+ *
  * @param {Object} err - Error thrown by the repeatable task.
  */
 function onFailure(err) {
@@ -103,6 +111,7 @@ function changeRepeatState(name, newState) {
 function stop(name) {
   changeRepeatState(name, 'stop');
   delete tracker[name];
+  paused.delete(name);
   logger.info({
     activity: 'repeater:stopped',
     name,
@@ -126,6 +135,7 @@ function stopAllRepeaters() {
  */
 function pause(name) {
   changeRepeatState(name, 'pause');
+  paused.add(name);
   logger.info({
     activity: 'repeater:paused',
     name,
@@ -133,13 +143,10 @@ function pause(name) {
 } // pause
 
 /**
- * Pauses all the generator repeats.
- * @returns {Object} The tracker object tracking all the repeats
+ * Pauses all the generator repeaters.
  */
 function pauseGenerators() {
-  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
-    .forEach(pause);
-  return tracker;
+  Object.keys(tracker).filter(notHeartbeat).forEach(pause);
 } // pauseGenerators
 
 /**
@@ -148,6 +155,7 @@ function pauseGenerators() {
  */
 function resume(name) {
   changeRepeatState(name, 'resume');
+  paused.delete(name);
   logger.info({
     activity: 'repeater:resumed',
     name,
@@ -155,13 +163,10 @@ function resume(name) {
 } // resume
 
 /**
- * Pauses all the generator repeats.
- * @returns {Object} The tracker object tracking all the repeats
+ * Resumes all the generator repeaters.
  */
 function resumeGenerators() {
-  Object.keys(tracker).filter((key) => key !== heartbeatRepeatName)
-    .forEach(resume);
-  return tracker;
+  Object.keys(tracker).filter(notHeartbeat).forEach(resume);
 } // resumeGenerators
 
 /**
@@ -186,10 +191,7 @@ function validateDefinition(def) {
     throw new errors.ValidationError(val.error.message);
   }
 
-  if ((tracker[def.name] && !def.hasOwnProperty('bulk')) ||
-    (tracker[def.name] &&
-      (tracker[def.name][def.subjects[0].absolutePath] ||
-      tracker[def.name]._bulk))) {
+  if (tracker[def.name]) {
     throw new errors.ValidationError('Duplicate repeater name violation: ' +
       def.name);
   }
@@ -240,6 +242,8 @@ function create(def) {
  * @param {Function} onProgress - pass in the function call after each
  *  repetition
  * @returns {Promise} - A read-only Promise instance.
+ * @throws {ValidationError} - Thrown by validateDefinition, called by
+ *  repeater.create
  */
 function createGeneratorRepeater(generator, func, onProgress) {
   return create({
@@ -256,6 +260,7 @@ module.exports = {
   create,
   createGeneratorRepeater,
   pause,
+  paused,
   pauseGenerators,
   resume,
   tracker,

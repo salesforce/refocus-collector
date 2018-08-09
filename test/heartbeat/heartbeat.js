@@ -208,8 +208,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
     heartbeat()
     .then((err) => {
       expect(err.response.status).to.equal(httpStatus.FORBIDDEN);
-      expect(err.response.body).deep
-        .equal(errorResponse);
+      expect(err.response.body).deep.equal(errorResponse);
       done();
     })
     .catch(done);
@@ -342,7 +341,10 @@ describe('test/heartbeat/heartbeat.js >', () => {
 
   it('Ok, collector status in heartbeat full cycle ' +
     'Running->Pause->Running->Stop', (done) => {
-    const reply = [{ absolutePath: 'S1.S2', name: 'S1' }, { absolutePath: 'S1.S2', name: 'S2' }];
+    const reply = [
+      { absolutePath: 'S1.S2', name: 'S1' },
+      { absolutePath: 'S1.S2', name: 'S2' },
+    ];
 
     // set up mock endpoints to get subjects from
     // generator2 endpoint

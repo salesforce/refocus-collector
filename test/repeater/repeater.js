@@ -377,10 +377,10 @@ describe('test/repeater/repeater.js >', () => {
 
   describe('pause and resume >', () => {
     it('OK even when tracker is empty', (done) => {
-      let _tracker = repeater.pauseGenerators();
-      expect(_tracker).to.deep.equal({});
-      _tracker = repeater.resumeGenerators();
-      expect(_tracker).to.deep.equal({});
+      repeater.pauseGenerators();
+      expect(repeater.paused).to.have.property('size', 0);
+      repeater.resumeGenerators();
+      expect(repeater.paused).to.have.property('size', 0);
       done();
     });
 
