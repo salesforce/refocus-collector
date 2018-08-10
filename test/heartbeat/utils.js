@@ -263,7 +263,7 @@ describe('test/heartbeat/utils.js >', () => {
 
     after(() => configModule.clearConfig());
 
-    it('different queues are created for different generators', (done) => {
+    it('queues and repeaters are created for valid generators', (done) => {
       const heartbeatResp = {
         collectorConfig: {
           heartbeatIntervalMillis: 50,
@@ -293,7 +293,7 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
-            intervalSecs: 3,
+            intervalSecs: -3,
             subjectQuery: '?absolutePath=Canada',
           },
         ],

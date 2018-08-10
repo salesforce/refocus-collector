@@ -35,6 +35,8 @@ const handleCollectResponseBySubject =
  *  state the collector will be in, once this function has been executed.
  */
 function changeCollectorStatus(currentStatus, newStatus) {
+  debug('changeCollectorStatus from %s to %s', currentStatus, newStatus);
+
   // no-op if either arg is missing or if they are already the same status
   if (!currentStatus || !newStatus || (currentStatus === newStatus)) {
     return;
@@ -118,12 +120,7 @@ function setupRepeater(generator) {
   const collFunc = genIsBulk ? collectBulk : collectBySubject;
   const handlerFunc =
     genIsBulk ? handleCollectResponse : handleCollectResponseBySubject;
-  try {
-    repeater.createGeneratorRepeater(generator, collFunc, handlerFunc);
-  } catch (err) {
-    logger.error('setupRepeater could not set up a repeater for generator ' +
-      `"${generator.name}":\n`, err);
-  }
+  repeater.createGeneratorRepeater(generator, collFunc, handlerFunc);
 } // setupRepeater
 
 /**
@@ -204,7 +201,16 @@ function addGenerators(res) {
       // queue name same as generator name
       createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
         res.collectorConfig || {});
-      setupRepeater(g);
+  
+      try {
+        setupRepeater(g);
+      } catch (err) {
+        debug('addGenerators error for generator "%s":\n%s', g.name,
+          err.message);
+        logger.error(`addGenerators error for generator "${g.name}":\n`,
+          err.message);
+      }
+  
       debug('Generator added: %O', sanitize(g));
     });
   } else {
@@ -223,9 +229,10 @@ function deleteGenerators(res) {
   if (generators && Array.isArray(generators)) {
     // Stop the repeater for each generator and delete from config.
     generators.forEach((g) => {
+      debug('deleteGenerators: generator "%s"...', g.name);
       repeater.stop(g.name);
       delete config.generators[g.name];
-      debug('Generator deleted: %s', g.name);
+      debug('Generator "%s" deleted', g.name);
     });
   } else {
     debug('No generators to delete.');
@@ -244,6 +251,7 @@ function updateGenerators(res) {
   if (generators && Array.isArray(generators)) {
     // Update the repeater for each generator and update in config.
     generators.forEach((g) => {
+      debug('updateGenerators: generator "%s"...', g.name);
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
           g.generatorTemplate.contextDefinition, cr.collectorToken, res);
@@ -261,8 +269,14 @@ function updateGenerators(res) {
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
       // Repeaters cannot be updated--stop old ones and create new ones.
-      repeater.stop(g.name);
-      setupRepeater(g);
+      try {
+        repeater.stop(g.name);
+        setupRepeater(g);
+      } catch (err) {
+        logger.error(`updateGenerators error for generator "${g.name}":\n`,
+          err);
+      }
+
       debug('Generator updated: %O', sanitize(g));
     });
   } else {

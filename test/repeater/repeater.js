@@ -333,7 +333,7 @@ describe('test/repeater/repeater.js >', () => {
       }, 500);
     });
 
-    it('error if repeater being stopped is not in the tracker', (done) => {
+    it('noop if repeater being stopped is not in the tracker', (done) => {
       const obj = {
         name: 'someRandomName',
         interval: 10,
@@ -341,12 +341,8 @@ describe('test/repeater/repeater.js >', () => {
 
       try {
         repeater.stop(obj);
-        done('Expecting ResourceNotFoundError');
+        done();
       } catch (err) {
-        if (err.name === 'ResourceNotFoundError') {
-          return done();
-        }
-
         return done(err);
       }
     });

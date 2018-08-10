@@ -19,17 +19,8 @@ const u = require('../utils/commonUtils');
 
 /**
  * Tracks all the repeaters defined in the collectors.
- * The tracker object looks like this:
- *  {
- *    'heartbeat': repeatHandle,
- *    'generator1' : { // when bulk is true
- *      _bulk: repeatHandle,
- *    }
- *    'generator2' : { // when bullk is false
- *      subject1: repeatHandle,
- *      subject2: repeatHandle,
- *    }
- *  }
+ * Each key in the tracker is the name of the repeater ('heartbeat', or a
+ * generator name), and the value is the repeater handle object.
  */
 const tracker = {};
 
@@ -46,7 +37,9 @@ function notHeartbeat(key) {
  * @param  {Object} def - Repeater definition object
  */
 function trackRepeater(def) {
+  debug('trackRepeater %s', def.name);
   tracker[def.name] = def.handle;
+  debug('now tracking %O', Object.keys(tracker));
 } // trackRepeater
 
 /**
@@ -87,6 +80,7 @@ function onFailure(err) {
  * @param {String} newState - New start of the repeat
  */
 function changeRepeatState(name, newState) {
+  debug('changeRepeatState %s to %s', name, newState);
   if (!name || !tracker[name]) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
@@ -109,13 +103,20 @@ function changeRepeatState(name, newState) {
  * @throws {ValidationError} If "obj" does not have a name attribute.
  */
 function stop(name) {
-  changeRepeatState(name, 'stop');
+  debug('stop %s', name);
+  try {
+    changeRepeatState(name, 'stop');
+  } catch(err) {
+    logger.error(err);
+  }
+
   delete tracker[name];
   paused.delete(name);
   logger.info({
     activity: 'repeater:stopped',
     name,
   });
+  debug('now tracking %O', Object.keys(tracker));
 } // stop
 
 /**
@@ -124,8 +125,9 @@ function stop(name) {
  * @returns {Object} The tracker object tracking all the repeats
  */
 function stopAllRepeaters() {
-  debug('Entered repeater.stopAllRepeaters');
+  debug('stopAllRepeaters');
   Object.keys(tracker).forEach(stop);
+  debug('now tracking %O', Object.keys(tracker));
   return tracker;
 } // stopAllRepeaters
 
@@ -134,6 +136,7 @@ function stopAllRepeaters() {
  * @param  {String} name - Name of the repeat
  */
 function pause(name) {
+  debug('pause %s', name);
   changeRepeatState(name, 'pause');
   paused.add(name);
   logger.info({
@@ -146,6 +149,7 @@ function pause(name) {
  * Pauses all the generator repeaters.
  */
 function pauseGenerators() {
+  debug('pauseGenerators');
   Object.keys(tracker).filter(notHeartbeat).forEach(pause);
 } // pauseGenerators
 
@@ -154,6 +158,7 @@ function pauseGenerators() {
  * @param  {String} name - Name of the repeat
  */
 function resume(name) {
+  debug('resume %s', name);
   changeRepeatState(name, 'resume');
   paused.delete(name);
   logger.info({
@@ -166,6 +171,7 @@ function resume(name) {
  * Resumes all the generator repeaters.
  */
 function resumeGenerators() {
+  debug('pauseGenerators');
   Object.keys(tracker).filter(notHeartbeat).forEach(resume);
 } // resumeGenerators
 
@@ -188,6 +194,7 @@ function validateDefinition(def) {
   debug('validateDefinition %O', def);
   const val = repeaterSchema.validate(def);
   if (val.error) {
+    debug('validateDefinition error', val);
     throw new errors.ValidationError(val.error.message);
   }
 
@@ -215,7 +222,7 @@ function validateDefinition(def) {
  */
 function create(def) {
   validateDefinition(def);
-  debug('Creating %O', def);
+  debug('create %O', def);
   const handle = repeat(def.func);
   handle.every(def.interval, 'ms').start.now();
   handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
@@ -252,7 +259,6 @@ function createGeneratorRepeater(generator, func, onProgress) {
     func: () => func(generator),
     onProgress,
     bulk: u.isBulk(generator),
-    subjects: generator.subjects,
   });
 } // createGeneratorRepeater
 
