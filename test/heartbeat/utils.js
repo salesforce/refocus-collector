@@ -293,7 +293,7 @@ describe('test/heartbeat/utils.js >', () => {
                 bulk: true,
               },
             },
-            intervalSecs: -3,
+            intervalSecs: -3, // Invalid!
             subjectQuery: '?absolutePath=Canada',
           },
         ],
@@ -305,6 +305,8 @@ describe('test/heartbeat/utils.js >', () => {
       const qGen2 = q.get(genName2);
       expect(qGen1._size).to.be.equal(1000);
       expect(qGen2._size).to.be.equal(1000);
+      expect(repeater.tracker).to.have.key('Gen1');
+      expect(repeater.tracker).to.not.have.key('Gen2');
       done();
     });
   });

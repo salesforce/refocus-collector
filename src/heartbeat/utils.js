@@ -132,6 +132,7 @@ function setupRepeater(generator) {
  * @param  {Object} collConf - The collectorConfig from the start or heartbeat
  *  response
  * @returns {Object} the buffered queue object
+ * @throws {Error} Validation error if missing collector config
  */
 function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collConf) {
   debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
@@ -197,12 +198,11 @@ function addGenerators(res) {
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       config.generators[g.name] = g;
-
-      // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
-        res.collectorConfig || {});
   
       try {
+        // queue name same as generator name
+        createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
+          res.collectorConfig || {});
         setupRepeater(g);
       } catch (err) {
         debug('addGenerators error for generator "%s":\n%s', g.name,
@@ -273,8 +273,10 @@ function updateGenerators(res) {
         repeater.stop(g.name);
         setupRepeater(g);
       } catch (err) {
+        debug('updateGenerators error for generator "%s":\n%s', g.name,
+          err.message);
         logger.error(`updateGenerators error for generator "${g.name}":\n`,
-          err);
+          err.message);
       }
 
       debug('Generator updated: %O', sanitize(g));
