@@ -198,7 +198,7 @@ function addGenerators(res) {
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
       config.generators[g.name] = g;
-  
+
       try {
         // queue name same as generator name
         createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
@@ -210,7 +210,7 @@ function addGenerators(res) {
         logger.error(`addGenerators error for generator "${g.name}":\n`,
           err.message);
       }
-  
+
       debug('Generator added: %O', sanitize(g));
     });
   } else {

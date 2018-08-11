@@ -106,7 +106,7 @@ function stop(name) {
   debug('stop %s', name);
   try {
     changeRepeatState(name, 'stop');
-  } catch(err) {
+  } catch (err) {
     logger.error(err);
   }
 
