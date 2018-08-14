@@ -258,7 +258,6 @@ function createGeneratorRepeater(generator, func, onProgress) {
     interval: 1000 * generator.intervalSecs, // convert to millis
     func: () => func(generator),
     onProgress,
-    bulk: u.isBulk(generator),
   });
 } // createGeneratorRepeater
 
