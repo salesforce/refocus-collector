@@ -602,5 +602,21 @@ describe('test/repeater/repeater.js >', () => {
         return done();
       }
     });
+
+    it('null subjects', (done) => {
+      try {
+        const def =
+          { name: 'Gen', interval: 10, func: () => {}, subjects: null };
+        repeater.create(def);
+        return done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError' &&
+        err.message === '"subjects" is not allowed') {
+          return done();
+        }
+
+        return done(err);
+      }
+    });
   });
 });
