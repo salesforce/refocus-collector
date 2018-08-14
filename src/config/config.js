@@ -128,7 +128,8 @@ function getConfig() {
 } // getConfig
 
 module.exports = {
+  attributesToSanitize: ['accessToken', 'collectorToken', 'token'],
+  clearConfig, // exported for testing
   initializeConfig,
   getConfig,
-  clearConfig, // exported for testing
 };

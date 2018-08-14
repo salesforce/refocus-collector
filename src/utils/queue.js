@@ -24,7 +24,7 @@ const sanitize = require('./commonUtils').sanitize;
  * @returns {Object} The new buffered queue object
  */
 function create(queueParams) {
-  const sanitized = sanitize(queueParams, ['token']);
+  const sanitized = sanitize(queueParams);
   debug('Create queue %O', sanitized);
   const q = new Queue(queueParams.name, {
     size: queueParams.size,

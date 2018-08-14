@@ -35,6 +35,8 @@ const handleCollectResponseBySubject =
  *  state the collector will be in, once this function has been executed.
  */
 function changeCollectorStatus(currentStatus, newStatus) {
+  debug('changeCollectorStatus from %s to %s', currentStatus, newStatus);
+
   // no-op if either arg is missing or if they are already the same status
   if (!currentStatus || !newStatus || (currentStatus === newStatus)) {
     return;
@@ -61,7 +63,7 @@ function changeCollectorStatus(currentStatus, newStatus) {
 function updateCollectorConfig(cc) {
   const config = configModule.getConfig();
   Object.keys(cc).forEach((key) => config.refocus[key] = cc[key]);
-  const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
+  const sanitized = sanitize(config.refocus, configModule.attributesToSanitize);
   debug('exiting updateCollectorConfig %O', sanitized);
 } // updateCollectorConfig
 
@@ -104,24 +106,21 @@ function assignContext(ctx, def, collectorToken, res) {
 
 /**
  * Creates a repeater based on the bulk attribute of the of the generator
- * object that is passed as as argument. When the bulk attribute is true, it
- * creates a repeater using the passed in generator. When the bulk attribute
- * is false, it runs through the subjects array and creates a new generator
- * object for each subject, using the generator passed in as the argument),
- * and setting the "subjects" array to contain just the one subject.
+ * object, passing in either the "collectBulk" function or the
+ * "collectBySubject" function, and the appropriate handler for each collect
+ * function.
  *
  * @param {Object} generator - Generator object from the heartbeat
+ * @throws {ValidationError} - Thrown by repeater.createGeneratorRepeater
  */
 function setupRepeater(generator) {
-  const sanitized = sanitize(generator, ['token']);
-  debug('setupRepeater %O', sanitized);
-  if (commonUtils.isBulk(generator)) {
-    debug('Generator %s is bulk', generator.name);
-    repeater.createGeneratorRepeater(generator, collectBulk, handleCollectResponse);
-  } else {
-    debug('Generator %s is by subject', generator.name);
-    repeater.createGeneratorRepeater(generator, collectBySubject, handleCollectResponseBySubject);
-  }
+  const genIsBulk = commonUtils.isBulk(generator);
+  debug('setupRepeater (%s) for generator %O',
+    genIsBulk ? 'bulk' : 'by subject', sanitize(generator));
+  const collFunc = genIsBulk ? collectBulk : collectBySubject;
+  const handlerFunc =
+    genIsBulk ? handleCollectResponse : handleCollectResponseBySubject;
+  repeater.createGeneratorRepeater(generator, collFunc, handlerFunc);
 } // setupRepeater
 
 /**
@@ -133,6 +132,7 @@ function setupRepeater(generator) {
  * @param  {Object} collConf - The collectorConfig from the start or heartbeat
  *  response
  * @returns {Object} the buffered queue object
+ * @throws {Error} Validation error if missing collector config
  */
 function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collConf) {
   debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
@@ -199,11 +199,19 @@ function addGenerators(res) {
 
       config.generators[g.name] = g;
 
-      // queue name same as generator name
-      createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs, res.collectorConfig || {});
-      setupRepeater(g);
-      const sanitized = sanitize(g, ['token']);
-      debug('Generator added: %O', sanitized);
+      try {
+        // queue name same as generator name
+        createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
+          res.collectorConfig || {});
+        setupRepeater(g);
+      } catch (err) {
+        debug('addGenerators error for generator "%s":\n%s', g.name,
+          err.message);
+        logger.error(`addGenerators error for generator "${g.name}":\n`,
+          err.message);
+      }
+
+      debug('Generator added: %O', sanitize(g));
     });
   } else {
     debug('No generators to add.');
@@ -221,9 +229,10 @@ function deleteGenerators(res) {
   if (generators && Array.isArray(generators)) {
     // Stop the repeater for each generator and delete from config.
     generators.forEach((g) => {
+      debug('deleteGenerators: generator "%s"...', g.name);
       repeater.stop(g.name);
       delete config.generators[g.name];
-      debug('Generator deleted: %s', g.name);
+      debug('Generator "%s" deleted', g.name);
     });
   } else {
     debug('No generators to delete.');
@@ -242,6 +251,7 @@ function updateGenerators(res) {
   if (generators && Array.isArray(generators)) {
     // Update the repeater for each generator and update in config.
     generators.forEach((g) => {
+      debug('updateGenerators: generator "%s"...', g.name);
       if (g.generatorTemplate.contextDefinition) {
         g.context = assignContext(g.context,
           g.generatorTemplate.contextDefinition, cr.collectorToken, res);
@@ -259,9 +269,17 @@ function updateGenerators(res) {
       Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
 
       // Repeaters cannot be updated--stop old ones and create new ones.
-      repeater.stop(g.name);
-      setupRepeater(g);
-      debug('Generator updated: %O', g);
+      try {
+        repeater.stop(g.name);
+        setupRepeater(g);
+      } catch (err) {
+        debug('updateGenerators error for generator "%s":\n%s', g.name,
+          err.message);
+        logger.error(`updateGenerators error for generator "${g.name}":\n`,
+          err.message);
+      }
+
+      debug('Generator updated: %O', sanitize(g));
     });
   } else {
     debug('No generators to update.');

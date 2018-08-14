@@ -16,8 +16,8 @@ const configModule = require('../config/config');
 const listener = require('./listener');
 const httpUtils = require('../utils/httpUtils');
 const u = require('../utils/commonUtils');
-const heartbeatCutoffPercentage = require('../constants').heartbeatCutoffPercentage;
-const sanitize = u.sanitize;
+const heartbeatCutoffPercentage =
+  require('../constants').heartbeatCutoffPercentage;
 
 /**
  * Send a heartbeat to the Refocus server
@@ -27,17 +27,12 @@ module.exports = () => {
   debug('Entered heartbeat');
   const timestamp = Date.now();
   const config = configModule.getConfig();
-  const sanitized = sanitize(config.refocus, ['accessToken', 'collectorToken']);
+  const cr = config.refocus;
+  const sanitized = u.sanitize(cr, configModule.attributesToSanitize);
   debug('heartbeat config.refocus %O', sanitized);
-  const collectorName = config.name;
-  const refocusUrl = config.refocus.url;
-  const collectorToken = config.refocus.collectorToken;
-  const proxy = config.refocus.proxy;
-  const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
-  const urlToPost = refocusUrl + heartbeatEndpoint;
-  const cutoff = config.refocus.heartbeatIntervalMillis * heartbeatCutoffPercentage;
-
-  const existing = configModule.getConfig().metadata;
+  const urlToPost = `${cr.url}/v1/collectors/${config.name}/heartbeat`;
+  const cutoff = cr.heartbeatIntervalMillis * heartbeatCutoffPercentage;
+  const existing = config.metadata;
   const current = u.getCurrentMetadata();
   const changed = u.getChangedMetadata(existing, current);
   Object.assign(existing, current);
@@ -46,7 +41,8 @@ module.exports = () => {
     collectorConfig: changed,
   };
 
-  return httpUtils.doPost(urlToPost, collectorToken, proxy, requestbody, cutoff)
-  .then((res) => listener(null, res.body))
-  .catch((err) => listener(err, null));
+  return httpUtils.doPost(urlToPost, cr.collectorToken, cr.proxy, requestbody,
+    cutoff)
+  .then((res) => listener.onSuccess(res.body))
+  .catch(listener.onError);
 };

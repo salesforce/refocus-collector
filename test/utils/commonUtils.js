@@ -48,6 +48,18 @@ describe('test/utils/commonUtils.js >', () => {
       done();
     });
 
+    it('ok, sanitize with default "keys"', (done) => {
+      const obj = {
+        token: 'a310u',
+        username: 'refocus-collector-user',
+      };
+      const sanitized = sanitize(obj);
+      expect(sanitized.token).to.contain('...');
+      expect(sanitized.token.length).to.not.equal(obj.token.length);
+      expect(sanitized.username).to.equal(obj.username);
+      done();
+    });
+
     it('ok, sanitize with a single key', (done) => {
       const obj = {
         token: 'a310u',

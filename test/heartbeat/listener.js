@@ -64,13 +64,13 @@ describe('test/heartbeat/listener.js >', () => {
   it('should handle errors passed to the function', (done) => {
     const err = { status: 404,
       description: 'heartbeat not received', };
-    const ret = listener(err, hbResponse);
+    const ret = listener.onError(err);
     expect(ret).to.deep.equal(err);
     done();
   });
 
   it('collector config should be updated', (done) => {
-    const updatedConfig = listener(null, hbResponse);
+    const updatedConfig = listener.onSuccess(hbResponse);
     expect(updatedConfig.refocus.heartbeatIntervalMillis)
       .to.equal(hbResponse.collectorConfig.heartbeatIntervalMillis);
     expect(updatedConfig.refocus.status)
@@ -79,7 +79,7 @@ describe('test/heartbeat/listener.js >', () => {
   });
 
   it('added generators should be added to the config and the repeat tracker ' +
-    'should be setup', (done) => {
+    'should be setup; pause/resume after heartbeat error', (done) => {
     const res = {
       collectorConfig: {
         heartbeatIntervalMillis: 50,
@@ -99,10 +99,99 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener(null, res);
+    const updatedConfig = listener.onSuccess(res);
     expect(updatedConfig.generators.Core_Trust2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.Core_Trust2).not.equal(undefined);
+
+    // send error to listener, check for paused generator repeaters
+    listener.onError(new Error('this is error'));
+    expect(repeater.paused).to.have.property('size', 1);
+    expect(repeater.paused).to.include('Core_Trust2');
+
+    // send ok response with updated generator - repeater should be unpaused
+    const resUpd = {
+      collectorConfig: {
+        heartbeatIntervalMillis: 50,
+        maxSamplesPerBulkUpsert: 10,
+        status: 'Running',
+      },
+      generatorsUpdated: [
+        {
+          name: 'Core_Trust2',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: sgt,
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Secondary',
+          context: { baseTrustUrl: 'https://example.api' },
+          possibleCollectors: [{ name: 'agent1' }],
+          intervalSecs: 6,
+          token: 'asd123asd',
+        },
+      ],
+    };
+    const afterUpdate = listener.onSuccess(resUpd);
+    expect(afterUpdate.generators.Core_Trust2)
+    .to.have.property('subjectQuery',
+      'absolutePath=Parent.Child.*&tags=Secondary');
+    expect(repeater.paused).to.be.empty;
+
+    done();
+  });
+
+  it('delete a paused generator', (done) => {
+    const res = {
+      collectorConfig: {
+        heartbeatIntervalMillis: 50,
+        maxSamplesPerBulkUpsert: 10,
+        status: 'Running',
+      },
+      generatorsAdded: [
+        {
+          name: 'Core_Trust2',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: sgt,
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Primary',
+          context: { baseTrustUrl: 'https://example.api' },
+          possibleCollectors: [{ name: 'agent1' }],
+          intervalSecs: 6,
+          token: 'asd123asd',
+        },
+      ],
+    };
+    const updatedConfig = listener.onSuccess(res);
+    expect(updatedConfig.generators.Core_Trust2)
+      .to.deep.equal(res.generatorsAdded[0]);
+    expect(tracker.Core_Trust2).not.equal(undefined);
+
+    // send error to listener, check for paused generator repeaters
+    listener.onError(new Error('this is error'));
+    expect(repeater.paused).to.have.property('size', 1);
+    expect(repeater.paused).to.include('Core_Trust2');
+
+    // send ok response with updated generator - repeater should be unpaused
+    const resDel = {
+      collectorConfig: {
+        heartbeatIntervalMillis: 50,
+        maxSamplesPerBulkUpsert: 10,
+        status: 'Running',
+      },
+      generatorsDeleted: [
+        {
+          name: 'Core_Trust2',
+          generatorTemplateName: 'refocus-trust1-collector',
+          generatorTemplate: sgt,
+          subjectQuery: 'absolutePath=Parent.Child.*&tags=Secondary',
+          context: { baseTrustUrl: 'https://example.api' },
+          possibleCollectors: [{ name: 'agent1' }],
+          intervalSecs: 6,
+          token: 'asd123asd',
+        },
+      ],
+    };
+    const afterDelete = listener.onSuccess(resDel);
+    expect(afterDelete.generators).to.not.have.key('Core_Trust2');
+    expect(repeater.paused).to.be.empty;
+
     done();
   });
 
@@ -126,7 +215,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    listener(null, res);
+    listener.onSuccess(res);
     hbResponse.generatorsUpdated = [
       {
         name: 'Core_Trust3',
@@ -138,7 +227,7 @@ describe('test/heartbeat/listener.js >', () => {
       },
     ];
     hbResponse.generatorsAdded = [];
-    const updatedConfig = listener(null, hbResponse);
+    const updatedConfig = listener.onSuccess(hbResponse);
     expect(updatedConfig.generators.Core_Trust3.context.baseTrustUrl)
       .to.deep.equal('https://example.api');
     expect(tracker.Core_Trust3).not.equal(null);
@@ -167,7 +256,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener(null, res);
+    const updatedConfig = listener.onSuccess(res);
     expect(updatedConfig.generators.Core_Trust_nonBulk_NA1_NA2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.Core_Trust_nonBulk_NA1_NA2.NA1).not.equal(undefined);
@@ -197,7 +286,7 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
 
-    let updatedConfig = listener(null, res);
+    let updatedConfig = listener.onSuccess(res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.bulktrueToBulkFalse_1._bulk).not.equal(undefined);
@@ -222,7 +311,7 @@ describe('test/heartbeat/listener.js >', () => {
       ],
     };
 
-    updatedConfig = listener(null, updatedRes);
+    updatedConfig = listener.onSuccess(updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_1)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
     expect(tracker.bulktrueToBulkFalse_1.NA1).not.equal(undefined);
@@ -252,7 +341,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    let updatedConfig = listener(null, res);
+    let updatedConfig = listener.onSuccess(res);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(res.generatorsAdded[0]);
     expect(tracker.bulktrueToBulkFalse_2.NA1).not.equal(undefined);
@@ -277,7 +366,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    updatedConfig = listener(null, updatedRes);
+    updatedConfig = listener.onSuccess(updatedRes);
     expect(updatedConfig.generators.bulktrueToBulkFalse_2)
       .to.deep.equal(updatedRes.generatorsUpdated[0]);
     expect(tracker.bulktrueToBulkFalse_2._bulk).not.equal(undefined);
@@ -314,7 +403,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const updatedConfig = listener(null, res);
+    const updatedConfig = listener.onSuccess(res);
     expect(updatedConfig.generators.ABC_DATA).to.not.equal(undefined);
     const resDel = {
       collectorConfig: {
@@ -326,7 +415,7 @@ describe('test/heartbeat/listener.js >', () => {
         { name: 'ABC_DATA', },
       ],
     };
-    const updatedConfigAgain = listener(null, resDel);
+    const updatedConfigAgain = listener.onSuccess(resDel);
     expect(Object.keys(tracker)).to.contain('Fghijkl_Mnopq');
     expect(updatedConfigAgain.generators.Fghijkl_Mnopq)
       .to.not.equal(undefined);
@@ -359,7 +448,7 @@ describe('test/heartbeat/listener.js >', () => {
         context: { baseTrustUrl: 'https://example.api', },
       },
     };
-    const ret = listener(null, res);
+    const ret = listener.onSuccess(res);
     expect(ret.refocus.heartbeatIntervalMillis).to.equal(50);
     done();
   });
@@ -399,7 +488,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      const updatedConfig = listener(null, res);
+      const updatedConfig = listener.onSuccess(res);
       const decryptedContext = updatedConfig.generators
         .Core_Trust2_With_Encryption.context;
 
@@ -456,7 +545,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      listener(null, res);
+      listener.onSuccess(res);
       const newPassword = 'newPassword';
       const newToken = 'newToken';
       hbResponse.generatorsUpdated = [
@@ -493,7 +582,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ];
       hbResponse.generatorsAdded = [];
-      const updatedConfig = listener(null, hbResponse);
+      const updatedConfig = listener.onSuccess(hbResponse);
       expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
         .to.deep.equal({ baseTrustUrl: 'https://example.api.v2',
           password: newPassword, token: newToken, });
@@ -544,7 +633,7 @@ describe('test/heartbeat/listener.js >', () => {
           },
         ],
       };
-      listener(null, res);
+      listener.onSuccess(res);
       const newPassword = 'newPassword';
       const newToken = 'newToken';
       hbResponse.generatorsUpdated = [
@@ -581,7 +670,7 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ];
       hbResponse.generatorsAdded = [];
-      const updatedConfig = listener(null, hbResponse);
+      const updatedConfig = listener.onSuccess(hbResponse);
       expect(updatedConfig.generators.Core_Trust3_With_Encryption.context)
         .to.deep.equal({ baseTrustUrl: 'https://example.api.v2',
           password: newPassword, token: newToken, });

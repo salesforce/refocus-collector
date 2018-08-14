@@ -333,7 +333,7 @@ describe('test/repeater/repeater.js >', () => {
       }, 500);
     });
 
-    it('error if repeater being stopped is not in the tracker', (done) => {
+    it('noop if repeater being stopped is not in the tracker', (done) => {
       const obj = {
         name: 'someRandomName',
         interval: 10,
@@ -341,12 +341,8 @@ describe('test/repeater/repeater.js >', () => {
 
       try {
         repeater.stop(obj);
-        done('Expecting ResourceNotFoundError');
+        done();
       } catch (err) {
-        if (err.name === 'ResourceNotFoundError') {
-          return done();
-        }
-
         return done(err);
       }
     });
@@ -377,10 +373,10 @@ describe('test/repeater/repeater.js >', () => {
 
   describe('pause and resume >', () => {
     it('OK even when tracker is empty', (done) => {
-      let _tracker = repeater.pauseGenerators();
-      expect(_tracker).to.deep.equal({});
-      _tracker = repeater.resumeGenerators();
-      expect(_tracker).to.deep.equal({});
+      repeater.pauseGenerators();
+      expect(repeater.paused).to.have.property('size', 0);
+      repeater.resumeGenerators();
+      expect(repeater.paused).to.have.property('size', 0);
       done();
     });
 
@@ -604,6 +600,28 @@ describe('test/repeater/repeater.js >', () => {
         expect(err.name).to.equal('ResourceNotFoundError');
         expect(err.message).to.contain('not found');
         return done();
+      }
+    });
+
+    it('null subjects', (done) => {
+      try {
+        const func = () => {};
+
+        const def = {
+          name: 'Gen',
+          interval: 10,
+          func,
+          subjects: null,
+        };
+        repeater.create(def);
+        return done('Expecting ValidationError');
+      } catch (err) {
+        if (err.name === 'ValidationError' &&
+        err.message === '"subjects" is not allowed') {
+          return done();
+        }
+
+        return done(err);
       }
     });
   });

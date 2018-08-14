@@ -135,10 +135,11 @@ module.exports = {
    * Return a copy of the object with the specified keys masked.
    *
    * @param  {Object} object - Object to be masked
-   * @param  {Array} keys - The keys of the object to be masked
+   * @param  {Array} keys - The keys of the object to be masked, defaults to
+   *  ["token"] if none provided
    * @returns {Object} - returns the object with the keys masked
    */
-  sanitize(object, keys) {
+  sanitize(object, keys = ['token']) {
     if (!Array.isArray(keys)) {
       return object;
     }
