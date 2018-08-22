@@ -148,8 +148,8 @@ function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collCon
       queue.updateSize(qName, collConf.maxSamplesPerBulkUpsert);
     }
 
-    if (collConf.sampleUpsertQueueTime) {
-      queue.updateFlushTimeout(qName, collConf.sampleUpsertQueueTime);
+    if (collConf.sampleUpsertQueueTimeMillis) {
+      queue.updateFlushTimeout(qName, collConf.sampleUpsertQueueTimeMillis);
     }
 
     return queue.get(qName);
@@ -160,7 +160,7 @@ function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collCon
   return queue.create({
     name: qName,
     size: cr.maxSamplesPerBulkUpsert,
-    flushTimeout: cr.sampleUpsertQueueTime,
+    flushTimeout: cr.sampleUpsertQueueTimeMillis,
     verbose: false,
     flushFunction: httpUtils.doBulkUpsert,
     proxy: cr.proxy,

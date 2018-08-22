@@ -17,7 +17,6 @@ const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
 const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
-const handleCollectResponse = require('../../src/remoteCollection/handleCollectResponse');
 const sgt = require('../sgt');
 const sinon = require('sinon');
 const logger = require('winston');
@@ -96,7 +95,7 @@ const hbResponseNoSG = {
   collectorConfig: {
     heartbeatIntervalMillis: 50,
     maxSamplesPerBulkUpsert: 10,
-    sampleUpsertQueueTime: 100,
+    sampleUpsertQueueTimeMillis: 100,
     status: 'Running',
   },
   generatorsAdded: [],
