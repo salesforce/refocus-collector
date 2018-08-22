@@ -128,7 +128,7 @@ function handleCollectResponseBySubject(generatorPromise) {
  *  maps to the response from the remote data source
  * @returns {Promise} - which resolves to the queue length after enqueuing, or
  *  an error.
- * @throws {ValidationError}  if thrown by validateCollectResponse
+ * @throws {ValidationError} if thrown by validateCollectResponse
  */
 function handleCollectResponse(collectResponse) {
   return collectResponse.then((collectRes) => {
