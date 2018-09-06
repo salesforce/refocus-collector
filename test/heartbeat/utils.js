@@ -20,6 +20,7 @@ const repeater = require('../../src/repeater/repeater');
 const encryptionAlgorithm = 'aes-256-cbc';
 const logger = require('winston');
 logger.configure({ level: 0 });
+const queue = require('../../src/utils/queue');
 
 describe('test/heartbeat/utils.js >', () => {
   afterEach(() => repeater.stopAllRepeaters());
@@ -317,7 +318,7 @@ describe('test/heartbeat/utils.js >', () => {
     const collectorConfig = {
       heartbeatIntervalMillis: 50,
       maxSamplesPerBulkUpsert: 1000,
-      sampleUpsertQueueTime: 4000,
+      sampleUpsertQueueTimeMillis: 4000,
     };
 
     before(() => {
@@ -338,6 +339,7 @@ describe('test/heartbeat/utils.js >', () => {
     });
 
     it('OK, queue already exists, updated', (done) => {
+      const queueSpy = sinon.spy(queue, 'updateFlushTimeout');
       q.create({
         name: 'qName1',
         size: 10,
@@ -352,6 +354,11 @@ describe('test/heartbeat/utils.js >', () => {
       hu.createOrUpdateGeneratorQueue('qName1', token, intervalSecs, collectorConfig);
       const qUpdated = q.get('qName1');
       expect(qUpdated._size).to.be.equal(1000);
+
+      // must update flush timeout
+      expect(queueSpy.calledOnce).to.be.true;
+      queueSpy.restore();
+
       done();
     });
 

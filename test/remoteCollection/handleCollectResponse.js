@@ -217,7 +217,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       const qParams = {
         name: generatorName,
         size: config.refocus.maxSamplesPerBulkUpsert,
-        flushTimeout: config.refocus.sampleUpsertQueueTime,
+        flushTimeout: config.refocus.sampleUpsertQueueTimeMillis,
         verbose: false,
         token: '123abc',
         flushFunction: httpUtils.doBulkUpsert,
@@ -465,7 +465,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       const qParams = {
         name: generatorName,
         size: config.refocus.maxSamplesPerBulkUpsert,
-        flushTimeout: config.refocus.sampleUpsertQueueTime,
+        flushTimeout: config.refocus.sampleUpsertQueueTimeMillis,
         verbose: false,
         flushFunction: httpUtils.doBulkUpsert,
       };

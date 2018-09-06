@@ -58,7 +58,7 @@ function getDefaultConfig() {
    *     // POST /v1/collectors/:key/heartbeat response
    *     heartbeatIntervalMillis: [INTEGER],
    *     maxSamplesPerBulkUpsert: [INTEGER],
-   *     sampleUpsertQueueTime: [INTEGER],
+   *     sampleUpsertQueueTimeMillis: [INTEGER],
    *
    *     // plus any other parameters returned in the "collectorConfig" attribute
    *     // of the POST /v1/collectors/:key/heartbeat response

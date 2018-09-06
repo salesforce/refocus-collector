@@ -47,3 +47,6 @@ dump.rdb
 
 # Ignore registry.json
 registry.json
+
+# Ignore InteliJ Ide
+.idea/
