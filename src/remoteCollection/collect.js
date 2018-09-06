@@ -30,7 +30,7 @@ function sendRemoteRequest(generator) {
   return new Promise((resolve) => {
     const { context, aspects, subjects } = generator;
     const conn = generator.generatorTemplate.connection;
-    const simpleOauth = generator.simple_oauth;
+    const simpleOauth = generator.connection.simple_oauth;
 
     // Add the url to the generator so the handler has access to it later.
     generator.preparedUrl =
@@ -58,6 +58,7 @@ function sendRemoteRequest(generator) {
     const req = request
       .get(generator.preparedUrl)
       .set(generator.preparedHeaders);
+
     if (conn.dataSourceProxy) req.proxy(conn.dataSourceProxy);
     req.end((err, res) => {
       if (err) {
@@ -96,14 +97,14 @@ function sendRemoteRequest(generator) {
  * @throws {ValidationError} if thrown by prepareUrl
  */
 function prepareRemoteRequest(generator) {
-  if (generator.generatorTemplate.connection.simple_oauth) {
-    const method = generator.generatorTemplate.connection.simple_oauth;
-    const simpleOauth = generator.simple_oauth;
+  if (generator.connection.simple_oauth) {
+    const method = generator.connection.simple_oauth.method;
+    const simpleOauth = generator.connection.simple_oauth;
 
     if (!generator.token) {
       const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
       return oauth2[method]
-      .getToken(generator.simple_oauth.tokenConfig)
+      .getToken(simpleOauth.tokenConfig)
       .then((token) => {
         generator.token = token;
         return sendRemoteRequest(generator);

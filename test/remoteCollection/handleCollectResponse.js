@@ -121,6 +121,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         generatorTemplate: {
           connection: {},
         },
+        connection: {},
       };
       try {
         validateCollectResponse(cr);
@@ -493,6 +494,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           errorHandlers: {},
         },
       },
+      connection: {},
     };
 
     const expected = [

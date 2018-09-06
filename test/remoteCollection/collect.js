@@ -44,6 +44,7 @@ describe('test/remoteCollection/collect.js >', () => {
               '{ name: "UnionCity|Delay", value: 2 }]',
           },
         },
+        connection: {},
         subjects: [{ absolutePath: 'EastBay' }],
       };
       const remoteData = {
@@ -95,25 +96,28 @@ describe('test/remoteCollection/collect.js >', () => {
           },
         },
         subjects: [{ absolutePath: 'EastBay' }],
-        simple_oauth: {
-          credentials: {
-            client: {
-              id: '11bogus',
-              secret: '11bogus%^',
+        connection: {
+          simple_oauth: {
+            credentials: {
+              client: {
+                id: '11bogus',
+                secret: '11bogus%^',
+              },
+              auth: {
+                tokenHost: 'http://www.xyz.com/',
+                tokenPath: '/login',
+              },
+              options: {
+                bodyFormat: 'json',
+              },
             },
-            auth: {
-              tokenHost: 'http://www.xyz.com/',
-              tokenPath: '/login',
+            tokenConfig: {
+              username: 'testUser',
+              password: 'testPassword',
             },
-            options: {
-              bodyFormat: 'json',
-            },
+            tokenFormat: 'Bearer {accessToken}',
+            method: 'ownerPassword',
           },
-          tokenConfig: {
-            username: 'testUser',
-            password: 'testPassword',
-          },
-          tokenFormat: 'Bearer {accessToken}',
         },
       };
 
@@ -173,6 +177,7 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'http://randonUnAvailableUrl.false/',
           },
         },
+        connection: {},
       };
       const serverError = {
         error: { message: 'Server is down' },
@@ -205,6 +210,7 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'notaural',
           },
         },
+        connection: {},
       };
       collect.prepareRemoteRequest(generator)
       .then((collectRes) => {
@@ -231,6 +237,7 @@ describe('test/remoteCollection/collect.js >', () => {
             dataSourceProxy,
           },
         },
+        connection: {},
       };
 
       nock(remoteUrl)
@@ -265,6 +272,7 @@ describe('test/remoteCollection/collect.js >', () => {
             url: 'remoteUrl' + '/status',
           },
         },
+        connection: {},
       };
 
       nock(remoteUrl)
