@@ -40,8 +40,7 @@ function sendRemoteRequest(generator) {
     // If token is present, add to request header.
     if (generator.token) {
       const accessToken = generator.token.accessToken;
-      const simpleOauth = (generator.connection ?
-        generator.connection.simple_oauth : null);
+      const simpleOauth = get(generator, 'connection.simple_oauth');
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
@@ -99,8 +98,7 @@ function sendRemoteRequest(generator) {
  * @throws {ValidationError} if thrown by prepareUrl
  */
 function prepareRemoteRequest(generator) {
-  if (generator.connection && generator.connection.simple_oauth &&
-    !generator.token) {
+  if (!generator.token && get(generator, 'connection.simple_oauth')) {
     const method = generator.connection.simple_oauth.method;
     const simpleOauth = generator.connection.simple_oauth;
     const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
