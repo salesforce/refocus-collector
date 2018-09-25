@@ -37,10 +37,11 @@ function sendRemoteRequest(generator) {
       rce.prepareUrl(context, aspects, subjects, conn);
     debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
 
+    const simpleOauth = get(generator, 'connection.simple_oauth');
+
     // If token is present, add to request header.
     if (generator.token) {
       const accessToken = generator.token.accessToken;
-      const simpleOauth = get(generator, 'connection.simple_oauth');
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
