@@ -82,10 +82,10 @@ function sendRemoteRequest(generator) {
 
               return resolve(generator);
             });
-        } else {
-          debug('sendRemoteRequest returned error %O', err);
-          generator.res = err;
         }
+
+        debug('sendRemoteRequest returned error %O', err);
+        generator.res = err;
       }
 
       if (res) {
