@@ -72,7 +72,15 @@ function sendRemoteRequest(generator) {
         generator.token) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
-          return prepareRemoteRequest(generator);
+          prepareRemoteRequest(generator)
+          .then((resp) => {
+            if (resp) {
+              debug('sendRemoteRequest returned OK');
+              generator.res = resp.res;
+            }
+
+            return resolve(generator);
+          });
         } else {
           debug('sendRemoteRequest returned error %O', err);
           generator.res = err;
