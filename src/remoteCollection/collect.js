@@ -29,13 +29,15 @@ const AUTH_HEADER = 'headers.Authorization';
 function sendRemoteRequest(generator) {
   return new Promise((resolve) => {
     const { context, aspects, subjects } = generator;
+
     const conn = generator.generatorTemplate.connection;
-    const simpleOauth = generator.connection.simple_oauth;
 
     // Add the url to the generator so the handler has access to it later.
     generator.preparedUrl =
       rce.prepareUrl(context, aspects, subjects, conn);
     debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
+
+    const simpleOauth = get(generator, 'connection.simple_oauth');
 
     // If token is present, add to request header.
     if (generator.token) {
@@ -97,19 +99,16 @@ function sendRemoteRequest(generator) {
  * @throws {ValidationError} if thrown by prepareUrl
  */
 function prepareRemoteRequest(generator) {
-  if (generator.connection.simple_oauth) {
+  if (!generator.token && get(generator, 'connection.simple_oauth')) {
     const method = generator.connection.simple_oauth.method;
     const simpleOauth = generator.connection.simple_oauth;
-
-    if (!generator.token) {
-      const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-      return oauth2[method]
+    const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+    return oauth2[method]
       .getToken(simpleOauth.tokenConfig)
       .then((token) => {
         generator.token = token;
         return sendRemoteRequest(generator);
       });
-    }
   }
 
   return sendRemoteRequest(generator);
