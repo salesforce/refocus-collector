@@ -15,9 +15,7 @@ are searching for your sample generator.
   - `version` (String, required) - the version of the sample generator template to use; accepts comparators, hyphen ranges, 
   x-ranges, tilde ranges and caret ranges. See https://docs.npmjs.com/misc/semver for version grammar.
 - `aspects` (Array of Strings, required) - one or more aspect names.
-- `subjects` (Array of Strings, one of either `subjects` or `subjectQuery` is required) - the absolutePath of one
-or more subjects.
-- `subjectQuery` (Array of Strings, one of either `subjects` or `subjectQuery` is required) - a query which 
+- `subjectQuery` (String, required) - a query which
 defines the set of subjects for which to generate samples. Using a subject query lets you specify your set of 
 subjects dynamically, without you having to update the Sample Generator when a new subject gets added. For example, `?absolutePath=NorthAmerica.UnitedStates.*&tags=City`
 would return an array of subjects whose absolutePath starts with "NorthAmerica.UnitedStates." and which have subject tag 
