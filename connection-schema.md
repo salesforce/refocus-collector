@@ -5,37 +5,40 @@
     "simple-auth": {
       "credential": {
         "client": {
-          "id": CLIENT_ID, // client ID
-          "secret": CLIENT_SECRET // client secret
-          "redirectU
-          ri": REDIRECT_URI, // redirect_uri
+          "id": "CLIENT_ID",
+          "secret": "CLIENT_SECRET"
+          "redirectUri": "REDIRECT_URI"
         },
         "auth": {
-          "tokenHost": HOST_URL, // i.e www.example.com
-          "tokenPath": HOST_PATH // i.e /auth/login
+          "tokenHost": "HOST_URL",
+          "tokenPath": "HOST_PATH"
         },
-        "options": { // extra options
+        "options": {
           "bodyFormat": "json"
         }
       },
       "authorizarionUri": {
-        "redirect_uri": REDIRECT_URI, // redirect_uri
-        "scope": "notifications", // scope of authorization
+        "redirect_uri": "REDIRECT_URI",
+        "scope": "notifications",
         "state": "3(#0/!~"
       },
       "tokenConfig": {
-        "username": USERNAME, // username
-        "passeword": PASSWORD // password
+        "username": "USERNAME",
+        "passeword": "PASSWORD"
       },
       "tokenObject": {
         "access_token": "<Token>",
         "refresh_token": "<Token>",
         "expires_in": "t3600"
       },
-      "method": "authorizationCode || ownerPassword || clientCredentials", // check simple-oauth2 NPM Package to choose method
+      "method": "authorizationCode || ownerPassword || clientCredentials",
       "tokenFormat": "Bearer {accessToken}",
-      "salesforce": true // if you are trying to connect Salesforce ORG
+      "salesforce": true
     }
   }
 }
 ```
+
+## Important Points
+- For choosing right method look at [simple-oauth2](https://github.com/lelylan/simple-oauth2) NPM Package
+- If you are trying to connect Salesforce ORG use `"salesforce": true` option
