@@ -6,7 +6,7 @@
       "credential": {
         "client": {
           "id": "CLIENT_ID",
-          "secret": "CLIENT_SECRET"
+          "secret": "CLIENT_SECRET",
           "redirectUri": "REDIRECT_URI"
         },
         "auth": {
