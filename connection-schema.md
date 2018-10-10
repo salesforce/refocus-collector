@@ -1,18 +1,5 @@
-SERVICES
-DOCUMENTS
-Untitled Document.md
-PREVIEW AS 
-EXPORT AS 
-SAVE TO 
-IMPORT FROM 
-DOCUMENT NAME
-
-Untitled Document.md
-WORDS: 120CHARACTERS: 1208
-MARKDOWN Toggle Zen ModePREVIEW Toggle Mode
-
-  
-Connection Parameter Schema in Generator Object
+# Connection Parameter Schema in Generator Object
+```json
 {
   "connection": {
     "simple-auth": {
@@ -51,3 +38,4 @@ Connection Parameter Schema in Generator Object
     }
   }
 }
+```
