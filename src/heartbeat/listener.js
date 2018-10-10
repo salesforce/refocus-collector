@@ -46,7 +46,7 @@ function onError(err) {
  * @param {Object} body - Heartbeat response body
  * @returns {Object} - Config object or error (returning just for testability)
  */
-function onSuccess(body) {
+function onSuccess(body, timestamp) {
   debug('heartbeat/listener.onSuccess', body);
   try {
     const config = configModule.getConfig();
@@ -54,6 +54,7 @@ function onSuccess(body) {
       const cc = body.collectorConfig;
       utils.changeCollectorStatus(config.refocus.status, cc.status);
       utils.updateCollectorConfig(cc);
+      body.timestamp = timestamp;
       if (cc.status === collectorStatus.RUNNING) {
         utils.addGenerators(body);
         utils.deleteGenerators(body);

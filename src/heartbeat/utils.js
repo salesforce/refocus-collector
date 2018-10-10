@@ -42,16 +42,12 @@ function changeCollectorStatus(currentStatus, newStatus) {
     return;
   }
 
-  if (newStatus === collectorStatus.STOPPED) {
+  if (newStatus === collectorStatus.PAUSED) {
+    repeater.stopGenerators();
+  } else if (newStatus === collectorStatus.STOPPED) {
     repeater.stopAllRepeaters();
     queue.flushAll();
     process.exit(0);
-  }
-
-  if (newStatus === collectorStatus.PAUSED) {
-    repeater.pauseGenerators();
-  } else if (newStatus === collectorStatus.RUNNING) {
-    repeater.resumeGenerators();
   }
 } // changeCollectorState
 
@@ -62,7 +58,20 @@ function changeCollectorStatus(currentStatus, newStatus) {
  */
 function updateCollectorConfig(cc) {
   const config = configModule.getConfig();
-  Object.keys(cc).forEach((key) => config.refocus[key] = cc[key]);
+  Object.keys(cc).forEach((key) => {
+    const oldValue = config.refocus[key];
+    const newValue = cc[key];
+    config.refocus[key] = cc[key];
+    if (oldValue && newValue !== oldValue) {
+      if (key === 'heartbeatIntervalMillis') {
+        repeater.updateHeartbeatRepeater(newValue);
+      } else if (key === 'sampleUpsertQueueTimeMillis') {
+        queue.updateFlushTimeoutAll(newValue);
+      } else if (key === 'maxSamplesPerBulkUpsert') {
+        queue.updateSizeAll(newValue);
+      }
+    }
+  });
   const sanitized = sanitize(config.refocus, configModule.attributesToSanitize);
   debug('exiting updateCollectorConfig %O', sanitized);
 } // updateCollectorConfig
