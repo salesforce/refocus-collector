@@ -36,8 +36,9 @@ const url = `${cr.url}/v1/collectors/${config.name}/resume`;
 logger.log('Resume =>', config.name, url);
 
 // Request to Refocus to resume collector
-doPost(url, cr.accessToken, cr.proxy)
-.then(() => logger.info(`Resuming ${config.name}`))
-.catch((err) => {
-  logger.error(err.message, err.explanation, err.response);
-});
+module.exports =
+  doPost(url, cr.accessToken, cr.proxy)
+  .then(() => logger.info(`Resuming ${config.name}`))
+  .catch((err) => {
+    logger.error(err.message, err.explanation, err.response);
+  });

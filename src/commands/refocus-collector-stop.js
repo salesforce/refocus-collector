@@ -36,8 +36,9 @@ const url = `${cr.url}/v1/collectors/${config.name}/stop`;
 logger.log('Stop =>', config.name, url);
 
 // Request to Refocus to stop the collector
-doPost(url, cr.accessToken, cr.proxy)
-.then(() => logger.info(`Stopping ${config.name}`))
-.catch((err) => {
-  logger.error(err.message, err.explanation, err.response);
-});
+module.exports =
+  doPost(url, cr.accessToken, cr.proxy)
+  .then(() => logger.info(`Stopping ${config.name}`))
+  .catch((err) => {
+    logger.error(err.message, err.explanation, err.response);
+  });
