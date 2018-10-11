@@ -43,11 +43,9 @@ describe('test/repeater/repeater.js >', () => {
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
-      expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
-      expect(ret.funcName).to.equal('func');
-      expect(tracker.Generator0).to.equal(ret.handle);
+      expect(tracker.Generator0).to.equal(ret);
       done();
     });
 
@@ -70,12 +68,10 @@ describe('test/repeater/repeater.js >', () => {
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
-      expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0.1');
-      expect(ret.funcName).to.equal('func');
       expect(ret.onProgress.name).to.equal('dummyOnProgress');
-      expect(tracker['Generator0.1']).to.equal(ret.handle);
+      expect(tracker['Generator0.1']).to.equal(ret);
       done();
     });
 
@@ -100,11 +96,9 @@ describe('test/repeater/repeater.js >', () => {
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
       setTimeout(() => {
-        expect(ret.handle).to.not.equal(undefined);
         expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
         expect(ret.name).to.equal('Generator0.11');
-        expect(ret.funcName).to.equal('func');
-        expect(tracker['Generator0.11']).to.equal(ret.handle);
+        expect(tracker['Generator0.11']).to.equal(ret);
         return done();
       }, 20);
     });
@@ -133,12 +127,10 @@ describe('test/repeater/repeater.js >', () => {
       repeater.stop(obj.name);
       const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
         dummyOnProgress);
-      expect(ret.handle).to.not.equal(undefined);
       expect(ret).to.have.property('interval', MILLIS * obj.intervalSecs);
       expect(ret).to.have.property('name', 'Generator0.2');
-      expect(ret).to.have.property('funcName', 'func');
       expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
-      expect(tracker['Generator0.2']).to.equal(ret.handle);
+      expect(tracker['Generator0.2']).to.equal(ret);
       done();
     });
   });
@@ -153,11 +145,9 @@ describe('test/repeater/repeater.js >', () => {
         func: taskStub,
       };
       const ret = repeater.create(def);
-      expect(ret.handle).to.not.equal(undefined);
       expect(ret.interval).to.equal(def.interval);
       expect(ret.name).to.equal('Generator2');
-      expect(ret.funcName).to.equal('taskStub');
-      expect(tracker.Generator2).to.equal(ret.handle);
+      expect(tracker.Generator2).to.equal(ret);
       done();
     });
 
@@ -175,11 +165,9 @@ describe('test/repeater/repeater.js >', () => {
       const ret = repeater.create(def);
       setTimeout(() => {
         expect(counter).to.be.at.least(1);
-        expect(ret.handle).to.not.equal(undefined);
         expect(ret.interval).to.equal(def.interval);
         expect(ret.name).to.equal('Generator3');
-        expect(ret.funcName).to.equal('stub');
-        expect(tracker.Generator3).to.equal(ret.handle);
+        expect(tracker.Generator3).to.equal(ret);
         return done();
       }, 100);
     });
@@ -211,10 +199,8 @@ describe('test/repeater/repeater.js >', () => {
         return Promise.resolve(obj);
       }
 
-      function onProgress(ret) {
-        ret.then((c) => {
-          c.value = 'Good';
-        });
+      function onProgress(c) {
+        c.value = 'Good';
       }
 
       const def = {
@@ -230,19 +216,18 @@ describe('test/repeater/repeater.js >', () => {
       }, 100);
     });
 
-    it('onProgress should work when task fn rejects promise', (done) => {
+    it('onFailure should work when task fn rejects promise', (done) => {
       const obj = { value: 'OK' };
       function taskFunc() {
         return Promise.reject(obj);
       }
 
-      function onProgress(ret) {
-        ret.then((c) => {
-          c.value = 'Good';
-        })
-        .catch((err) => {
-          err.value = 'Bad';
-        });
+      function onProgress(c) {
+        c.value = 'Good';
+      }
+
+      function onFailure(c) {
+        c.value = 'Bad';
       }
 
       const def = {
@@ -250,6 +235,7 @@ describe('test/repeater/repeater.js >', () => {
         interval: 10,
         func: taskFunc,
         onProgress,
+        onFailure,
       };
       repeater.create(def);
       setTimeout(() => {
@@ -280,15 +266,11 @@ describe('test/repeater/repeater.js >', () => {
         repeater.stop(def.name);
         oldCount = currentCount;
         expect(tracker.Generator4).to.equal(undefined);
-      }, 100);
+      }, 200);
       setTimeout(() => {
-        /*
-         * It can take a few milliseconds for the repeat to stop so there is a
-         * difference of 1 or 2 between the old and the new count.
-         */
-        expect(currentCount - oldCount).to.be.within(1, 2);
+        expect(currentCount).to.equal(oldCount);
         return done();
-      }, 500);
+      }, 600);
     });
 
     it('stop and start should update the repeat and tracker', (done) => {
@@ -302,26 +284,24 @@ describe('test/repeater/repeater.js >', () => {
         newCount++;
       }
 
-      const def = {
+      repeater.create({
         name: 'Generator5',
         interval: 1,
         func: stub,
-      };
-
-      repeater.create(def);
+      });
       setTimeout(() => {
         expect(count).to.be.at.least(1); // proves repeater ran
 
         // repeater updated
-        def.interval = 100000;
-        def.func = stubNew;
-        repeater.stop(def.name);
-        const ret = repeater.create(def);
-        expect(ret.handle).to.not.equal(undefined);
-        expect(ret.interval).to.equal(def.interval);
+        repeater.stop('Generator5');
+        const ret = repeater.create({
+          name: 'Generator5',
+          interval: 300,
+          func: stubNew,
+        });
+        expect(ret.interval).to.equal(300);
         expect(ret.name).to.equal('Generator5');
-        expect(ret.funcName).to.equal('stubNew');
-        expect(tracker.Generator5).to.equal(ret.handle);
+        expect(tracker.Generator5).to.equal(ret);
       }, 100);
       setTimeout(() => {
         expect(newCount).to.equal(1); // proves repeat was updated
@@ -330,13 +310,8 @@ describe('test/repeater/repeater.js >', () => {
     });
 
     it('noop if repeater being stopped is not in the tracker', (done) => {
-      const obj = {
-        name: 'someRandomName',
-        interval: 10,
-      };
-
       try {
-        repeater.stop(obj);
+        repeater.stop('someRandomName');
         done();
       } catch (err) {
         return done(err);
@@ -370,9 +345,9 @@ describe('test/repeater/repeater.js >', () => {
   describe('pause and resume >', () => {
     it('OK even when tracker is empty', (done) => {
       repeater.pauseGenerators();
-      expect(repeater.paused).to.have.property('size', 0);
+      expect(repeater.getPaused()).to.have.lengthOf(0);
       repeater.resumeGenerators();
-      expect(repeater.paused).to.have.property('size', 0);
+      expect(repeater.getPaused()).to.have.lengthOf(0);
       done();
     });
 
