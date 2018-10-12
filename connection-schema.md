@@ -38,7 +38,35 @@
   }
 }
 ```
+## Examples
+### Argus
+```json
+{
+  "connection": {
+    "simple_oauth": {
+      "credentials": {
+        "client": {
+        },
+        "auth": {
+          "tokenHost": "ARGUS_HOST",
+          "tokenPath": "ARGUS_PATH"
+        },
+        "options": {
+          "bodyFormat": "json"
+        },
+      },
+      "tokenConfig": {
+        "username": "USERNAME",
+        "password": "PASSWORD"
+      },
+      "tokenFormat": "Bearer {accessToken}",
+      "method": "ownerPassword"
+    }
+  }
+}
+```
+For more example [See here](https://github.com/lelylan/simple-oauth2/tree/master/example).
 
 ## Important Points
-- For choosing right method look at [simple-oauth2](https://github.com/lelylan/simple-oauth2) NPM Package
+- For more information on all above variables and to choose right method look at [simple-oauth2](https://github.com/lelylan/simple-oauth2) NPM Package
 - If you are trying to connect Salesforce ORG use `"salesforce": true` option
