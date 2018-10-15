@@ -2,8 +2,8 @@
 ```json
 {
   "connection": {
-    "simple-auth": {
-      "credential": {
+    "simple_oauth": {
+      "credentials": {
         "client": {
           "id": "CLIENT_ID",
           "secret": "CLIENT_SECRET",
@@ -48,8 +48,8 @@
         "client": {
         },
         "auth": {
-          "tokenHost": "ARGUS_HOST",
-          "tokenPath": "ARGUS_PATH"
+          "tokenHost": "http://localhost:8000",
+          "tokenPath": "/argusws/v2/auth/login"
         },
         "options": {
           "bodyFormat": "json"
