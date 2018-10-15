@@ -192,7 +192,7 @@ describe('test/heartbeat/utils.js >', () => {
     });
 
     it('currentStatus = Running and newStatus = Paused', (done) => {
-      const spy = sinon.spy(repeater, 'pauseGenerators');
+      const spy = sinon.spy(repeater, 'stopGenerators');
       hu.changeCollectorStatus('Running', 'Paused');
       expect(spy.calledOnce).to.equal(true);
       spy.restore();
@@ -200,7 +200,7 @@ describe('test/heartbeat/utils.js >', () => {
     });
 
     it('currentStatus = Paused and newStatus = Paused', (done) => {
-      const spy = sinon.spy(repeater, 'pauseGenerators');
+      const spy = sinon.spy(repeater, 'stopGenerators');
       hu.changeCollectorStatus('Paused', 'Paused');
       expect(spy.calledOnce).to.equal(false);
       spy.restore();
@@ -210,7 +210,7 @@ describe('test/heartbeat/utils.js >', () => {
     it('currentStatus = Paused and newStatus = Running', (done) => {
       const spy = sinon.spy(repeater, 'resumeGenerators');
       hu.changeCollectorStatus('Paused', 'Running');
-      expect(spy.calledOnce).to.equal(true);
+      expect(spy.calledOnce).to.equal(false);
       spy.restore();
       done();
     });
@@ -242,9 +242,16 @@ describe('test/heartbeat/utils.js >', () => {
   describe('addGenerators >', () => {
     const genName1 = 'Gen1';
     const genName2 = 'Gen2';
+    before(q.reset);
+    after(q.reset);
     beforeEach(() => {
       configModule.clearConfig();
       configModule.initializeConfig();
+      hu.updateCollectorConfig({
+        heartbeatIntervalMillis: 15000,
+        maxSamplesPerBulkUpsert: 1000,
+        sampleUpsertQueueTimeMillis: 1000,
+      });
       const config = configModule.getConfig();
       if (config.refocus) {
         config.refocus.url = 'mock.refocus.com';
@@ -324,6 +331,11 @@ describe('test/heartbeat/utils.js >', () => {
     before(() => {
       configModule.clearConfig();
       configModule.initializeConfig();
+      hu.updateCollectorConfig({
+        heartbeatIntervalMillis: 15000,
+        maxSamplesPerBulkUpsert: 1000,
+        sampleUpsertQueueTimeMillis: 1000,
+      });
       const config = configModule.getConfig();
       config.refocus.collectorToken = 'my-collector-token';
     });

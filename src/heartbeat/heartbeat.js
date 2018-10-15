@@ -43,6 +43,6 @@ module.exports = () => {
 
   return httpUtils.doPost(urlToPost, cr.collectorToken, cr.proxy, requestbody,
     cutoff)
-  .then((res) => listener.onSuccess(res.body))
+  .then((res) => listener.onSuccess(res.body, timestamp))
   .catch(listener.onError);
 };

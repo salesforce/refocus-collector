@@ -88,6 +88,15 @@ function updateSize(name, size) {
 } // updateSize
 
 /**
+ * Updates the queue size for all queues
+ *
+ * @param {Number} size - the new size for all queues
+ */
+function updateSizeAll(size) {
+  Object.keys(qmap).forEach((name) => updateSize(name, size));
+} // updateSizeAll
+
+/**
  * Updates the queue flush timeout for the named queue.
  *
  * @param {String} name - the name of the buffered queue
@@ -104,7 +113,16 @@ function updateFlushTimeout(name, timeout) {
   debug('Updated queue "%s" flush timeout from %d to %d', name, oldTimeout,
     q._flushTimeout);
   return get(name)._flushTimeout;
-} // updateSize
+} // updateFlushTimeout
+
+/**
+ * Updates the queue flush timeout for all queues
+ *
+ * @param {Number} timeout - the new timeout for all queues
+ */
+function updateFlushTimeoutAll(timeout) {
+  Object.keys(qmap).forEach((name) => updateFlushTimeout(name, timeout));
+} // updateFlushTimeoutAll
 
 /**
  * Enqueues data to the buffered queue from array.
@@ -131,6 +149,13 @@ function flushAll() {
   Object.keys(qmap).forEach((name) => qmap[name].onFlush());
 } // flushAll
 
+/**
+ * Deletes all the buffered queues.
+ */
+function reset() {
+  Object.keys(qmap).forEach((key) => delete qmap[key]);
+} // reset
+
 module.exports = {
   create,
   enqueue,
@@ -138,5 +163,8 @@ module.exports = {
   flushAll,
   get,
   updateFlushTimeout,
+  updateFlushTimeoutAll,
   updateSize,
+  updateSizeAll,
+  reset,
 };

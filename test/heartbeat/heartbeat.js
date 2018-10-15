@@ -391,7 +391,7 @@ describe('test/heartbeat/heartbeat.js >', () => {
       .post(heartbeatEndpoint)
       .reply(httpStatus.OK, hbResponseStatusPaused);
 
-      spyPause = sinon.spy(repeater, 'pauseGenerators');
+      spyPause = sinon.spy(repeater, 'stopGenerators');
 
       // send heartbeat with status = paused
       return heartbeat();
@@ -406,13 +406,13 @@ describe('test/heartbeat/heartbeat.js >', () => {
       })
       .post(heartbeatEndpoint)
       .reply(httpStatus.OK, hbResponseWithSGToUpdate);
-      spyResume = sinon.spy(repeater, 'resumeGenerators');
+      spyResume = sinon.spy(repeater, 'createGeneratorRepeater');
 
       // send heartbeat with status = running to resume the paused generators
       return heartbeat();
     })
     .then((res) => {
-      expect(spyResume.calledOnce).to.equal(true);
+      expect(spyResume.callCount).to.equal(3);
       expect(res.refocus).to.include(hbResponseWithSGToUpdate.collectorConfig);
 
       // make sure the generator1 is updated

@@ -16,12 +16,9 @@ const repeater = Joi.object().keys({
   name: Joi.string().required(),
   interval: Joi.number().integer().positive(), // TODO define min/max!
   func: Joi.func().required(),
-  onSuccess: Joi.func(),
   onFailure: Joi.func(),
   onProgress: Joi.func(),
   bulk: Joi.boolean(),
-  handle: Joi.any(),
-  funcName: Joi.string(),
 });
 
 const refocusInstance = Joi.object().keys({
