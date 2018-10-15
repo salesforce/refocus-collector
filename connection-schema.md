@@ -1,4 +1,9 @@
-# Connection Parameter Schema in Generator Object
+# Configuring the Connection in the Sample Generator
+
+For Sample Generators which require authorization for the connection, the use the `connection` attribute of the Sample Generator. The object contents of this attribute are based on [simple-oauth2](https://github.com/lelylan/simple-oauth2). Please refer to their [documentation](https://github.com/lelylan/simple-oauth2) and [examples](https://github.com/lelylan/simple-oauth2/tree/master/example).
+
+Note: If you are connecting to a Salesforce org using Salesforce's REST API, set `"salesforce": true` inside the `simple_oauth` attribute (see below).
+
 ```json
 {
   "connection": {
@@ -38,8 +43,12 @@
   }
 }
 ```
-## Examples
+## Additional Examples
+
 ### Argus
+
+If you are connecting to an [Argus](https://github.com/salesforce/Argus) instance, your `connection` object should look like this:
+
 ```json
 {
   "connection": {
@@ -65,8 +74,3 @@
   }
 }
 ```
-For more example [See here](https://github.com/lelylan/simple-oauth2/tree/master/example).
-
-## Important Points
-- For more information on all above variables and to choose right method look at [simple-oauth2](https://github.com/lelylan/simple-oauth2) NPM Package
-- If you are trying to connect Salesforce ORG use `"salesforce": true` option
