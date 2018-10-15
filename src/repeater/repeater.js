@@ -10,12 +10,11 @@
  * /src/repeater/repeater.js
  */
 const debug = require('debug')('refocus-collector:repeater');
-const repeat = require('repeat');
 const logger = require('winston');
 const errors = require('../errors');
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
-const u = require('../utils/commonUtils');
+let hbFunc;
 
 /**
  * Tracks all the repeaters defined in the collectors.
@@ -24,23 +23,9 @@ const u = require('../utils/commonUtils');
  */
 const tracker = {};
 
-// Track the names of paused repeaters.
-const paused = new Set();
-
 function notHeartbeat(key) {
   return key !== heartbeatRepeatName;
 } // notHeartbeat
-
-/**
- * Update the tracker object to track the new repeater.
- *
- * @param  {Object} def - Repeater definition object
- */
-function trackRepeater(def) {
-  debug('trackRepeater %s', def.name);
-  tracker[def.name] = def.handle;
-  debug('now tracking %O', Object.keys(tracker));
-} // trackRepeater
 
 /**
  * The default function that is called every time a task is repeated.
@@ -73,30 +58,6 @@ function onFailure(err) {
 } // onFailure
 
 /**
- * Changes the state of a repeater, given the repeater name and its new state.
- * For example to pause a repeater named "foo", call
- * changedRepatState(foo, pause).
- * @param {String} name - Name of the repeat
- * @param {String} newState - New start of the repeat
- */
-function changeRepeatState(name, newState) {
-  debug('changeRepeatState %s to %s', name, newState);
-  if (!name || !tracker[name]) {
-    throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
-  }
-
-  if (tracker[name][newState]) {
-    tracker[name][newState]();
-  } else {
-    Object.keys(tracker[name]).forEach((prop) => {
-      if (tracker[name][prop][newState]) {
-        tracker[name][prop][newState]();
-      }
-    });
-  }
-} // changeRepeatState
-
-/**
  * Stops the named repeater and deletes it from the tracker.
  *
  * @param {String} name - Name of the repeat
@@ -104,20 +65,95 @@ function changeRepeatState(name, newState) {
  */
 function stop(name) {
   debug('stop %s', name);
-  try {
-    changeRepeatState(name, 'stop');
-  } catch (err) {
-    logger.error(err);
+  if (!name || !tracker[name]) {
+    logger.error(`Repeater "${name}" not found`);
+    return;
+  }
+
+  if (tracker[name].intervalId) {
+    clearInterval(tracker[name].intervalId);
   }
 
   delete tracker[name];
-  paused.delete(name);
   logger.info({
     activity: 'repeater:stopped',
     name,
   });
   debug('now tracking %O', Object.keys(tracker));
 } // stop
+
+/**
+ * Pauses the repeater, given its name
+ * @param  {String} name - Name of the repeat
+ */
+function pause(name) {
+  debug('pause %s', name);
+  if (!name || !tracker[name]) {
+    throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
+  }
+
+  if (tracker[name].intervalId) {
+    clearInterval(tracker[name].intervalId);
+    delete tracker[name].intervalId;
+  }
+
+  logger.info({
+    activity: 'repeater:paused',
+    name,
+  });
+} // pause
+
+function getPaused() {
+  return Object.values(tracker)
+    .filter(gen => !gen.intervalId)
+    .map(gen => gen.name);
+}
+
+/**
+ * Resumes a paused repeater, given its name
+ * @param  {String} name - Name of the repeat
+ */
+function resume(name) {
+  debug('resume %s', name);
+  if (!name || !tracker[name]) {
+    throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
+  }
+
+  if (!tracker[name].intervalId) {
+    const def = tracker[name];
+    delete tracker[name];
+    create(def);
+  }
+
+  logger.info({
+    activity: 'repeater:resumed',
+    name,
+  });
+} // resume
+
+/**
+ * Stop all the generator repeaters.
+ */
+function stopGenerators() {
+  debug('stopGenerators');
+  Object.keys(tracker).filter(notHeartbeat).forEach(stop);
+} // stopGenerators
+
+/**
+ * Pauses all the generator repeaters.
+ */
+function pauseGenerators() {
+  debug('pauseGenerators');
+  Object.keys(tracker).filter(notHeartbeat).forEach(pause);
+} // pauseGenerators
+
+/**
+ * Resumes all the generator repeaters.
+ */
+function resumeGenerators() {
+  debug('pauseGenerators');
+  Object.keys(tracker).filter(notHeartbeat).forEach(resume);
+} // resumeGenerators
 
 /**
  * Stops all the repeats tracked in the repeat tracker and clears them from the
@@ -130,50 +166,6 @@ function stopAllRepeaters() {
   debug('now tracking %O', Object.keys(tracker));
   return tracker;
 } // stopAllRepeaters
-
-/**
- * Pauses the repeater, given its name
- * @param  {String} name - Name of the repeat
- */
-function pause(name) {
-  debug('pause %s', name);
-  changeRepeatState(name, 'pause');
-  paused.add(name);
-  logger.info({
-    activity: 'repeater:paused',
-    name,
-  });
-} // pause
-
-/**
- * Pauses all the generator repeaters.
- */
-function pauseGenerators() {
-  debug('pauseGenerators');
-  Object.keys(tracker).filter(notHeartbeat).forEach(pause);
-} // pauseGenerators
-
-/**
- * Resumes a paused repeater, given its name
- * @param  {String} name - Name of the repeat
- */
-function resume(name) {
-  debug('resume %s', name);
-  changeRepeatState(name, 'resume');
-  paused.delete(name);
-  logger.info({
-    activity: 'repeater:resumed',
-    name,
-  });
-} // resume
-
-/**
- * Resumes all the generator repeaters.
- */
-function resumeGenerators() {
-  debug('pauseGenerators');
-  Object.keys(tracker).filter(notHeartbeat).forEach(resume);
-} // resumeGenerators
 
 /**
  * Validate the repeater definition.
@@ -217,19 +209,18 @@ function validateDefinition(def) {
  *  {Function} onFailure - function to execute if any repetition fails
  *  {Function} onProgress - function to execute upon completion of each
  *    repetition.
- * @returns {Promise} - A read-only Promise instance
  * @throws {ValidationError} - Thrown by validateDefinition
  */
 function create(def) {
   validateDefinition(def);
   debug('create %O', def);
-  const handle = repeat(def.func);
-  handle.every(def.interval, 'ms').start.now();
-  handle.then(def.onSuccess || onSuccess, def.onFailure || onFailure,
-    def.onProgress || onProgress);
-  def.handle = handle;
-  def.funcName = def.func.name;
-  trackRepeater(def);
+  const intervalFunc = () =>
+    Promise.resolve()
+    .then(def.func)
+    .then(def.onProgress)
+    .catch(def.onFailure);
+  def.intervalId = setInterval(intervalFunc, def.interval);
+  tracker[def.name] = def;
   logger.info({
     activity: 'repeater:created',
     name: def.name,
@@ -248,7 +239,7 @@ function create(def) {
  * @param {Function} func - pass in the function to call on each interval
  * @param {Function} onProgress - pass in the function call after each
  *  repetition
- * @returns {Promise} - A read-only Promise instance.
+ *
  * @throws {ValidationError} - Thrown by validateDefinition, called by
  *  repeater.create
  */
@@ -258,19 +249,52 @@ function createGeneratorRepeater(generator, func, onProgress) {
     interval: 1000 * generator.intervalSecs, // convert to millis
     func: () => func(generator),
     onProgress,
+    onFailure,
   });
 } // createGeneratorRepeater
+
+/**
+* Convenience function to create a new heartbeat repeater.
+*
+* @throws {ValidationError} - Thrown by validateDefinition, called by
+*  repeater.create
+*/
+function createHeartbeatRepeater(func, interval) {
+  hbFunc = func;
+  return create({
+    name: heartbeatRepeatName,
+    interval,
+    func,
+    onProgress,
+    onFailure,
+  });
+} // createHeartbeatRepeater
+
+/**
+ * Convenience function to update the heartbeat repeater
+ *
+ * @throws {ValidationError} - Thrown by stop, createHeartbeatRepeater
+ */
+function updateHeartbeatRepeater(interval) {
+  if (hbFunc && interval) {
+    stop(heartbeatRepeatName);
+    createHeartbeatRepeater(hbFunc, interval);
+  }
+} // updateHeartbeatRepeater
 
 module.exports = {
   create,
   createGeneratorRepeater,
-  pause,
-  paused,
-  pauseGenerators,
-  resume,
-  tracker,
-  resumeGenerators,
+  createHeartbeatRepeater,
+  updateHeartbeatRepeater,
   stop,
+  pause,
+  resume,
+  stopGenerators,
+  pauseGenerators,
+  resumeGenerators,
   stopAllRepeaters,
+  getPaused,
+  tracker,
   validateDefinition, // export for testing only
 };

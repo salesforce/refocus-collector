@@ -96,9 +96,9 @@ function getDefaultConfig() {
   const conf = {
     // overridden from response from Refocus
     refocus: {
-      heartbeatIntervalMillis: 15000,
-      maxSamplesPerBulkUpsert: 1000,
-      sampleUpsertQueueTimeMillis: 1000,
+      heartbeatIntervalMillis: undefined,
+      maxSamplesPerBulkUpsert: undefined,
+      sampleUpsertQueueTimeMillis: undefined,
     },
     generators: {},
     metadata: {},

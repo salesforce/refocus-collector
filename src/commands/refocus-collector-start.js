@@ -34,7 +34,8 @@ if (!cmdUtils.validateArgs(program)) {
 const config = cmdUtils.setupConfig(program);
 
 logger.log('Start =>', config.collectorName, config.refocus.url);
-cmdStart.execute()
-.catch((err) => {
-  logger.error(err.message, err.explanation, err.response);
-});
+module.exports =
+  cmdStart.execute()
+  .catch((err) => {
+    logger.error(err.message, err.explanation, err.response);
+  });

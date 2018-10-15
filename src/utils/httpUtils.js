@@ -16,6 +16,7 @@ const request = require('superagent');
 require('superagent-proxy')(request);
 const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const findSubjectsEndpoint = require('../constants').findSubjectsEndpoint;
+const config = require('../config/config');
 const logger = require('winston');
 
 /**
@@ -44,7 +45,8 @@ function doPost(url, token, proxy, body, cutoff = Infinity) {
     function makeRequest() {
       const req = request.post(url)
         .send(body || {})
-        .set('Authorization', token);
+        .set('Authorization', token)
+        .set('collector-name', config.getConfig().name);
       if (proxy) req.proxy(proxy);
       return req;
     }
@@ -202,7 +204,8 @@ function attachSubjectsToGenerator(generator) {
     function makeRequest() {
       const req = request.get(url + findSubjectsEndpoint)
         .query(subjectQuery.startsWith('?') ? subjectQuery.slice(1) : subjectQuery)
-        .set('Authorization', token);
+      .set('Authorization', token)
+      .set('collector-name', config.getConfig().name);
       if (proxy) req.proxy(proxy);
       return req.then((res) => {
         debug('attachSubjectsToGenerator returning %O', res.body);

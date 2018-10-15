@@ -20,6 +20,7 @@ require('superagent-proxy')(request);
 const nock = require('nock');
 const bulkUpsertEndpoint = require('../../src/constants').bulkUpsertEndpoint;
 const subjectsEndpoint = require('../../src/constants').findSubjectsEndpoint;
+const configModule = require('../../src/config/config');
 
 describe('test/utils/httpUtils.js >', () => {
   const refocusUrl = 'http://dummy.refocus.url';
@@ -29,6 +30,12 @@ describe('test/utils/httpUtils.js >', () => {
   const sampleArr = [{ name: 'sample1' }, { name: 'sample2' }];
   const refocusProxy = 'http://abcProxy.com';
   const intervalSecs = 1400;
+
+  before(() => {
+    configModule.initializeConfig();
+    const conf = configModule.getConfig();
+    conf.name = collectorName;
+  });
 
   describe('doPost >', () => {
     it('post ok, with body', (done) => {

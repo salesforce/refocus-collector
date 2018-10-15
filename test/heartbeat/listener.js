@@ -106,8 +106,8 @@ describe('test/heartbeat/listener.js >', () => {
 
     // send error to listener, check for paused generator repeaters
     listener.onError(new Error('this is error'));
-    expect(repeater.paused).to.have.property('size', 1);
-    expect(repeater.paused).to.include('Core_Trust2');
+    expect(repeater.getPaused()).to.have.lengthOf(1);
+    expect(repeater.getPaused()).to.include('Core_Trust2');
 
     // send ok response with updated generator - repeater should be unpaused
     const resUpd = {
@@ -133,7 +133,7 @@ describe('test/heartbeat/listener.js >', () => {
     expect(afterUpdate.generators.Core_Trust2)
     .to.have.property('subjectQuery',
       'absolutePath=Parent.Child.*&tags=Secondary');
-    expect(repeater.paused).to.be.empty;
+    expect(repeater.getPaused()).to.be.empty;
 
     done();
   });
@@ -165,8 +165,8 @@ describe('test/heartbeat/listener.js >', () => {
 
     // send error to listener, check for paused generator repeaters
     listener.onError(new Error('this is error'));
-    expect(repeater.paused).to.have.property('size', 1);
-    expect(repeater.paused).to.include('Core_Trust2');
+    expect(repeater.getPaused()).to.have.lengthOf(1);
+    expect(repeater.getPaused()).to.include('Core_Trust2');
 
     // send ok response with updated generator - repeater should be unpaused
     const resDel = {
@@ -190,7 +190,7 @@ describe('test/heartbeat/listener.js >', () => {
     };
     const afterDelete = listener.onSuccess(resDel);
     expect(afterDelete.generators).to.not.have.key('Core_Trust2');
-    expect(repeater.paused).to.be.empty;
+    expect(repeater.getPaused()).to.be.empty;
 
     done();
   });
