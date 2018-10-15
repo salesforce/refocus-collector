@@ -40,7 +40,6 @@ describe('test/repeater/repeater.js >', () => {
         },
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
-        subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
@@ -68,7 +67,6 @@ describe('test/repeater/repeater.js >', () => {
         },
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
-        subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
@@ -98,7 +96,6 @@ describe('test/repeater/repeater.js >', () => {
         },
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
-        subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       const ret = repeater.createGeneratorRepeater(def, dummyFunc,
         dummyOnProgress);
@@ -129,7 +126,6 @@ describe('test/repeater/repeater.js >', () => {
         },
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
-        subjects: [{ absolutePath: 'oneSubject', name: 'OneSubject' }],
       };
       repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
       obj.name = 'Generator0.2';

@@ -60,7 +60,6 @@ const generator2 = {
   intervalSecs: 6,
   aspects: [{ name: 'A2' }],
   subjectQuery: '?absolutePath=S1.S2',
-  subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: {
     connection: {
       url: 'http://www.abc.com',
@@ -79,7 +78,6 @@ const generator3 = {
   intervalSecs: 6,
   aspects: [{ name: 'A3' }],
   subjectQuery: '?absolutePath=S1.S2',
-  subjects: [{ absolutePath: 'S1.S2', name: 'S2' }],
   generatorTemplate: sgt,
   refocus: {
     url: refocusUrl,

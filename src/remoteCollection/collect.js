@@ -63,14 +63,15 @@ function sendRemoteRequest(generator) {
       .set(generator.preparedHeaders);
 
     if (conn.dataSourceProxy) req.proxy(conn.dataSourceProxy);
+
     req.end((err, res) => {
       if (err) {
         /*
          * If 401 (Unauthorized) error AND token is present with simple oauth
          * object, treat this token as expired and request a new one.
          */
-        if (err.status == constants.httpStatus.UNAUTHORIZED && simpleOauth &&
-        generator.token) {
+        if (err.status === constants.httpStatus.UNAUTHORIZED && simpleOauth &&
+          generator.token) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
           prepareRemoteRequest(generator)
@@ -86,6 +87,9 @@ function sendRemoteRequest(generator) {
           debug('sendRemoteRequest returned error %O', err);
           generator.res = err;
         }
+
+        debug('sendRemoteRequest returned error %O', err);
+        generator.res = err;
       }
 
       if (res) {
