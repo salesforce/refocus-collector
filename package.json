@@ -1,6 +1,6 @@
 {
-  "name": "refocus-collector",
-  "version": "1.0.0",
+  "name": "@salesforce/refocus-collector",
+  "version": "1.0.1",
   "description": "Collector system to automate feeding data in to the Refocus platform.",
   "main": "index.js",
   "directories": {
