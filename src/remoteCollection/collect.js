@@ -25,7 +25,7 @@ const AUTH_HEADER = 'headers.Authorization';
  *
  * @param  {Object} generator   The generator object
  * @param  {Object} simpleOauth Simple Oauth Object
- * @return {Object} generator   updated generator object
+ * @return {Promise<Object>} Promise that resolves to the updated generator object
  */
 function sendRemoteRequest(generator) {
   return new Promise((resolve) => {

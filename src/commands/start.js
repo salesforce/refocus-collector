@@ -18,7 +18,6 @@ const logger = require('winston');
 const configModule = require('../config/config');
 const sanitize = require('../utils/commonUtils').sanitize;
 const repeater = require('../repeater/repeater');
-const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const heartbeat = require('../heartbeat/heartbeat');
 const hbUtils = require('../heartbeat/utils');
 const doPost = require('../utils/httpUtils.js').doPost;
@@ -35,13 +34,19 @@ function execute() {
   const config = configModule.getConfig();
   const cr = config.refocus;
   const url = cr.url + COLLECTOR_START_PATH;
-  const body = { name: config.name, version: config.metadata.version };
+  const body = {
+    name: config.name,
+    version: config.metadata.version,
+    osInfo: config.metadata.osInfo,
+    processInfo: config.metadata.processInfo,
+  };
 
   return doPost(url, cr.accessToken, cr.proxy, body)
   .then((res) => {
     debug('start execute response body %O', sanitize(res.body));
 
     cr.collectorToken = res.body.token;
+    hbUtils.updateCollectorConfig(res.body.collectorConfig);
 
     /*
      * Freeze config.refocus attributes added by the start command to avoid
@@ -52,18 +57,7 @@ function execute() {
     // Add all the generators from the response.
     hbUtils.addGenerators(res.body);
 
-    /*
-     * TODO: Replace the success/failure/progress listeners here with proper
-     * logging once we have heartbeat
-     */
-    repeater.create({
-      name: heartbeatRepeatName,
-      interval: cr.heartbeatIntervalMillis,
-      func: heartbeat,
-      onSuccess: debug,
-      onFailure: debug,
-      onProgress: debug,
-    });
+    repeater.createHeartbeatRepeater(heartbeat, cr.heartbeatIntervalMillis);
 
     logger.info({ activity: 'cmd:start' });
     debug('Exiting start.execute');

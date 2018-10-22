@@ -176,7 +176,7 @@ describe('test/commands/start.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start', { name: collectorName, version })
+      .post('/v1/collectors/start')
       .reply(httpStatus.CREATED, {
         token: collectorToken,
         collectorConfig: {
@@ -222,7 +222,7 @@ describe('test/commands/start.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: invalidToken },
       })
-      .post('/v1/collectors/start', { name: collectorName, version })
+      .post('/v1/collectors/start')
       .reply(httpStatus.UNAUTHORIZED);
 
       config.refocus.accessToken = invalidToken;
@@ -242,9 +242,15 @@ describe('test/commands/start.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start',
-        { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .post('/v1/collectors/start')
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {
+          heartbeatIntervalMillis: 15000,
+          maxSamplesPerBulkUpsert: 1000,
+          sampleUpsertQueueTimeMillis: 1000,
+        },
+      });
 
       config.refocus.proxy = refocusProxy;
 
@@ -266,8 +272,15 @@ describe('test/commands/start.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start', { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .post('/v1/collectors/start')
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {
+          heartbeatIntervalMillis: 15000,
+          maxSamplesPerBulkUpsert: 1000,
+          sampleUpsertQueueTimeMillis: 1000,
+        },
+      });
 
       config.refocus.proxy = refocusProxy;
 
@@ -290,8 +303,15 @@ describe('test/commands/start.js >', () => {
       nock(refocusUrl, {
         reqheaders: { authorization: accessToken },
       })
-      .post('/v1/collectors/start', { name: collectorName, version })
-      .reply(httpStatus.CREATED, { token: collectorToken });
+      .post('/v1/collectors/start')
+      .reply(httpStatus.CREATED, {
+        token: collectorToken,
+        collectorConfig: {
+          heartbeatIntervalMillis: 15000,
+          maxSamplesPerBulkUpsert: 1000,
+          sampleUpsertQueueTimeMillis: 1000,
+        },
+      });
 
       const spy = sinon.spy(request, 'post');
       start.execute()

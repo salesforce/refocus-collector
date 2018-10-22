@@ -293,78 +293,66 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       preparedUrl: 'abc.com',
     };
 
-    it('OK', (done) => {
+    it('OK', () => {
       collectRes.res.statusCode = 200;
       const expected = [
         { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - 404', (done) => {
+    it('error handler match - 404', () => {
       collectRes.res.statusCode = 404;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'NOT FOUND' },
         { name: 'S1.S2|A2', messageBody: 'NOT FOUND' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - 401', (done) => {
+    it('error handler match - 401', () => {
       collectRes.res.statusCode = 401;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - 403', (done) => {
+    it('error handler match - 403', () => {
       collectRes.res.statusCode = 403;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - 500', (done) => {
+    it('error handler match - 500', () => {
       collectRes.res.statusCode = 500;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - 503', (done) => {
+    it('error handler match - 503', () => {
       collectRes.res.statusCode = 503;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('error handler match - override 200', (done) => {
+    it('error handler match - override 200', () => {
       collectRes.res.statusCode = 200;
       collectRes.generatorTemplate.transform.errorHandlers['200'] =
         'return [{ name: "S1.S2|A1", messageBody: "OK" },'
@@ -373,56 +361,46 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'OK' },
         { name: 'S1.S2|A2', messageBody: 'OK' },
       ];
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('no match - default error handler', (done) => {
+    it('no match - default error handler', () => {
       collectRes.res.statusCode = 400;
       collectRes.res.statusMessage = 'MOCK 400';
       const message = `abc.com returned HTTP status 400: MOCK 400`;
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('no error handlers - default error handler', (done) => {
+    it('no error handlers - default error handler', () => {
       collectRes.generatorTemplate.transform.errorHandlers = {};
       collectRes.res.statusCode = 404;
       collectRes.res.statusMessage = 'MOCK 404';
       const message = `abc.com returned HTTP status 404: MOCK 404`;
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('invalid response (no status code) - default error handler', (done) => {
+    it('invalid response (no status code) - default error handler', () => {
       delete collectRes.res.statusCode;
       const message = 'Invalid response from abc.com: ' +
         'missing HTTP status code (abc.com)';
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
-    it('invalid response (schema mismatch) - default error handler', (done) => {
+    it('invalid response (schema mismatch) - default error handler', () => {
       collectRes.res.statusCode = 200;
       delete collectRes.res.body.text;
       const message = 'Response validation failed - /body - ' +
         "should have required property 'text' (abc.com)";
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(Promise.resolve(collectRes))
-      .then(() => checkLogs(expected))
-      .then(done)
-      .catch(done);
+      handleCollectResponse(collectRes);
+      checkLogs(expected);
     });
 
     function checkLogs(expected) {
@@ -507,7 +485,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .times(2)
         .reply(httpStatus.OK, {});
 
-      handleCollectResponseBySubject(Promise.resolve(generator))
+      handleCollectResponseBySubject(generator)
       .then((qLength) => {
         expect(q.get(generatorName)).to.not.be.equal(undefined);
         expect(qLength).to.be.equal(expected.length);
