@@ -139,7 +139,7 @@ function prepareRemoteRequest(generator) {
         generator.token = token;
         return sendRemoteRequest(generator);
       });
-    }   
+    }
   }
 
   return sendRemoteRequest(generator);
