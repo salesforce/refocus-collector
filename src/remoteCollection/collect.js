@@ -74,7 +74,7 @@ function sendRemoteRequest(generator) {
           generator.token) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
-          prepareRemoteRequest(generator)
+          return prepareRemoteRequest(generator)
           .then((resp) => {
             if (resp) {
               debug('sendRemoteRequest returned OK');
@@ -126,7 +126,6 @@ function prepareRemoteRequest(generator) {
       const org = nforce.createConnection(credentials);
       return org.authenticate(simpleOauth.tokenConfig)
         .then((token) => {
-          console.log(token);
           generator.token = token;
           return sendRemoteRequest(generator);
         });
