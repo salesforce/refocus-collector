@@ -42,6 +42,7 @@ function sendRemoteRequest(generator) {
 
     // If token is present, add to request header.
     if (generator.token) {
+      // Expecting accessToken or access_token from remote source.
       const accessToken = generator.token.accessToken || generator.token.access_token;
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
