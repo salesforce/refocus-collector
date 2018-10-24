@@ -17,29 +17,11 @@ module.exports = (collectResponse, messageBody) => {
   const samples = [];
   collectResponse.aspects.forEach((a) => {
     collectResponse.subjects.forEach((s) => {
-      const relatedLinks = [];
-
-      if (collectResponse.apiLinks) {
-        relatedLinks.push({
-          name: 'Sample Generator',
-          url: collectResponse.apiLinks.GET,
-        });
-      }
-
-      const repository = collectResponse.generatorTemplate.repository;
-      if (repository && repository.url) {
-        relatedLinks.push({
-          name: 'Sample Generator Template',
-          url: repository.url,
-        });
-      }
-
       samples.push({
         name: `${s.absolutePath}|${a.name}`,
         messageCode: 'ERROR',
         messageBody,
         value: 'ERROR',
-        relatedLinks,
       });
     });
   });
