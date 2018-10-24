@@ -13,7 +13,7 @@
  */
 'use strict'; // eslint-disable-line strict
 
-// allow the commands to be run directly for testing
+/* Allow the commands to be run directly for testing. */
 module.exports = {
   start: () => require('./src/commands/refocus-collector-start'),
   stop: () => require('./src/commands/refocus-collector-stop'),
