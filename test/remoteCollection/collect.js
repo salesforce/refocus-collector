@@ -162,6 +162,96 @@ describe('test/remoteCollection/collect.js >', () => {
       .catch(done);
     });
 
+    it('collecting data from salesforce org', (done) => {
+      const remoteUrl = 'https://xyztest.salesforcetest.com';
+      const generator = {
+        name: 'Generator0',
+        intervalSecs: 1,
+        context: {},
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'https://xyztest.salesforcetest.com/status',
+            simple_oauth: 'ownerPassword',
+          },
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
+        },
+        subjects: [{ absolutePath: 'EastBay' }],
+        connection: {
+          simple_oauth: {
+            credentials: {
+              client: {
+                id: 'ADFJSD234ADF765SFG55FD54S',
+                secret: 'ADFJSD234ADF765SFG55FD54S',
+                redirectUri: 'http://localhost:3000/oauth/_callback',
+              },
+              auth: {
+                tokenHost: 'https://xyztest.salesforcetest.com',
+                tokenPath: '/argusws/v2/auth/login',
+              },
+              options: {
+                bodyFormat: 'json',
+              },
+            },
+            tokenConfig: {
+              username: 'test',
+              password: 'test',
+            },
+            tokenFormat: '{accessToken}',
+            salesforce: true,
+            method: 'ownerPassword',
+          },
+        },
+      };
+
+      const token = {
+        access_token: 'eegduygsugfiusguguygyfkufyg',
+      };
+
+      const remoteData = {
+        station: [{ name: 'Fremont|Delay', value: 10 },
+          { name: 'UnionCity|Delay', value: 2 },
+        ],
+      };
+
+      nock('https://login.salesforce.com')
+        .post('/services/oauth2/authorize')
+        .reply(httpStatus.OK, token,
+          { 'Content-Type': 'application/json' });
+
+      nock('https://login.salesforce.com')
+        .post('/services/oauth2/token')
+        .reply(httpStatus.OK, token,
+          { 'Content-Type': 'application/json' });
+
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
+
+      collect.prepareRemoteRequest(generator)
+      .then((collectRes) => {
+        expect(collectRes.res).to.not.equal(undefined);
+        expect(collectRes.res.status).to.equal(httpStatus.OK);
+        expect(collectRes.res.body).to.deep.equal(remoteData);
+
+        expect(collectRes.generatorTemplate).to.deep
+          .equal(generator.generatorTemplate);
+        expect(collectRes.context).to.deep.equal(generator.context);
+        expect(collectRes.subjects).to.deep.equal(generator.subjects);
+        expect(collectRes.res.request.header.Authorization)
+          .to.equal('eegduygsugfiusguguygyfkufyg');
+
+        done();
+      })
+      .catch(done);
+    });
+
     it('collecting data from argus', (done) => {
       const remoteUrl = 'https://xyztest.argusTest.com';
       const generator = {
