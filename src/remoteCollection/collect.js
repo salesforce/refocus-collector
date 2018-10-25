@@ -24,7 +24,6 @@ const AUTH_HEADER = 'headers.Authorization';
  * Send Remote request to get data as per the configurations.
  *
  * @param  {Object} generator   The generator object
- * @param  {Object} simpleOauth Simple Oauth Object
  * @return {Promise<Object>} Promise that resolves to the updated generator object
  */
 function sendRemoteRequest(generator) {
