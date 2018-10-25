@@ -422,14 +422,12 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: message,
-          relatedLinks: [],
         },
         {
           name: 'S1.S2|A2',
           value: 'ERROR',
           messageCode: 'ERROR',
           messageBody: message,
-          relatedLinks: [],
         },
       ];
     }

@@ -54,14 +54,18 @@ function validateCollectResponse(cr, resSchema) {
 
   // Invalid response: missing status code.
   if (!cr.res.hasOwnProperty('statusCode')) {
-    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
-    + 'missing HTTP status code');
+    console.error(`Invalid response from ${cr.preparedUrl}: ` +
+      'missing HTTP status code', cr.res);
+    throw new errors.ValidationError('Invalid response from ' +
+      `${cr.preparedUrl}: missing HTTP status code`);
   }
 
   // Expecting response status code to be 3 digits.
   if (!/\d\d\d/.test(cr.res.statusCode)) {
-    throw new errors.ValidationError(`Invalid response from ${cr.preparedUrl}: `
-    + `invalid HTTP status code "${cr.res.statusCode}"`);
+    console.error(`Invalid response from ${cr.preparedUrl}: ` +
+      `invalid HTTP status code "${cr.res.statusCode}"`, cr.res);
+    throw new errors.ValidationError('Invalid response from ' +
+      `${cr.preparedUrl}: invalid HTTP status code "${cr.res.statusCode}"`);
   }
 
   // Response "Content-Type" header matches request "Accept" header?
