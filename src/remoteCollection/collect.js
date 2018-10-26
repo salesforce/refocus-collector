@@ -13,6 +13,7 @@ const debug = require('debug')('refocus-collector:remoteCollection');
 const request = require('superagent');
 const get = require('just-safe-get');
 const set = require('just-safe-set');
+const nforce = require('nforce');
 require('superagent-proxy')(request);
 const constants = require('../constants');
 const attachSubjectsToGenerator = require('../utils/httpUtils').attachSubjectsToGenerator;
@@ -40,7 +41,8 @@ function sendRemoteRequest(generator) {
 
     // If token is present, add to request header.
     if (generator.token) {
-      const accessToken = generator.token.accessToken;
+      // Expecting accessToken or access_token from remote source.
+      const accessToken = generator.token.accessToken || generator.token.access_token;
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
@@ -73,14 +75,17 @@ function sendRemoteRequest(generator) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
           return prepareRemoteRequest(generator)
-            .then((resp) => {
-              if (resp) {
-                debug('sendRemoteRequest returned OK');
-                generator.res = resp.res;
-              }
+          .then((resp) => {
+            if (resp) {
+              debug('sendRemoteRequest returned OK');
+              generator.res = resp.res;
+            }
 
-              return resolve(generator);
-            });
+            return resolve(generator);
+          });
+        } else {
+          debug('sendRemoteRequest returned error %O', err);
+          generator.res = err;
         }
 
         debug('sendRemoteRequest returned error %O', err);
@@ -110,13 +115,30 @@ function prepareRemoteRequest(generator) {
   if (!generator.token && get(generator, 'connection.simple_oauth')) {
     const method = generator.connection.simple_oauth.method;
     const simpleOauth = generator.connection.simple_oauth;
-    const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-    return oauth2[method]
+
+    if (generator.connection.simple_oauth.salesforce) {
+      const credentials = {
+        clientId: simpleOauth.credentials.client.id,
+        clientSecret: simpleOauth.credentials.client.secret,
+        redirectUri: simpleOauth.credentials.client.redirectUri,
+      };
+
+      const org = nforce.createConnection(credentials);
+      return org.authenticate(simpleOauth.tokenConfig)
+        .then((token) => {
+          generator.token = token;
+          return sendRemoteRequest(generator);
+        });
+
+    } else {
+      const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+      return oauth2[method]
       .getToken(simpleOauth.tokenConfig)
       .then((token) => {
         generator.token = token;
         return sendRemoteRequest(generator);
       });
+    }
   }
 
   return sendRemoteRequest(generator);
