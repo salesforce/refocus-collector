@@ -162,6 +162,99 @@ describe('test/remoteCollection/collect.js >', () => {
       .catch(done);
     });
 
+    it('collecting data with masking details', (done) => {
+      const remoteUrl = 'http://www.xyz.com/';
+      const generator = {
+        name: 'Generator0',
+        intervalSecs: 1,
+        context: {
+          username: 'testUser',
+          password: 'testPassword',
+        },
+        generatorTemplate: {
+          connection: {
+            headers: {
+              Authorization: 'abddr121345bb',
+            },
+            url: 'http://www.xyz.com/status',
+            simple_oauth: 'ownerPassword',
+          },
+          transform: {
+            default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
+              '{ name: "UnionCity|Delay", value: 2 }]',
+          },
+        },
+        subjects: [{ absolutePath: 'EastBay' }],
+        connection: {
+          simple_oauth: {
+            credentials: {
+              client: {
+                id: '11bogus',
+                secret: '11bogus%^',
+              },
+              auth: {
+                tokenHost: 'http://www.xyz.com/',
+                tokenPath: '/login',
+              },
+              options: {
+                bodyFormat: 'json',
+              },
+            },
+            tokenConfig: {
+              username: '{{username}}',
+              password: '{{password}}',
+            },
+            tokenFormat: 'Bearer {accessToken}',
+            method: 'ownerPassword',
+          },
+        },
+      };
+
+      const remoteData = {
+        station: [{ name: 'Fremont|Delay', value: 10 },
+          { name: 'UnionCity|Delay', value: 2 },
+        ],
+      };
+
+      const token = {
+        accessToken: 'eegduygsugfiusguguygyfkufyg',
+      };
+
+      nock(remoteUrl)
+        .post('/login')
+        .reply(httpStatus.OK, token,
+          { 'Content-Type': 'application/json' });
+
+      nock(remoteUrl)
+        .get('/status')
+        .reply(httpStatus.OK, remoteData,
+          { 'Content-Type': 'application/json' });
+
+      collect.prepareRemoteRequest(generator)
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to.equal(httpStatus.OK);
+          expect(collectRes.res.body).to.deep.equal(remoteData);
+
+          expect(collectRes.res.req.headers['user-agent'])
+            .to.contain('node-superagent');
+
+          expect(collectRes.generatorTemplate).to.deep
+            .equal(generator.generatorTemplate);
+          expect(collectRes.context).to.deep.equal(generator.context);
+          expect(collectRes.subjects).to.deep.equal(generator.subjects);
+          expect(collectRes.res.request.header.Authorization)
+            .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+          expect(generator.connection.simple_oauth.tokenConfig.username)
+            .to.equal('testUser');
+          expect(generator.connection.simple_oauth.tokenConfig.password)
+            .to.equal('testPassword');
+
+          done();
+        })
+        .catch(done);
+    });
+
     it('collecting data from salesforce org', (done) => {
       const remoteUrl = 'https://xyztest.salesforcetest.com';
       const generator = {
@@ -355,6 +448,7 @@ describe('test/remoteCollection/collect.js >', () => {
           },
         },
         subjects: [{ absolutePath: 'EastBay' }],
+        connection: {},
       };
 
       const remoteData = {

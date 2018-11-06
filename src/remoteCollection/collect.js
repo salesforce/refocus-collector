@@ -31,6 +31,7 @@ function sendRemoteRequest(generator) {
     const { context, aspects, subjects } = generator;
 
     const conn = generator.generatorTemplate.connection;
+    generator.connection = rce.expandObject(generator.connection, context);
 
     // Add the url to the generator so the handler has access to it later.
     generator.preparedUrl =
