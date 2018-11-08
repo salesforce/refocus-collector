@@ -29,7 +29,7 @@ Note: If you are connecting to a Salesforce org using Salesforce's REST API, set
       },
       "tokenConfig": {
         "username": "USERNAME",
-        "passeword": "PASSWORD"
+        "password": "PASSWORD"
       },
       "tokenObject": {
         "access_token": "<Token>",
