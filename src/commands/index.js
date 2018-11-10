@@ -21,6 +21,12 @@ const logger = require('winston');
 const figlet = require('figlet');
 const pj = require('../../package.json');
 
+logger.configure({
+  transports: [
+    new (logger.transports.Console)({ timestamp: true })
+  ]
+});
+
 program
 .version(pj.version)
 .command('deregister --collectorName <name>', 'Deregister collector')
