@@ -23,8 +23,8 @@ const pj = require('../../package.json');
 
 logger.configure({
   transports: [
-    new (logger.transports.Console)({ timestamp: true })
-  ]
+    new (logger.transports.Console)({ timestamp: true }),
+  ],
 });
 
 program
