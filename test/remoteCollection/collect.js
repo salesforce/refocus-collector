@@ -643,10 +643,10 @@ describe('test/remoteCollection/collect.js >', () => {
           .then((collectRes) => {
             expect(collectRes.res).to.not.equal(undefined);
             expect(collectRes.res.status).to.equal(httpStatus.BAD_REQUEST);
-            const expectedMessage = 'Error: collector is not able' +
-              ' to collect data from http://foo.io as' +
-              ' it is configured to consume data only from secure data' +
-              ' source. Please, contact a Refocus administrator.';
+            const expectedMessage = 'Your Refocus instance is configured to ' +
+              'require SSL for connections to remote data sources. Please ' +
+              'update Sample Generator "generator_ssl" to specify an ' +
+              'https connection url.';
             expect(collectRes.res.message).to.equal(expectedMessage);
             done();
           })

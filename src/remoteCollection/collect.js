@@ -53,10 +53,9 @@ function sendRemoteRequest(generator) {
     debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
 
     if (requiresSSLOnly() && !generator.preparedUrl.includes('https')) {
-      const msg = 'Error: collector is not able to collect data ' +
-        'from ' + generator.preparedUrl + ' as it is configured to consume' +
-        ' data only from secure data source. Please, contact a Refocus' +
-        ' administrator.';
+      const msg = 'Your Refocus instance is configured to require SSL for' +
+        ' connections to remote data sources. Please update Sample Generator' +
+        ' "' + generator.name + '" to specify an https connection url.';
       generator.res = new errors.ValidationError(msg);
       return resolve(generator);
     }
@@ -66,8 +65,8 @@ function sendRemoteRequest(generator) {
     // If token is present, add to request header.
     if (generator.token) {
       // Expecting accessToken or access_token from remote source.
-      const accessToken = generator.token.accessToken || generator.token
-        .access_token;
+      const accessToken = generator.token.accessToken ||
+        generator.token.access_token;
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
