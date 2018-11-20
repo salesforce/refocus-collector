@@ -18,13 +18,17 @@ const request = require('superagent');
 const logger = require('winston');
 logger.configure({ level: 0 });
 require('superagent-proxy')(request);
+const configModule = require('../../src/config/config');
 
 describe('test/remoteCollection/collect.js >', () => {
-  describe('collect >', () => {
-    const sampleArr = [{ name: 'Fremont|Delay', value: 10 },
-      { name: 'UnionCity|Delay', value: 2 },
-    ];
 
+  before((done) => {
+    configModule.clearConfig();
+    configModule.initializeConfig();
+    done();
+  });
+
+  describe('collect >', () => {
     it('collect should return a response with "res" attribute that is ' +
       'a superagent object', (done) => {
       const remoteUrl = 'http://bart.gov.api/';
@@ -58,22 +62,22 @@ describe('test/remoteCollection/collect.js >', () => {
           { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.OK);
-        expect(collectRes.res.body).to.deep.equal(remoteData);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to.equal(httpStatus.OK);
+          expect(collectRes.res.body).to.deep.equal(remoteData);
 
-        expect(collectRes.res.req.headers['user-agent'])
-          .to.contain('node-superagent');
+          expect(collectRes.res.req.headers['user-agent'])
+            .to.contain('node-superagent');
 
-        expect(collectRes.generatorTemplate).to.deep
-          .equal(generator.generatorTemplate);
-        expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subjects).to.deep.equal(generator.subjects);
+          expect(collectRes.generatorTemplate).to.deep
+            .equal(generator.generatorTemplate);
+          expect(collectRes.context).to.deep.equal(generator.context);
+          expect(collectRes.subjects).to.deep.equal(generator.subjects);
 
-        done();
-      })
-      .catch(done);
+          done();
+        })
+        .catch(done);
     });
 
     it('collecting data with simple-oauth parameter', (done) => {
@@ -142,24 +146,24 @@ describe('test/remoteCollection/collect.js >', () => {
           { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.OK);
-        expect(collectRes.res.body).to.deep.equal(remoteData);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to.equal(httpStatus.OK);
+          expect(collectRes.res.body).to.deep.equal(remoteData);
 
-        expect(collectRes.res.req.headers['user-agent'])
-          .to.contain('node-superagent');
+          expect(collectRes.res.req.headers['user-agent'])
+            .to.contain('node-superagent');
 
-        expect(collectRes.generatorTemplate).to.deep
-          .equal(generator.generatorTemplate);
-        expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subjects).to.deep.equal(generator.subjects);
-        expect(collectRes.res.request.header.Authorization)
-          .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+          expect(collectRes.generatorTemplate).to.deep
+            .equal(generator.generatorTemplate);
+          expect(collectRes.context).to.deep.equal(generator.context);
+          expect(collectRes.subjects).to.deep.equal(generator.subjects);
+          expect(collectRes.res.request.header.Authorization)
+            .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
 
-        done();
-      })
-      .catch(done);
+          done();
+        })
+        .catch(done);
     });
 
     it('collecting data with masking details', (done) => {
@@ -328,21 +332,21 @@ describe('test/remoteCollection/collect.js >', () => {
           { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.OK);
-        expect(collectRes.res.body).to.deep.equal(remoteData);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to.equal(httpStatus.OK);
+          expect(collectRes.res.body).to.deep.equal(remoteData);
 
-        expect(collectRes.generatorTemplate).to.deep
-          .equal(generator.generatorTemplate);
-        expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subjects).to.deep.equal(generator.subjects);
-        expect(collectRes.res.request.header.Authorization)
-          .to.equal('eegduygsugfiusguguygyfkufyg');
+          expect(collectRes.generatorTemplate).to.deep
+            .equal(generator.generatorTemplate);
+          expect(collectRes.context).to.deep.equal(generator.context);
+          expect(collectRes.subjects).to.deep.equal(generator.subjects);
+          expect(collectRes.res.request.header.Authorization)
+            .to.equal('eegduygsugfiusguguygyfkufyg');
 
-        done();
-      })
-      .catch(done);
+          done();
+        })
+        .catch(done);
     });
 
     it('collecting data from argus', (done) => {
@@ -409,21 +413,21 @@ describe('test/remoteCollection/collect.js >', () => {
           { 'Content-Type': 'application/json' });
 
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.OK);
-        expect(collectRes.res.body).to.deep.equal(remoteData);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to.equal(httpStatus.OK);
+          expect(collectRes.res.body).to.deep.equal(remoteData);
 
-        expect(collectRes.generatorTemplate).to.deep
-          .equal(generator.generatorTemplate);
-        expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subjects).to.deep.equal(generator.subjects);
-        expect(collectRes.res.request.header.Authorization)
-          .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+          expect(collectRes.generatorTemplate).to.deep
+            .equal(generator.generatorTemplate);
+          expect(collectRes.context).to.deep.equal(generator.context);
+          expect(collectRes.subjects).to.deep.equal(generator.subjects);
+          expect(collectRes.res.request.header.Authorization)
+            .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
 
-        done();
-      })
-      .catch(done);
+          done();
+        })
+        .catch(done);
     });
 
     it('collecting data with access token', (done) => {
@@ -509,13 +513,15 @@ describe('test/remoteCollection/collect.js >', () => {
         .reply(httpStatus.SERVICE_UNAVAILABLE, serverError);
 
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.SERVICE_UNAVAILABLE);
-        expect(collectRes.res.body.error.message).to.contain('Server is down');
-        done();
-      })
-      .catch(done);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.status).to
+            .equal(httpStatus.SERVICE_UNAVAILABLE);
+          expect(collectRes.res.body.error.message)
+            .to.contain('Server is down');
+          done();
+        })
+        .catch(done);
     });
 
     it('CLIENT ERROR:  bad responses from collect should also be a part of ' +
@@ -535,12 +541,12 @@ describe('test/remoteCollection/collect.js >', () => {
         connection: {},
       };
       collect.prepareRemoteRequest(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.errno).to.equal('ENOTFOUND');
-        done();
-      })
-      .catch(done);
+        .then((collectRes) => {
+          expect(collectRes.res).to.not.equal(undefined);
+          expect(collectRes.res.errno).to.equal('ENOTFOUND');
+          done();
+        })
+        .catch(done);
     });
 
     it('ok, request use data source proxy when present', (done) => {
@@ -569,15 +575,15 @@ describe('test/remoteCollection/collect.js >', () => {
 
       const spy = sinon.spy(request, 'get');
       collect.prepareRemoteRequest(generator)
-      .then(() => {
-        expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
-        spy.restore();
-        done();
-      })
-      .catch((err) => {
-        spy.restore();
-        done(err);
-      });
+        .then(() => {
+          expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
+          spy.restore();
+          done();
+        })
+        .catch((err) => {
+          spy.restore();
+          done(err);
+        });
     });
 
     it('ok, request does not use data source proxy if not set', (done) => {
@@ -604,15 +610,47 @@ describe('test/remoteCollection/collect.js >', () => {
 
       const spy = sinon.spy(request, 'get');
       collect.prepareRemoteRequest(generator)
-      .then(() => {
-        expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
-        spy.restore();
-        done();
-      })
-      .catch((err) => {
-        spy.restore();
-        done(err);
-      });
+        .then(() => {
+          expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
+          spy.restore();
+          done();
+        })
+        .catch((err) => {
+          spy.restore();
+          done(err);
+        });
     });
+
+    it('must fail when require ssl and remote source is not https',
+      (done) => {
+        configModule.getConfig().refocus.requireSslToRemoteDataSource = true;
+
+        const generator = {
+          name: 'generator_ssl',
+          context: {},
+          generatorTemplate: {
+            connection: {
+              headers: {
+                Authorization: 'some_data',
+              },
+              url: 'http://foo.io',
+            },
+          },
+          connection: {},
+        };
+
+        collect.prepareRemoteRequest(generator)
+          .then((collectRes) => {
+            expect(collectRes.res).to.not.equal(undefined);
+            expect(collectRes.res.status).to.equal(httpStatus.BAD_REQUEST);
+            const expectedMessage = 'Your Refocus instance is configured to ' +
+              'require SSL for connections to remote data sources. Please ' +
+              'update Sample Generator "generator_ssl" to specify an ' +
+              'https connection url.';
+            expect(collectRes.res.message).to.equal(expectedMessage);
+            done();
+          })
+          .catch(done);
+      });
   }); // collect
 });
