@@ -15,10 +15,10 @@ const errorSamples = require('./errorSamples');
 const logger = require('winston');
 const Promise = require('bluebird');
 const queue = require('../utils/queue');
-const httpStatus = require('../constants').httpStatus;
 const commonUtils = require('../utils/commonUtils');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
-const prepareRemoteRequest = require('../remoteCollection/collect').prepareRemoteRequest;
+const prepareRemoteRequest = require('../remoteCollection/collect')
+  .prepareRemoteRequest;
 
 /**
  * Validates the response from the collect function. Confirms that it is an

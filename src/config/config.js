@@ -59,6 +59,7 @@ function getDefaultConfig() {
    *     heartbeatIntervalMillis: [INTEGER],
    *     maxSamplesPerBulkUpsert: [INTEGER],
    *     sampleUpsertQueueTimeMillis: [INTEGER],
+   *     requireSslToRemoteDataSource: [BOOLEAN],
    *
    *     // plus any other parameters returned in the "collectorConfig" attribute
    *     // of the POST /v1/collectors/:key/heartbeat response
@@ -99,6 +100,7 @@ function getDefaultConfig() {
       heartbeatIntervalMillis: undefined,
       maxSamplesPerBulkUpsert: undefined,
       sampleUpsertQueueTimeMillis: undefined,
+      requireSslToRemoteDataSource: false,
     },
     generators: {},
     metadata: {},

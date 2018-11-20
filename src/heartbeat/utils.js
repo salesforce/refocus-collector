@@ -21,11 +21,13 @@ const httpUtils = require('../utils/httpUtils');
 const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
 const collectBulk = require('../remoteCollection/collect').collectBulk;
-const collectBySubject = require('../remoteCollection/collect').collectBySubject;
+const collectBySubject = require('../remoteCollection/collect')
+  .collectBySubject;
 const handleCollectResponse =
   require('../remoteCollection/handleCollectResponse').handleCollectResponse;
 const handleCollectResponseBySubject =
-  require('../remoteCollection/handleCollectResponse').handleCollectResponseBySubject;
+  require('../remoteCollection/handleCollectResponse')
+    .handleCollectResponseBySubject;
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.

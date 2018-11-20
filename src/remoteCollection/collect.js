@@ -16,15 +16,29 @@ const set = require('just-safe-set');
 const nforce = require('nforce');
 require('superagent-proxy')(request);
 const constants = require('../constants');
-const attachSubjectsToGenerator = require('../utils/httpUtils').attachSubjectsToGenerator;
+const attachSubjectsToGenerator = require('../utils/httpUtils')
+  .attachSubjectsToGenerator;
 const rce = require('@salesforce/refocus-collector-eval');
 const AUTH_HEADER = 'headers.Authorization';
+const configModule = require('../config/config');
+const errors = require('../errors');
+
+/**
+ * Helper fn returning
+ * configModule.getConfig().refocus.requireSslToRemoteDataSource value
+ *
+ * @returns {boolean}
+ */
+function requiresSSLOnly() {
+  return configModule.getConfig().refocus.requireSslToRemoteDataSource;
+}
 
 /**
  * Send Remote request to get data as per the configurations.
  *
  * @param  {Object} generator   The generator object
- * @return {Promise<Object>} Promise that resolves to the updated generator object
+ * @return {Promise<Object>} Promise that resolves to the updated
+ * generator object
  */
 function sendRemoteRequest(generator) {
   return new Promise((resolve) => {
@@ -38,12 +52,22 @@ function sendRemoteRequest(generator) {
       rce.prepareUrl(context, aspects, subjects, conn);
     debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
 
+    if (requiresSSLOnly() && !generator.preparedUrl.includes('https')) {
+      const msg = 'Error: collector is not able to collect data ' +
+        'from ' + generator.preparedUrl + ' as it is configured to consume' +
+        ' data only from secure data source. Please, contact a Refocus' +
+        ' administrator.';
+      generator.res = new errors.ValidationError(msg);
+      return resolve(generator);
+    }
+
     const simpleOauth = get(generator, 'connection.simple_oauth');
 
     // If token is present, add to request header.
     if (generator.token) {
       // Expecting accessToken or access_token from remote source.
-      const accessToken = generator.token.accessToken || generator.token.access_token;
+      const accessToken = generator.token.accessToken || generator.token
+        .access_token;
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
@@ -76,14 +100,14 @@ function sendRemoteRequest(generator) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
           return prepareRemoteRequest(generator)
-          .then((resp) => {
-            if (resp) {
-              debug('sendRemoteRequest returned OK');
-              generator.res = resp.res;
-            }
+            .then((resp) => {
+              if (resp) {
+                debug('sendRemoteRequest returned OK');
+                generator.res = resp.res;
+              }
 
-            return resolve(generator);
-          });
+              return resolve(generator);
+            });
         } else {
           debug('sendRemoteRequest returned error %O', err);
           generator.res = err;
@@ -130,15 +154,14 @@ function prepareRemoteRequest(generator) {
           generator.token = token;
           return sendRemoteRequest(generator);
         });
-
     } else {
       const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
       return oauth2[method]
-      .getToken(simpleOauth.tokenConfig)
-      .then((token) => {
-        generator.token = token;
-        return sendRemoteRequest(generator);
-      });
+        .getToken(simpleOauth.tokenConfig)
+        .then((token) => {
+          generator.token = token;
+          return sendRemoteRequest(generator);
+        });
     }
   }
 
@@ -157,7 +180,7 @@ function prepareRemoteRequest(generator) {
 function collectBulk(generator) {
   debug('Entered "collectBulk" for "%s"', generator.name);
   return attachSubjectsToGenerator(generator)
-  .then((g) => prepareRemoteRequest(g));
+    .then((g) => prepareRemoteRequest(g));
 } // collectBulk
 
 /**
