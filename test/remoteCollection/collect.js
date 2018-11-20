@@ -20,7 +20,7 @@ logger.configure({ level: 0 });
 require('superagent-proxy')(request);
 const configModule = require('../../src/config/config');
 
-describe.only('test/remoteCollection/collect.js >', () => {
+describe('test/remoteCollection/collect.js >', () => {
   before((done) => {
     configModule.clearConfig();
     configModule.initializeConfig();
