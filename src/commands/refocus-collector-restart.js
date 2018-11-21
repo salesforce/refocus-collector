@@ -42,6 +42,16 @@ module.exports =
   .then(() => cmdStart.execute())
   .then(() => logger.info(`Starting ${config.name}`))
   .catch((err) => {
+    /* When stopping a brand new collector, error is thrown because it is not
+    found in refocus. We catch the error and just start the collector */
+    if (err.message === 'Not Found') {
+      return cmdStart.execute()
+      .then(() => logger.info(`Starting ${config.name}`));
+    }
+
+    logger.error(err.message, err.explanation, err.response);
+  })
+  .catch((err) => {
     logger.error(err.message, err.explanation, err.response);
   });
 
