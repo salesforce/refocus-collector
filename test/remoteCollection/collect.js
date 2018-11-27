@@ -750,6 +750,46 @@ describe('test/remoteCollection/collect.js >', () => {
       .catch(done);
   });
 
+  it('retry on timeout then ok', (done) => {
+    const remoteUrl1 = 'https://randonUnAvailableUrl.false/';
+    const generator = {
+      name: 'Generator0',
+      intervalSecs: 1,
+      context: {},
+      generatorTemplate: {
+        connection: {
+          headers: {
+            Authorization: 'abddr121345bb',
+          },
+          url: 'https://randonUnAvailableUrl.false/',
+        },
+      },
+      connection: {},
+      timeout: {
+        response: 10,
+        deadline: 10,
+      },
+    };
+    const err = new Error('Timeout of 10ms exceeded');
+    err.timeout = 10;
+    err.code = 'ECONNABORTED';
+    nock(remoteUrl1)
+      .get('/')
+      .delay(15)
+      .replyWithError(err);
+    nock(remoteUrl1)
+      .get('/')
+      .reply(httpStatus.OK, { status: 'OK' },
+        { 'Content-Type': 'application/json' });
+
+    collect.prepareRemoteRequest(generator)
+      .then((collectRes) => {
+        expect(collectRes.res).to.have.property('status', 200);
+        done();
+      })
+      .catch(done);
+  });
+
   it('retry max times on socket hang up', (done) => {
     const remoteUrl1 = 'https://randonUnAvailableUrl.false/';
     const generator = {
