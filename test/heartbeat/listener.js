@@ -42,6 +42,7 @@ describe('test/heartbeat/listener.js >', () => {
       heartbeatIntervalMillis: 50,
       maxSamplesPerBulkUpsert: 10,
       status: 'Running',
+      requireSslToRemoteDataSource: true,
     },
     encryptionAlgorithm,
     generatorsAdded: [
@@ -69,12 +70,23 @@ describe('test/heartbeat/listener.js >', () => {
     done();
   });
 
+  it('requireSslToRemoteDataSource config must be false by default',
+    (done) => {
+      const response = { collectorConfig: {}, };
+      const requireSslToRemoteDataSource = listener.onSuccess(response, null)
+        .refocus.requireSslToRemoteDataSource;
+      expect(requireSslToRemoteDataSource).to.equal(false);
+      done();
+    });
+
   it('collector config should be updated', (done) => {
-    const updatedConfig = listener.onSuccess(hbResponse);
+    const updatedConfig = listener.onSuccess(hbResponse, null);
     expect(updatedConfig.refocus.heartbeatIntervalMillis)
       .to.equal(hbResponse.collectorConfig.heartbeatIntervalMillis);
     expect(updatedConfig.refocus.status)
       .to.equal(hbResponse.collectorConfig.status);
+    expect(updatedConfig.refocus.requireSslToRemoteDataSource).to
+      .equal(hbResponse.collectorConfig.requireSslToRemoteDataSource);
     done();
   });
 
@@ -129,12 +141,12 @@ describe('test/heartbeat/listener.js >', () => {
         },
       ],
     };
-    const afterUpdate = listener.onSuccess(resUpd);
-    expect(afterUpdate.generators.Core_Trust2)
-    .to.have.property('subjectQuery',
-      'absolutePath=Parent.Child.*&tags=Secondary');
-    expect(repeater.getPaused()).to.be.empty;
 
+    const afterUpdate = listener.onSuccess(resUpd);
+    expect(afterUpdate.generators.Core_Trust2).to
+      .have
+      .property('subjectQuery', 'absolutePath=Parent.Child.*&tags=Secondary');
+    expect(repeater.getPaused()).to.be.empty;
     done();
   });
 

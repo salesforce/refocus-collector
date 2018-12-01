@@ -35,7 +35,9 @@ program
 .command('status --collectorName <name> --refocusUrl <url> ' +
   '--accessToken <token>', 'Get the current status of the collector')
 .command('stop --collectorName <name> --refocusUrl <url> ' +
-  '--accessToken <token>', 'Stop collector');
+  '--accessToken <token>', 'Stop collector')
+.command('restart --collectorName <name> --refocusUrl <url> ' +
+  '--accessToken <token>', 'Restart collector');
 
 program.on('--help', () => {
   console.log('  Examples:\n');
@@ -52,6 +54,8 @@ program.on('--help', () => {
   console.log('    $ refocus-collector status --collectorName=test ' +
     '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijf');
   console.log('    $ refocus-collector stop --collectorName=test ' +
+    '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijf');
+  console.log('    $ refocus-collector restart --collectorName=test ' +
     '--refocusUrl=https://refocus.abczyx.com --accessToken=eygduyguygijf');
   console.log(figlet.textSync('Refocus Collector'));
 });
