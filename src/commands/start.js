@@ -24,6 +24,12 @@ const doPost = require('../utils/httpUtils.js').doPost;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
 
+logger.configure({
+  transports: [
+    new (logger.transports.Console)({ timestamp: true }),
+  ],
+});
+
 /**
  * The "start" command creates the heartbeat repeater.
  * @returns {Promise} - which resolves to the response of the start endpoint
