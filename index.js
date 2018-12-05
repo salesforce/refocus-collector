@@ -14,11 +14,6 @@
 'use strict'; // eslint-disable-line strict
 const logger = require('winston');
 
-logger.configure({
-  transports: [
-    new (logger.transports.Console)({ timestamp: true }),
-  ],
-});
 /* Allow the commands to be run directly for testing. */
 module.exports = {
   start: () => require('./src/commands/refocus-collector-start'),

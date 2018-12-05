@@ -56,7 +56,7 @@ describe('test/commands/start.js >', () => {
       ];
       const start = fork(cmd, args, constants.silence);
       start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingCollectorName));
+        expect(data.toString()).to.include(constants.error.missingCollectorName));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -69,7 +69,7 @@ describe('test/commands/start.js >', () => {
       ];
       const start = fork(cmd, args, constants.silence);
       start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingUrl));
+        expect(data.toString()).to.include(constants.error.missingUrl));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -82,7 +82,7 @@ describe('test/commands/start.js >', () => {
       ];
       const start = fork(cmd, args, constants.silence);
       start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingToken));
+        expect(data.toString()).to.include(constants.error.missingToken));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
@@ -131,7 +131,7 @@ describe('test/commands/start.js >', () => {
       };
       const start = fork(cmd, args, opts);
       start.stderr.on('data', (data) =>
-        expect(data.toString()).to.equal(constants.error.missingToken));
+        expect(data.toString()).to.include(constants.error.missingToken));
       start.on('close', (code) => {
         expect(code).to.equal(1);
         done();
