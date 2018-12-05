@@ -434,9 +434,13 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   });
 
   describe('handleCollectResponseBySubject >', () => {
-    const generatorName = 'mockGenerator';
-    configModule.initializeConfig();
-    const config = configModule.getConfig();
+
+    before((done) => {
+      configModule.clearConfig();
+      configModule.initializeConfig();
+      done();
+    });
+
     before(() => {
       const qParams = {
         name: generatorName,
@@ -451,6 +455,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     after(() => {
       configModule.clearConfig();
     });
+
+    const generatorName = 'mockGenerator';
+    const config = configModule.getConfig();
 
     const generator = {
       name: generatorName,

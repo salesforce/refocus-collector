@@ -11,7 +11,6 @@
  */
 'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:heartbeat');
-const request = require('superagent');
 const configModule = require('../config/config');
 const listener = require('./listener');
 const httpUtils = require('../utils/httpUtils');
@@ -43,6 +42,6 @@ module.exports = () => {
 
   return httpUtils.doPost(urlToPost, cr.collectorToken, cr.proxy, requestbody,
     cutoff)
-  .then((res) => listener.onSuccess(res.body, timestamp))
-  .catch(listener.onError);
+    .then((res) => listener.onSuccess(res.body, timestamp))
+    .catch(listener.onError);
 };

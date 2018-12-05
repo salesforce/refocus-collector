@@ -94,6 +94,7 @@ const hbResponseNoSG = {
     heartbeatIntervalMillis: 50,
     maxSamplesPerBulkUpsert: 10,
     sampleUpsertQueueTimeMillis: 100,
+    requireSslToRemoteDataSource: false,
     status: 'Running',
   },
   generatorsAdded: [],

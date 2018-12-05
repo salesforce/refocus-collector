@@ -16,77 +16,138 @@ const set = require('just-safe-set');
 const nforce = require('nforce');
 require('superagent-proxy')(request);
 const constants = require('../constants');
-const attachSubjectsToGenerator = require('../utils/httpUtils').attachSubjectsToGenerator;
+const attachSubjectsToGenerator = require('../utils/httpUtils')
+  .attachSubjectsToGenerator;
 const rce = require('@salesforce/refocus-collector-eval');
 const AUTH_HEADER = 'headers.Authorization';
+const configModule = require('../config/config');
+const errors = require('../errors');
+
+const DEFAULT_TIMEOUT_RESPONSE_MILLIS = 10000; // TODO move to Refocus config
+const DEFAULT_TIMEOUT_DEADLINE_MILLIS = 30000; // TODO move to Refocus config
+const MAX_RETRIES = 3; // TODO move to Refocus config
 
 /**
- * Send Remote request to get data as per the configurations.
+ * Helper function returns true if err is Unauthorized AND token is present
+ * with simple oauth object. In this situation, we will treat this token as
+ * expired and request a new one.
  *
- * @param  {Object} generator   The generator object
- * @return {Promise<Object>} Promise that resolves to the updated generator object
+ * @param {Error} err - the error
+ * @param {Object} simpleOauth - the simpleOauth configuration from the
+ *  connection
+ * @param {String} token - the token
+ * @returns {Boolean} true if err is Unauthorized AND token is present with
+ *  simple oauth object
+ */
+function shouldRequestNewToken(err, simpleOauth, token) {
+  return err.status === constants.httpStatus.UNAUTHORIZED && simpleOauth &&
+    token;
+} // shouldRequestNewToken
+
+/**
+ * Helper fn returning
+ * configModule.getConfig().refocus.requireSslToRemoteDataSource value
+ *
+ * @returns {boolean}
+ */
+function requiresSSLOnly() {
+  return configModule.getConfig().refocus.requireSslToRemoteDataSource;
+}
+
+/**
+ * Helper function to set up the superagent request to connect to the remote
+ * data source. Configures request timeout, retries and proxy.
+ *
+ * @param {Object} gen - the sample generator
+ * @param {Object} conn - the connection from the sample generator template
+ * @returns {Request} - the superagent request
+ */
+function generateRequest(gen, conn) {
+  // ref. https://visionmedia.github.io/superagent/#timeouts
+  const genTimeout = {
+    response: get(gen, 'timeout.response') || DEFAULT_TIMEOUT_RESPONSE_MILLIS,
+    deadline: get(gen, 'timeout.deadline') || DEFAULT_TIMEOUT_DEADLINE_MILLIS,
+  };
+  const req = request
+    .get(gen.preparedUrl)
+    .set(gen.preparedHeaders)
+    .timeout(genTimeout)
+    .retry(MAX_RETRIES);
+
+  if (conn.dataSourceProxy) {
+    req.proxy(conn.dataSourceProxy);
+  }
+
+  return req;
+} // generateRequest
+
+/**
+ * Send request to remote data source specified by the sample generator.
+ * Automatically retries requests if they fail in a way that is transient or
+ * could be due to a flaky internet connection.
+ *
+ * @param  {Object} generator - the generator object
+ * @returns {Promise<Object>} the updated generator object
  */
 function sendRemoteRequest(generator) {
-  return new Promise((resolve) => {
-    const { context, aspects, subjects } = generator;
-
-    const conn = generator.generatorTemplate.connection;
+  const { context, aspects, subjects } = generator;
+  const conn = generator.generatorTemplate.connection;
+  if (generator.connection) {
     generator.connection = rce.expandObject(generator.connection, context);
+  }
 
-    // Add the url to the generator so the handler has access to it later.
-    generator.preparedUrl =
-      rce.prepareUrl(context, aspects, subjects, conn);
-    debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
+  // Add the url to the generator so the handler has access to it later.
+  generator.preparedUrl = rce.prepareUrl(context, aspects, subjects, conn);
+  debug('sendRemoteRequest: preparedUrl = %s', generator.preparedUrl);
 
-    const simpleOauth = get(generator, 'connection.simple_oauth');
+  if (requiresSSLOnly() && !generator.preparedUrl.includes('https')) {
+    const msg = 'Your Refocus instance is configured to require SSL for ' +
+      'connections to remote data sources. Please update Sample Generator ' +
+      '"' + generator.name + '" to specify an https connection url.';
+    generator.res = new errors.ValidationError(msg);
+    return Promise.resolve(generator);
+  }
 
-    // If token is present, add to request header.
-    if (generator.token) {
-      // Expecting accessToken or access_token from remote source.
-      const accessToken = generator.token.accessToken || generator.token.access_token;
-      if (get(simpleOauth, 'tokenFormat')) {
-        set(conn, AUTH_HEADER,
-          simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
-      } else if (accessToken) {
-        set(conn, AUTH_HEADER, accessToken);
-      }
+  const simpleOauth = get(generator, 'connection.simple_oauth');
+
+  // If token is present, add to request header.
+  if (generator.token) {
+    // Expecting accessToken or access_token from remote source.
+    const accessToken = generator.token.accessToken ||
+      generator.token.access_token;
+    if (get(simpleOauth, 'tokenFormat')) {
+      set(conn, AUTH_HEADER,
+        simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
+    } else if (accessToken) {
+      set(conn, AUTH_HEADER, accessToken);
     }
+  }
 
-    /*
-     * Add the prepared headers to the generator so the handler has access to
-     * them later for validation.
-     */
-    generator.preparedHeaders = rce.prepareHeaders(conn.headers, context);
+  /*
+   * Add the prepared headers to the generator so the handler has access to
+   * them later for validation.
+   */
+  generator.preparedHeaders = rce.prepareHeaders(conn.headers, context);
 
-    // Remote request for fetching data.
-    const req = request
-      .get(generator.preparedUrl)
-      .set(generator.preparedHeaders);
+  const req = generateRequest(generator, conn);
 
-    if (conn.dataSourceProxy) req.proxy(conn.dataSourceProxy);
-
+  return new Promise((resolve) => {
     req.end((err, res) => {
       if (err) {
-        /*
-         * If 401 (Unauthorized) error AND token is present with simple oauth
-         * object, treat this token as expired and request a new one.
-         */
-        if (err.status === constants.httpStatus.UNAUTHORIZED && simpleOauth &&
-          generator.token) {
+        if (shouldRequestNewToken(err, simpleOauth, generator.token)) {
           debug('sendRemoteRequest token expired, requesting a new one');
           generator.token = null;
-          return prepareRemoteRequest(generator)
-          .then((resp) => {
-            if (resp) {
-              debug('sendRemoteRequest returned OK');
-              generator.res = resp.res;
-            }
 
-            return resolve(generator);
-          });
-        } else {
-          debug('sendRemoteRequest returned error %O', err);
-          generator.res = err;
+          // eslint-disable-next-line no-use-before-define
+          return prepareRemoteRequest(generator)
+            .then((resp) => {
+              if (resp) {
+                debug('sendRemoteRequest returned OK');
+                generator.res = resp.res;
+              }
+
+              return resolve(generator);
+            });
         }
 
         debug('sendRemoteRequest returned error %O', err);
@@ -117,6 +178,7 @@ function prepareRemoteRequest(generator) {
     const method = generator.connection.simple_oauth.method;
     const simpleOauth = generator.connection.simple_oauth;
 
+    // special case for simple_oauth.salesforce
     if (generator.connection.simple_oauth.salesforce) {
       const credentials = {
         clientId: simpleOauth.credentials.client.id,
@@ -130,16 +192,17 @@ function prepareRemoteRequest(generator) {
           generator.token = token;
           return sendRemoteRequest(generator);
         });
+    }
 
-    } else {
-      const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-      return oauth2[method]
+    // otherwise when it's NOT simple_oauth.salesforce...
+    // eslint-disable-next-line global-require
+    const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+    return oauth2[method]
       .getToken(simpleOauth.tokenConfig)
       .then((token) => {
         generator.token = token;
         return sendRemoteRequest(generator);
       });
-    }
   }
 
   return sendRemoteRequest(generator);
@@ -157,7 +220,7 @@ function prepareRemoteRequest(generator) {
 function collectBulk(generator) {
   debug('Entered "collectBulk" for "%s"', generator.name);
   return attachSubjectsToGenerator(generator)
-  .then((g) => prepareRemoteRequest(g));
+    .then((g) => prepareRemoteRequest(g));
 } // collectBulk
 
 /**

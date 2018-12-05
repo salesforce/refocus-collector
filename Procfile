@@ -1,1 +1,1 @@
-collector: npm link && refocus-collector stop && refocus-collector start
+collector: DEBUG=$DEBUG npm link && refocus-collector restart
