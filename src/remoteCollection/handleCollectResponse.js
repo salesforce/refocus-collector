@@ -14,11 +14,10 @@ const errors = require('../errors');
 const errorSamples = require('./errorSamples');
 const logger = require('winston');
 const Promise = require('bluebird');
-const queue = require('../utils/queue');
 const commonUtils = require('../utils/commonUtils');
 const RefocusCollectorEval = require('@salesforce/refocus-collector-eval');
-const prepareRemoteRequest = require('../remoteCollection/collect')
-  .prepareRemoteRequest;
+const httpUtils = require('../utils/httpUtils');
+const configModule = require('../config/config');
 
 /**
  * Validates the response from the collect function. Confirms that it is an
@@ -102,46 +101,81 @@ function prepareTransformArgs(generator) {
 } // prepareTransformArgs
 
 /**
- * Takes each subject from the generator and makes a separate request
- * to the appropriate endpoint. Then enqueues each sample with handleCollectResponse
+ * Handles the responses from the remote data sources by calling the transform
+ * function for each, then sending the samples from all responses to Refocus.
  *
- * @param  {Object} generator - generator object
- * @returns {Number} - the queue length after enqueuing all samples
- * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
+ * @param  {Object} collectResArray - Array of responses from the "collect"
+ * function: each element is the generator object along with the "res"
+ * attribute which maps to the response from the remote data source
+ * @returns {Promise} - resolves to the response from the bulkUpsert request
+ * @throws {ValidationError} if thrown by validateCollectResponse
  */
-function handleCollectResponseBySubject(generator) {
-  return Promise.map(generator.subjects, (subject) => {
-    // need to clone generator because we are doing async operation with generator data
-    const _g = JSON.parse(JSON.stringify(generator));
-    _g.subjects = [subject];
-    return prepareRemoteRequest(_g)
-    .then((response) => handleCollectResponse(response));
-  })
-
-  // resolve to final queueLength
-  .then((lengths) => lengths[lengths.length - 1]);
+function handleCollectResponseBySubject(collectResArray) {
+  return Promise.map(collectResArray, (res) => generateSamples(res))
+  .then((samplesBySubject) =>
+    samplesBySubject.reduce((x, y) => [...x, ...y])
+  )
+  .then((samples) =>
+    sendSamples(collectResArray[0], samples)
+  );
 } // handleCollectResponseBySubject
 
 /**
  * Handles the response from the remote data source by calling the transform
- * function, then enqueuing the samples from that response for bulk upsert.
+ * function, then sending the samples from that response to Refocus.
  *
  * @param  {Object} collectRes - Response from the "collect" function: the
  * generator object along with the "res" attribute which maps to the response
  * from the remote data source
- * @returns {Number} - the queue length after enqueuing all samples
+ * @returns {Promise} - resolves to the response from the bulkUpsert request
  * @throws {ValidationError} if thrown by validateCollectResponse
  */
-function handleCollectResponse(collectRes) {
+function handleCollectResponseBulk(collectRes) {
   debug('handleCollectResponse status %s, body %O', collectRes.res.status,
     collectRes.res.body);
+  const samples = generateSamples(collectRes);
+  return sendSamples(collectRes, samples);
+} // handleCollectResponse
+
+/**
+ * Send samples to Refocus
+ *
+ * @param  {Object} collectRes - The generator object along with the "res"
+ * attribute which maps to the response from the remote data source
+ * @returns Promise - resolves to the response from the bulkUpsert request
+ * @throws {ValidationError} if thrown by validateCollectResponse
+ */
+function sendSamples(gen, samples) {
+  // Validate each of the samples.
+  samples.forEach(commonUtils.validateSample);
+  logger.info({
+    activity: 'upsert:samples',
+    generator: gen.name,
+    url: gen.preparedUrl,
+    numSamples: samples.length,
+  });
+  const cr = configModule.getConfig().refocus;
+  return httpUtils.doBulkUpsert(
+    cr.url, gen.token, gen.intervalSecs, cr.proxy, samples
+  );
+}
+
+/**
+ * Use the transform function to generate samples.
+ *
+ * @param  {Object} collectRes - the generator object along with the "res"
+ * attribute which maps to the response from the remote data source
+ * @returns {Array} - The samples that were generated from the response
+ * @throws {ValidationError} if thrown by validateCollectResponse
+ */
+function generateSamples(collectRes) {
   const tr = collectRes.generatorTemplate.transform;
 
   try {
     validateCollectResponse(collectRes, tr.responseSchema);
   } catch (err) {
     const errorMessage = `${err.message} (${collectRes.preparedUrl})`;
-    return enqueueSamples(errorSamples(collectRes, errorMessage));
+    return errorSamples(collectRes, errorMessage);
   }
 
   const args = prepareTransformArgs(collectRes);
@@ -155,33 +189,16 @@ function handleCollectResponse(collectRes) {
    */
   const func = RefocusCollectorEval.getTransformFunction(tr, status);
   if (func) {
-    return enqueueSamples(RefocusCollectorEval.safeTransform(func, args));
+    return RefocusCollectorEval.safeTransform(func, args);
   } else {
     const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
       `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
-    return enqueueSamples(errorSamples(collectRes, errorMessage));
+    return errorSamples(collectRes, errorMessage);
   }
-
-  function enqueueSamples(samplesToEnqueue) {
-    // Validate each of the samples.
-    samplesToEnqueue.forEach(commonUtils.validateSample);
-
-    /*
-     * Enqueue to the named queue (sample generator name). Return the new queue
-     * size.
-     */
-    logger.info({
-      activity: 'enqueued:samples',
-      generator: collectRes.name,
-      url: collectRes.preparedUrl,
-      numSamples: samplesToEnqueue.length,
-    });
-    return queue.enqueue(collectRes.name, samplesToEnqueue);
-  }
-} // handleCollectResponse
+} // generateSamples
 
 module.exports = {
-  handleCollectResponse,
+  handleCollectResponseBulk,
   handleCollectResponseBySubject,
   validateCollectResponse, // export for testing only
   prepareTransformArgs, // export for testing only
