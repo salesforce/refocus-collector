@@ -119,8 +119,8 @@ function sendRemoteRequest(generator) {
               generator.res = resp.res;
             }
 
-              return resolve(generator);
-            });
+            return resolve(generator);
+          });
         }
 
         debug('sendRemoteRequest returned error %O', err);
