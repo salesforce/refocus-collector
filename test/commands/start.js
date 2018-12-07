@@ -15,7 +15,6 @@ const start = require('../../src/commands/start');
 const repeater = require('../../src/repeater/repeater');
 const configModule = require('../../src/config/config');
 const httpStatus = require('../../src/constants.js').httpStatus;
-const q = require('../../src/utils/queue');
 const nock = require('nock');
 const fork = require('child_process').fork;
 const sinon = require('sinon');
@@ -208,10 +207,6 @@ describe('test/commands/start.js >', () => {
         expect(res.status).to.equal(httpStatus.CREATED);
         expect(config.refocus.collectorToken).to.equal(collectorToken);
         expect(repeater.tracker).to.have.property('heartbeat');
-        const qGen1 = q.get('Gen1');
-        const qGen2 = q.get('Gen2');
-        expect(qGen1._size).to.be.equal(1000);
-        expect(qGen2._size).to.be.equal(1000);
         repeater.stop('heartbeat');
         done();
       })

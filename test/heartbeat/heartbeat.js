@@ -15,7 +15,6 @@ const expect = require('chai').expect;
 const configModule = require('../../src/config/config');
 const heartbeat = require('../../src/heartbeat/heartbeat');
 const httpStatus = require('../../src/constants').httpStatus;
-const q = require('../../src/utils/queue');
 const repeater = require('../../src/repeater/repeater');
 const sgt = require('../sgt');
 const sinon = require('sinon');
@@ -171,7 +170,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
   const collectorName = 'collectorForHeartbeatTests';
   const heartbeatEndpoint = `/v1/collectors/${collectorName}/heartbeat`;
   const collectorToken = 'm0ck3dt0k3n';
-  let spyFlushQueue;
   let spyPause;
   let spyResume;
   let spyStopAll;
@@ -429,7 +427,6 @@ describe('test/heartbeat/heartbeat.js >', () => {
       })
       .post(heartbeatEndpoint)
       .reply(httpStatus.OK, hbResponseStatusStopped);
-      spyFlushQueue = sinon.spy(q, 'flushAll');
       spyStopAll = sinon.spy(repeater, 'stopAllRepeaters');
       stubExit = sinon.stub(process, 'exit');
 
@@ -438,13 +435,11 @@ describe('test/heartbeat/heartbeat.js >', () => {
     })
     .then(() => {
       expect(spyStopAll.calledOnce).to.equal(true);
-      expect(spyFlushQueue.calledOnce).to.equal(true);
       expect(stubExit.calledOnce).to.equal(true);
       expect(repeater.tracker).to.deep.equal({});
       spyPause.restore();
       spyResume.restore();
       spyStopAll.restore();
-      spyFlushQueue.restore();
       stubExit.restore();
       return done();
     })

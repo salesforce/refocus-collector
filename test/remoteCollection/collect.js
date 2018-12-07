@@ -93,7 +93,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -146,7 +146,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -230,7 +230,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+      collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -291,7 +291,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -386,7 +386,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -468,7 +468,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -526,7 +526,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to.equal(httpStatus.OK);
@@ -569,7 +569,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(5)
       .reply(httpStatus.SERVICE_UNAVAILABLE, serverError);
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to
@@ -597,7 +597,7 @@ describe('test/remoteCollection/collect.js >', () => {
       },
       connection: {},
     };
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.errno).to.equal('ENOTFOUND');
@@ -631,7 +631,7 @@ describe('test/remoteCollection/collect.js >', () => {
         { 'Content-Type': 'application/json' });
 
     const spy = sinon.spy(request, 'get');
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
         spy.restore();
@@ -666,7 +666,7 @@ describe('test/remoteCollection/collect.js >', () => {
         { 'Content-Type': 'application/json' });
 
     const spy = sinon.spy(request, 'get');
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
         spy.restore();
@@ -696,7 +696,7 @@ describe('test/remoteCollection/collect.js >', () => {
         connection: {},
       };
 
-      collect.prepareRemoteRequest(generator)
+      collect.doCollect(generator)
         .then((collectRes) => {
           expect(collectRes.res).to.not.equal(undefined);
           expect(collectRes.res.status).to.equal(httpStatus.BAD_REQUEST);
@@ -739,7 +739,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(4) // initial req + 3 retries
       .replyWithError(err);
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res)
           .to.have.property('message', 'Timeout of 10ms exceeded');
@@ -782,7 +782,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, { status: 'OK' },
         { 'Content-Type': 'application/json' });
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.have.property('status', 200);
         done();
@@ -813,7 +813,7 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(4) // initial req + 3 retries
       .replyWithError(err);
 
-    collect.prepareRemoteRequest(generator)
+    collect.doCollect(generator)
       .then((collectRes) => {
         expect(collectRes.res).to.have.property('message', 'socket hang up');
         expect(collectRes.res).to.have.property('code', 'ECONNRESET');

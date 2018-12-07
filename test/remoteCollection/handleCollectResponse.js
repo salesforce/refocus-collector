@@ -20,10 +20,9 @@ const refocusUrl = 'http://www.example.com';
 const errors = require('../../src/errors');
 const hcr = require('../../src/remoteCollection/handleCollectResponse');
 const validateCollectResponse = hcr.validateCollectResponse;
-const handleCollectResponse = hcr.handleCollectResponse;
+const handleCollectResponseBulk = hcr.handleCollectResponseBulk;
 const handleCollectResponseBySubject = hcr.handleCollectResponseBySubject;
 const prepareTransformArgs = hcr.prepareTransformArgs;
-const q = require('../../src/utils/queue');
 const httpStatus = require('../../src/constants').httpStatus;
 const configModule = require('../../src/config/config');
 const httpUtils = require('../../src/utils/httpUtils');
@@ -208,28 +207,13 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
   });
 
-  describe('handleCollectResponse >', () => {
+  describe('handleCollectResponseBulk >', () => {
     const generatorName = 'mockGenerator';
     let winstonInfoStub;
-    configModule.initializeConfig();
-    const config = configModule.getConfig();
     before(() => {
-      const qParams = {
-        name: generatorName,
-        size: config.refocus.maxSamplesPerBulkUpsert,
-        flushTimeout: config.refocus.sampleUpsertQueueTimeMillis,
-        verbose: false,
-        token: '123abc',
-        flushFunction: httpUtils.doBulkUpsert,
-      };
-      q.create(qParams);
-
-      // use nock to mock the response when flushing
-      const sampleArr = [
-        { name: 'S1.S2|A1', value: 10 }, { name: 'S1.S2|A2', value: 2 },
-      ];
+      // use nock to mock the response when upserting
       nock(refocusUrl)
-      .post(bulkEndPoint, sampleArr)
+      .post(bulkEndPoint)
       .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
       // stub winston info to test the logs
@@ -238,8 +222,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     afterEach(() => {
       winstonInfoStub.reset();
-      q.get(generatorName).Items = [];
     });
+
+    before(() =>
+      configModule.initializeConfig()
+    );
 
     after(() => {
       // restore winston stub
@@ -298,8 +285,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       const expected = [
         { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - 404', () => {
@@ -308,8 +296,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'NOT FOUND' },
         { name: 'S1.S2|A2', messageBody: 'NOT FOUND' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - 401', () => {
@@ -318,8 +307,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - 403', () => {
@@ -328,8 +318,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - 500', () => {
@@ -338,8 +329,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - 503', () => {
@@ -348,8 +340,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('error handler match - override 200', () => {
@@ -361,8 +354,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A1', messageBody: 'OK' },
         { name: 'S1.S2|A2', messageBody: 'OK' },
       ];
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('no match - default error handler', () => {
@@ -370,8 +364,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       collectRes.res.statusMessage = 'MOCK 400';
       const message = `abc.com returned HTTP status 400: MOCK 400`;
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('no error handlers - default error handler', () => {
@@ -380,8 +375,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       collectRes.res.statusMessage = 'MOCK 404';
       const message = `abc.com returned HTTP status 404: MOCK 404`;
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('invalid response (no status code) - default error handler', () => {
@@ -389,8 +385,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       const message = 'Invalid response from abc.com: ' +
         'missing HTTP status code (abc.com)';
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     it('invalid response (schema mismatch) - default error handler', () => {
@@ -399,8 +396,9 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       const message = 'Response validation failed - /body - ' +
         "should have required property 'text' (abc.com)";
       const expected = defaultErrorSamples(message);
-      handleCollectResponse(collectRes);
-      checkLogs(expected);
+
+      return handleCollectResponseBulk(collectRes)
+      .then(() => checkLogs(expected));
     });
 
     function checkLogs(expected) {
@@ -409,10 +407,6 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .to.have.property('generator', 'mockGenerator');
       expect(winston.info.args[0][0])
         .to.have.property('numSamples', expected.length);
-      const queue = q.get(generatorName);
-      expect(queue.items.length).to.be.equal(expected.length);
-      expect(queue.items[0]).to.eql(expected[0]);
-      expect(queue.items[1]).to.eql(expected[1]);
     }
 
     function defaultErrorSamples(message) {
@@ -442,61 +436,140 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     });
 
     before(() => {
-      const qParams = {
-        name: generatorName,
-        size: config.refocus.maxSamplesPerBulkUpsert,
-        flushTimeout: config.refocus.sampleUpsertQueueTimeMillis,
-        verbose: false,
-        flushFunction: httpUtils.doBulkUpsert,
-      };
-      q.create(qParams);
-    });
+      // use nock to mock the response when upserting
+      nock(refocusUrl)
+      .post(bulkEndPoint)
+      .reply(httpStatus.CREATED, mockRest.bulkUpsertPostOk);
 
+      // stub winston info to test the logs
+      winstonInfoStub = sinon.stub(winston, 'info');
+    });
+    afterEach(() => {
+      winstonInfoStub.reset();
+    });
+    before(() =>
+      configModule.initializeConfig()
+    );
     after(() => {
+      // restore winston stub
+      winstonInfoStub.restore();
       configModule.clearConfig();
     });
 
     const generatorName = 'mockGenerator';
     const config = configModule.getConfig();
 
-    const generator = {
-      name: generatorName,
-      intervalSecs: 6,
-      subjects: [{ absolutePath: 'S1.S2', name: 'S1' }, { absolutePath: 'S1.S2', name: 'S2' }],
-      aspects: [{ name: 'A1' }, { name: 'A2' }],
-      context: {},
-      generatorTemplate: {
-        connection: {
-          url: refocusUrl,
-          bulk: false,
+    const collectRes = [
+      {
+        name: generatorName,
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+        context: {},
+        res: {
+          statusCode: 200,
+          statusMessage: 'MOCK STATUS MESSAGE',
+          body: {
+            text: '{ "a": "text" }',
+          },
         },
-        transform: {
-          default: 'if (subject.name === "S1") {' +
-            'return [{ name: "S1.S2|A1", value: "10" }]; }' +
-            'else { return [{ name: "S1.S2|A2", value: "2" }]; }',
-          errorHandlers: {},
+        subjects: [{ absolutePath: 'S1.S2', name: 'S2', }],
+        generatorTemplate: {
+          connection: {
+            bulk: true,
+          },
+          transform: {
+            default: 'return [{ name: "S1.S2|A1", value: "10" },' +
+              ' { name: "S1.S2|A2", value: "2" }]',
+            errorHandlers: {
+              404: 'return [{ name: "S1.S2|A1", messageBody: "NOT FOUND" },'
+                + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
+              '40[13]': 'return [{ name: "S1.S2|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
+                + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+              '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
+                + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
+            },
+            responseSchema: JSON.stringify({
+              type: 'object',
+              required: ['body'],
+              properties: {
+                body: {
+                  type: 'object',
+                  required: ['text'],
+                  properties: {
+                    text: { type: 'string' },
+                  },
+                },
+              },
+            }),
+          },
         },
+        preparedUrl: 'abc.com',
+      }, {
+        name: generatorName,
+        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+        context: {},
+        res: {
+          statusCode: 200,
+          statusMessage: 'MOCK STATUS MESSAGE',
+          body: {
+            text: '{ "a": "text" }',
+          },
+        },
+        subjects: [{ absolutePath: 'S1.S3', name: 'S3', }],
+        generatorTemplate: {
+          connection: {
+            bulk: true,
+          },
+          transform: {
+            default: 'return [{ name: "S1.S3|A1", value: "10" },' +
+              ' { name: "S1.S3|A2", value: "2" }]',
+            errorHandlers: {
+              404: 'return [{ name: "S1.S3|A1", messageBody: "NOT FOUND" },'
+                + ' { name: "S1.S3|A2", messageBody: "NOT FOUND" }]',
+              '40[13]': 'return [{ name: "S1.S3|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
+                + ' { name: "S1.S3|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+              '5..': 'return [{ name: "S1.S3|A1", messageBody: "SERVER ERROR" },'
+                + ' { name: "S1.S3|A2", messageBody: "SERVER ERROR" }]',
+            },
+            responseSchema: JSON.stringify({
+              type: 'object',
+              required: ['body'],
+              properties: {
+                body: {
+                  type: 'object',
+                  required: ['text'],
+                  properties: {
+                    text: { type: 'string' },
+                  },
+                },
+              },
+            }),
+          },
+        },
+        preparedUrl: 'abc.com',
       },
-      connection: {},
-    };
+    ];
+
+    function checkLogs(expected) {
+      expect(winston.info.calledOnce).to.be.true;
+      expect(winston.info.args[0][0])
+      .to.have.property('generator', 'mockGenerator');
+      expect(winston.info.args[0][0])
+      .to.have.property('numSamples', expected.length);
+    }
 
     const expected = [
       { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
+      { name: 'S1.S3|A1', value: '10' }, { name: 'S1.S3|A2', value: '2' },
     ];
 
-    it('OK', (done) => {
+    it('OK', () => {
       nock(refocusUrl)
         .get('/')
         .times(2)
         .reply(httpStatus.OK, {});
 
-      handleCollectResponseBySubject(generator)
-      .then((qLength) => {
-        expect(q.get(generatorName)).to.not.be.equal(undefined);
-        expect(qLength).to.be.equal(expected.length);
-        done();
-      })
-      .catch(done);
+      return handleCollectResponseBySubject(collectRes)
+      .then(() => checkLogs(expected));
     });
   });
 
@@ -511,6 +584,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         connection: {
           bulk: true,
         },
+        preparedUrl: 'abc.com',
       },
     };
 
