@@ -14,11 +14,12 @@ const tracker = repeater.tracker;
 const expect = require('chai').expect;
 const ref = { url: 'mock.refocus.com' };
 const logger = require('winston');
+const u = require('./util');
 const MILLIS = 1000;
 logger.configure({ level: 0 });
 
 describe('test/repeater/repeater.js >', () => {
-  after(() => repeater.stopAllRepeaters());
+  afterEach(() => repeater.stopAllRepeaters());
 
   describe('createGeneratorRepeater >', () => {
     const dummyFunc = (x) => Promise.resolve(x);
@@ -86,6 +87,192 @@ describe('test/repeater/repeater.js >', () => {
     });
   });
 
+  describe('staggered start times >', () => {
+    beforeEach(u.trackExecutionTimes);
+    beforeEach(u.createMockHeartbeatRepeater);
+    afterEach(u.clearTracking);
+    afterEach(repeater.stopAllRepeaters);
+
+    it('basic', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('3m')
+      .then(() => {
+        u.expectCalledAt('heartbeat', [
+          '0s', '15s', '30s', '45s', '60s', '75s', '90s',
+          '105s', '120s', '135s', '150s', '165s', '180s',
+        ]);
+        u.expectCalledAt('gen1', ['1s', '61s', '121s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      });
+    });
+
+    it('different intervals', () => {
+      u.createMockRepeatersWithIntervals('1m', '30s', '50s');
+      return u.waitUntil('3m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s']);
+        u.expectCalledAt('gen2', ['2s', '32s', '62s', '92s', '122s', '152s']);
+        u.expectCalledAt('gen3', ['3s', '53s', '103s', '153s']);
+      });
+    });
+
+    it('offset persists globally', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('3m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      })
+      .then(() =>
+        u.createMockRepeatersWithIntervals('1m', '1m', '1m')
+      )
+      .then(() => u.waitUntil('4m'))
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s', '181s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s', '182s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s', '183s']);
+        u.expectCalledAt('gen4', ['184s']);
+        u.expectCalledAt('gen5', ['185s']);
+        u.expectCalledAt('gen6', ['186s']);
+      })
+      .then(() => {
+        repeater.stop('gen1');
+        repeater.stop('gen3');
+        repeater.stop('gen6');
+      })
+      .then(() =>
+        u.createMockRepeatersWithIntervals('1m', '1m', '1m')
+      )
+      .then(() => u.waitUntil('5m'))
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s', '181s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s', '182s', '242s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s', '183s']);
+        u.expectCalledAt('gen4', ['184s', '244s']);
+        u.expectCalledAt('gen5', ['185s', '245s']);
+        u.expectCalledAt('gen6', ['186s']);
+        u.expectCalledAt('gen7', ['247s']);
+        u.expectCalledAt('gen8', ['248s']);
+        u.expectCalledAt('gen9', ['249s']);
+      });
+    });
+
+    it('offset wraps at 60s', () => {
+      u.createMockRepeatersWithIntervals(...Array(59).fill('1m'));
+      return u.waitUntil('1m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s']);
+        u.expectCalledAt('gen31', ['31s']);
+        u.expectCalledAt('gen59', ['59s']);
+        u.expectCalledAt('gen60', undefined);
+      })
+      .then(() =>
+        u.createMockRepeatersWithIntervals(...Array(10).fill('1m'))
+      )
+      .then(() => u.waitUntil('2m'))
+      .then(() => {
+        u.expectCalledAt('gen60', ['60s', '120s']);
+        u.expectCalledAt('gen61', ['61s']);
+      });
+    });
+
+    it('stopGenerators resets the offset', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('3m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      })
+      .then(repeater.stopGenerators)
+      .then(() =>
+        u.createMockRepeatersWithIntervals('1m', '1m', '1m')
+      )
+      .then(() => u.waitUntil('4m'))
+      .then(() => {
+        u.expectCalledAt('gen4', ['181s']);
+        u.expectCalledAt('gen5', ['182s']);
+        u.expectCalledAt('gen6', ['183s']);
+      });
+    });
+
+    it('stopAllRepeaters resets the offset', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('3m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s', '121s']);
+        u.expectCalledAt('gen2', ['2s', '62s', '122s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      })
+      .then(repeater.stopAllRepeaters)
+      .then(u.createMockHeartbeatRepeater)
+      .then(() =>
+        u.createMockRepeatersWithIntervals('1m', '1m', '1m')
+      )
+      .then(() => u.waitUntil('4m'))
+      .then(() => {
+        u.expectCalledAt('gen4', ['181s']);
+        u.expectCalledAt('gen5', ['182s']);
+        u.expectCalledAt('gen6', ['183s']);
+      });
+    });
+
+    it('stop/pause', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('2m')
+      .then(() => {
+        u.expectCalledAt('gen1', ['1s', '61s']);
+        u.expectCalledAt('gen2', ['2s', '62s']);
+        u.expectCalledAt('gen3', ['3s', '63s']);
+      })
+      .then(() => {
+        repeater.stop('gen1');
+        repeater.pause('gen2');
+      })
+      .then(() => u.waitUntil('3m'))
+      .then(() => {
+        expect(repeater.getPaused()).to.deep.equal(['gen2']);
+        u.expectCalledAt('gen1', ['1s', '61s']);
+        u.expectCalledAt('gen2', ['2s', '62s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      });
+    });
+
+    it('stop/pause before first execution', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      repeater.stop('gen1');
+      repeater.pause('gen2');
+      return u.waitUntil('3m')
+      .then(() => {
+        expect(repeater.getPaused()).to.deep.equal(['gen2']);
+        u.expectCalledAt('gen1', undefined);
+        u.expectCalledAt('gen2', undefined);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      });
+    });
+
+    it('stop/pause right after first execution', () => {
+      u.createMockRepeatersWithIntervals('1m', '1m', '1m');
+      return u.waitUntil('1s')
+      .then(() => {
+        repeater.stop('gen1');
+      })
+      .then(() => u.waitUntil('2s'))
+      .then(() => {
+        repeater.pause('gen2');
+      })
+      .then(() => u.waitUntil('3m'))
+      .then(() => {
+        expect(repeater.getPaused()).to.deep.equal(['gen2']);
+        u.expectCalledAt('gen1', ['1s']);
+        u.expectCalledAt('gen2', ['2s']);
+        u.expectCalledAt('gen3', ['3s', '63s', '123s']);
+      });
+    });
+  });
+
   describe('stop >', () => {
     it('should stop the repeat and delete it from the tracker', (done) => {
       let currentCount = 0;
@@ -147,7 +334,7 @@ describe('test/repeater/repeater.js >', () => {
       setTimeout(() => {
         expect(newCount).to.equal(1); // proves repeat was updated
         return done();
-      }, 500);
+      }, 1200);
     });
 
     it('noop if repeater being stopped is not in the tracker', (done) => {
@@ -193,7 +380,8 @@ describe('test/repeater/repeater.js >', () => {
     });
 
     it('pause and resume should pause and resume the task function ' +
-      'passed in', (done) => {
+      'passed in', function (done) {
+      this.timeout(5000);
       let count1 = 0;
       let count2 = 0;
       function stub1() {
@@ -228,7 +416,7 @@ describe('test/repeater/repeater.js >', () => {
 
         // pause the repeat
         repeater.pauseGenerators();
-      }, 30);
+      }, 1100);
 
       setTimeout(() => {
         // proves that the repeat did not run after it was paused
@@ -237,7 +425,7 @@ describe('test/repeater/repeater.js >', () => {
 
         // resume repeat
         repeater.resumeGenerators();
-      }, 60);
+      }, 1200);
 
       setTimeout(() => {
         // proves that calling resume, resumes the task
@@ -246,7 +434,7 @@ describe('test/repeater/repeater.js >', () => {
 
         repeater.stopAllRepeaters();
         return done();
-      }, 90);
+      }, 4500);
     });
 
     it('pauseGenerators should not affect the heartbeat repeat', (done) => {
@@ -344,7 +532,7 @@ describe('test/repeater/repeater.js >', () => {
 
     it('wrong typeof interval', (done) => {
       try {
-        repeater.create({ name: 'Gen', interval: '10', func: () => {} });
+        repeater.create({ name: 'Gen', interval: 'aaa', func: () => {} });
         return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError') {
@@ -356,10 +544,12 @@ describe('test/repeater/repeater.js >', () => {
     });
 
     it('duplicate name', (done) => {
-      const def = { name: 'Gen', interval: 10, func: () => {} };
+      const def1 = { name: 'Gen', interval: 10, func: () => {} };
+      const def2 = { name: 'Gen', interval: 10, func: () => {} };
 
       try {
-        repeater.create(def);
+        repeater.create(def1);
+        repeater.create(def2);
         return done(new Error('Expecting ValidationError'));
       } catch (err) {
         if (err.name === 'ValidationError' &&
@@ -412,28 +602,6 @@ describe('test/repeater/repeater.js >', () => {
         expect(err.name).to.equal('ResourceNotFoundError');
         expect(err.message).to.contain('not found');
         return done();
-      }
-    });
-
-    it('null subjects', (done) => {
-      try {
-        const func = () => {};
-
-        const def = {
-          name: 'Gen',
-          interval: 10,
-          func,
-          subjects: null,
-        };
-        repeater.create(def);
-        return done('Expecting ValidationError');
-      } catch (err) {
-        if (err.name === 'ValidationError' &&
-        err.message === '"subjects" is not allowed') {
-          return done();
-        }
-
-        return done(err);
       }
     });
   });
