@@ -544,8 +544,8 @@ describe('test/repeater/repeater.js >', () => {
     });
 
     it('duplicate name', (done) => {
-      const def1 = { name: 'Gen', interval: 10, func: () => {} };
-      const def2 = { name: 'Gen', interval: 10, func: () => {} };
+      const def1 = { name: 'Gen', interval: 10, func: x => x };
+      const def2 = { name: 'Gen', interval: 10, func: x => x };
 
       try {
         repeater.create(def1);
