@@ -21,8 +21,7 @@ describe('test/repeater/repeater.js >', () => {
   after(() => repeater.stopAllRepeaters());
 
   describe('createGeneratorRepeater >', () => {
-    const dummyFunc = (x) => x;
-    const dummyOnProgress = (x) => x;
+    const dummyFunc = (x) => Promise.resolve(x);
 
     it('should start a new generator repeat', (done) => {
       const def = {
@@ -41,96 +40,10 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
       };
-      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
-        dummyOnProgress);
+      const ret = repeater.createGeneratorRepeater(def, dummyFunc);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
       expect(tracker.Generator0).to.equal(ret);
-      done();
-    });
-
-    it('should set onProgress callback to handleCollectResponse', (done) => {
-      const def = {
-        name: 'Generator0.1',
-        intervalSecs: 6,
-        context: {},
-        generatorTemplate: {
-          connection: {
-            headers: {
-              Authorization: 'abddr121345bb',
-            },
-            url: 'http://example.com',
-            bulk: true,
-          },
-        },
-        refocus: ref,
-        subjectQuery: '?absolutePath=oneSubject',
-      };
-      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
-        dummyOnProgress);
-      expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
-      expect(ret.name).to.equal('Generator0.1');
-      expect(ret.onProgress.name).to.equal('dummyOnProgress');
-      expect(tracker['Generator0.1']).to.equal(ret);
-      done();
-    });
-
-    it('handleCollectResponse onProgress callback should be called when a ' +
-    'generator repeater is created', (done) => {
-      const def = {
-        name: 'Generator0.11',
-        intervalSecs: 1,
-        context: {},
-        generatorTemplate: {
-          connection: {
-            headers: {
-              Authorization: 'abddr121345bb',
-            },
-            url: 'http://example.com',
-            bulk: true,
-          },
-        },
-        refocus: ref,
-        subjectQuery: '?absolutePath=oneSubject',
-      };
-      const ret = repeater.createGeneratorRepeater(def, dummyFunc,
-        dummyOnProgress);
-      setTimeout(() => {
-        expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
-        expect(ret.name).to.equal('Generator0.11');
-        expect(tracker['Generator0.11']).to.equal(ret);
-        return done();
-      }, 20);
-    });
-
-    it('stopping and creating the repeat should set the onProgress callback ' +
-    'to handleCollectResponse', (done) => {
-      const obj = {
-        name: 'Generator0.2',
-        intervalSecs: 6,
-        context: {},
-        generatorTemplate: {
-          connection: {
-            headers: {
-              Authorization: 'abddr121345bb',
-            },
-            url: 'http://example.com',
-            bulk: true,
-          },
-        },
-        refocus: ref,
-        subjectQuery: '?absolutePath=oneSubject',
-      };
-      repeater.createGeneratorRepeater(obj, dummyFunc, dummyOnProgress);
-      obj.name = 'Generator0.2';
-      obj.intervalSecs = 60;
-      repeater.stop(obj.name);
-      const ret = repeater.createGeneratorRepeater(obj, dummyFunc,
-        dummyOnProgress);
-      expect(ret).to.have.property('interval', MILLIS * obj.intervalSecs);
-      expect(ret).to.have.property('name', 'Generator0.2');
-      expect(ret.onProgress).to.have.property('name', 'dummyOnProgress');
-      expect(tracker['Generator0.2']).to.equal(ret);
       done();
     });
   });
@@ -168,78 +81,6 @@ describe('test/repeater/repeater.js >', () => {
         expect(ret.interval).to.equal(def.interval);
         expect(ret.name).to.equal('Generator3');
         expect(tracker.Generator3).to.equal(ret);
-        return done();
-      }, 100);
-    });
-
-    it('should call the onProgress call back after every repeat', (done) => {
-      function stub() { }
-
-      let counter = 0;
-      function onProgress() {
-        counter++;
-      }
-
-      const def = {
-        name: 'testRepeatProgress',
-        interval: 10,
-        func: stub,
-        onProgress,
-      };
-      repeater.create(def);
-      setTimeout(() => {
-        expect(counter).to.be.at.least(1);
-        return done();
-      }, 100);
-    });
-
-    it('onProgress should work when task fn resolves promise', (done) => {
-      const obj = { value: 'OK' };
-      function taskFunc() {
-        return Promise.resolve(obj);
-      }
-
-      function onProgress(c) {
-        c.value = 'Good';
-      }
-
-      const def = {
-        name: 'testRepeatProgressWithPromiseResolve',
-        interval: 10,
-        func: taskFunc,
-        onProgress,
-      };
-      repeater.create(def);
-      setTimeout(() => {
-        expect(obj.value).to.equal('Good');
-        return done();
-      }, 100);
-    });
-
-    it('onFailure should work when task fn rejects promise', (done) => {
-      const obj = { value: 'OK' };
-      function taskFunc() {
-        return Promise.reject(obj);
-      }
-
-      function onProgress(c) {
-        c.value = 'Good';
-      }
-
-      function onFailure(c) {
-        c.value = 'Bad';
-      }
-
-      const def = {
-        name: 'testRepeatProgressWithPromiseReject',
-        interval: 10,
-        func: taskFunc,
-        onProgress,
-        onFailure,
-      };
-      repeater.create(def);
-      setTimeout(() => {
-        expect(obj.value).to.equal('Bad');
         return done();
       }, 100);
     });

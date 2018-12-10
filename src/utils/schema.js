@@ -14,10 +14,8 @@ const urlRegex = /((([A-Za-z]{3,9}:(?:\/\/)?)(?:[\-;:&=\+\$,\w]+@)?[A-Za-z0-9\.\
 
 const repeater = Joi.object().keys({
   name: Joi.string().required(),
-  interval: Joi.number().integer().positive(), // TODO define min/max!
+  interval: Joi.number().integer().positive().required(), // TODO define min/max!
   func: Joi.func().required(),
-  onFailure: Joi.func(),
-  onProgress: Joi.func(),
   bulk: Joi.boolean(),
 });
 

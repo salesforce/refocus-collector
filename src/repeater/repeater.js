@@ -28,25 +28,6 @@ function notHeartbeat(key) {
 } // notHeartbeat
 
 /**
- * The default function that is called every time a task is repeated.
- *
- * @param {Object} result - The return value of one particular task
- *  invocation.
- */
-function onProgress(result) {
-  debug('onProgress: task was successfully repeated %O', result);
-} // onProgress
-
-/**
- * The default function that is called when all the repetition is complete.
- * @param {Array} results - An array of objects, where each element is the
- * return value for each invocation.
- */
-function onSuccess(results) {
-  debug('onSuccess: all repeat tasks completed %O', results);
-} // onSuccess
-
-/**
  * The default function that is called when the task function invocation throws
  * an error.
  *
@@ -175,11 +156,6 @@ function stopAllRepeaters() {
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
  *  {Function} func - required, function to execute repeatedly
- *  {Function} onSuccess - function to execute only once, after *all*
- *    of the scheduled repetitions have completed
- *  {Function} onFailure - function to execute if any repetition fails
- *  {Function} onProgress - function to execute upon completion of each
- *    repetition.
  * @throws {ValidationError} - Invalid repeater def or name collision
  */
 function validateDefinition(def) {
@@ -204,22 +180,12 @@ function validateDefinition(def) {
  *  {String} name - required, unique name for the repeater
  *  {Number} interval - required, repeat interval in milliseconds
  *  {Function} func - required, function to execute repeatedly
- *  {Function} onSuccess - function to execute only once, after *all*
- *    of the scheduled repetitions have completed
- *  {Function} onFailure - function to execute if any repetition fails
- *  {Function} onProgress - function to execute upon completion of each
- *    repetition.
  * @throws {ValidationError} - Thrown by validateDefinition
  */
 function create(def) {
   validateDefinition(def);
   debug('create %O', def);
-  const intervalFunc = () =>
-    Promise.resolve()
-    .then(def.func)
-    .then(def.onProgress)
-    .catch(def.onFailure);
-  def.intervalId = setInterval(intervalFunc, def.interval);
+  def.intervalId = setInterval(def.func, def.interval);
   tracker[def.name] = def;
   logger.info({
     activity: 'repeater:created',
@@ -237,19 +203,15 @@ function create(def) {
  *  {String} name - required, unique name for the repeater
  *  {Number} intervalSecs - required, repeat interval in milliseconds
  * @param {Function} func - pass in the function to call on each interval
- * @param {Function} onProgress - pass in the function call after each
- *  repetition
  *
  * @throws {ValidationError} - Thrown by validateDefinition, called by
  *  repeater.create
  */
-function createGeneratorRepeater(generator, func, onProgress) {
+function createGeneratorRepeater(generator, func) {
   return create({
     name: generator.name,
     interval: 1000 * generator.intervalSecs, // convert to millis
-    func: () => func(generator),
-    onProgress,
-    onFailure,
+    func: () => func(generator).catch(onFailure),
   });
 } // createGeneratorRepeater
 
@@ -264,9 +226,7 @@ function createHeartbeatRepeater(func, interval) {
   return create({
     name: heartbeatRepeatName,
     interval,
-    func,
-    onProgress,
-    onFailure,
+    func: () => func().catch(onFailure),
   });
 } // createHeartbeatRepeater
 

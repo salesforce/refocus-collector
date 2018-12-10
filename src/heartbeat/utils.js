@@ -16,18 +16,10 @@ const repeater = require('../repeater/repeater');
 const logger = require('winston');
 const commonUtils = require('../utils/commonUtils');
 const sanitize = commonUtils.sanitize;
-const queue = require('../utils/queue');
-const httpUtils = require('../utils/httpUtils');
-const errors = require('../errors');
 const collectorStatus = require('../constants').collectorStatus;
-const collectBulk = require('../remoteCollection/collect').collectBulk;
-const collectBySubject = require('../remoteCollection/collect')
-  .collectBySubject;
-const handleCollectResponse =
-  require('../remoteCollection/handleCollectResponse').handleCollectResponse;
-const handleCollectResponseBySubject =
-  require('../remoteCollection/handleCollectResponse')
-    .handleCollectResponseBySubject;
+const { collectBulk, collectBySubject } = require('../remoteCollection/collect');
+const { handleCollectResponseBulk, handleCollectResponseBySubject }  =
+  require('../remoteCollection/handleCollectResponse');
 
 /**
  * Pauses, resumes or stops the collector based on the status of the collector.
@@ -48,7 +40,6 @@ function changeCollectorStatus(currentStatus, newStatus) {
     repeater.stopGenerators();
   } else if (newStatus === collectorStatus.STOPPED) {
     repeater.stopAllRepeaters();
-    queue.flushAll();
     process.exit(0);
   }
 } // changeCollectorState
@@ -67,10 +58,6 @@ function updateCollectorConfig(cc) {
     if (oldValue && newValue !== oldValue) {
       if (key === 'heartbeatIntervalMillis') {
         repeater.updateHeartbeatRepeater(newValue);
-      } else if (key === 'sampleUpsertQueueTimeMillis') {
-        queue.updateFlushTimeoutAll(newValue);
-      } else if (key === 'maxSamplesPerBulkUpsert') {
-        queue.updateSizeAll(newValue);
       }
     }
   });
@@ -130,56 +117,11 @@ function setupRepeater(generator) {
     genIsBulk ? 'bulk' : 'by subject', sanitize(generator));
   const collFunc = genIsBulk ? collectBulk : collectBySubject;
   const handlerFunc =
-    genIsBulk ? handleCollectResponse : handleCollectResponseBySubject;
-  repeater.createGeneratorRepeater(generator, collFunc, handlerFunc);
+    genIsBulk ? handleCollectResponseBulk : handleCollectResponseBySubject;
+
+  const func = (gen) => collFunc(gen).then(handlerFunc);
+  repeater.createGeneratorRepeater(generator, func);
 } // setupRepeater
-
-/**
- * Update queue for sample generator (if found), or create a new one.
- *
- * @param  {String} qName - Queue name
- * @param  {String} token - The Authorization token to use.
- * @param  {Number} flushFunctionCutoff - time before we quit retrying the flush function
- * @param  {Object} collConf - The collectorConfig from the start or heartbeat
- *  response
- * @returns {Object} the buffered queue object
- * @throws {Error} Validation error if missing collector config
- */
-function createOrUpdateGeneratorQueue(qName, token, flushFunctionCutoff, collConf) {
-  debug('createOrUpdateGeneratorQueue "%s" (%s) %O',
-    qName, token ? 'HAS TOKEN' : 'MISSING TOKEN', collConf);
-  if (!qName) throw new errors.ValidationError('Missing queue name');
-  if (queue.exists(qName)) { // sample queue for this generator already exists
-    if (!collConf) {
-      throw new errors.ValidationError('Missing collector config');
-    }
-
-    // update queue params
-    if (collConf.maxSamplesPerBulkUpsert) {
-      queue.updateSize(qName, collConf.maxSamplesPerBulkUpsert);
-    }
-
-    if (collConf.sampleUpsertQueueTimeMillis) {
-      queue.updateFlushTimeout(qName, collConf.sampleUpsertQueueTimeMillis);
-    }
-
-    return queue.get(qName);
-  }
-
-  // queue not found, so create new one for this generator
-  const cr = configModule.getConfig().refocus;
-  return queue.create({
-    name: qName,
-    size: cr.maxSamplesPerBulkUpsert,
-    flushTimeout: cr.sampleUpsertQueueTimeMillis,
-    verbose: false,
-    flushFunction: httpUtils.doBulkUpsert,
-    proxy: cr.proxy,
-    url: cr.url,
-    token: token,
-    flushFunctionCutoff,
-  });
-} // createOrUpdateGeneratorQueue
 
 /**
  * Set up generator repeaters for each generator and add them to the collector
@@ -211,9 +153,6 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       try {
-        // queue name same as generator name
-        createOrUpdateGeneratorQueue(g.name, g.token, g.intervalSecs,
-          res.collectorConfig || {});
         setupRepeater(g);
       } catch (err) {
         debug('addGenerators error for generator "%s":\n%s', g.name,
@@ -301,7 +240,6 @@ module.exports = {
   addGenerators,
   assignContext, // exporting for testing purposes only
   changeCollectorStatus,
-  createOrUpdateGeneratorQueue, // exporting for testing purposes only
   deleteGenerators,
   updateGenerators,
   updateCollectorConfig,
