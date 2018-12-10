@@ -230,29 +230,29 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-      collect.doCollect(generator)
-      .then((collectRes) => {
-        expect(collectRes.res).to.not.equal(undefined);
-        expect(collectRes.res.status).to.equal(httpStatus.OK);
-        expect(collectRes.res.body).to.deep.equal(remoteData);
+    collect.doCollect(generator)
+    .then((collectRes) => {
+      expect(collectRes.res).to.not.equal(undefined);
+      expect(collectRes.res.status).to.equal(httpStatus.OK);
+      expect(collectRes.res.body).to.deep.equal(remoteData);
 
-        expect(collectRes.res.req.headers['user-agent'])
-          .to.contain('node-superagent');
+      expect(collectRes.res.req.headers['user-agent'])
+        .to.contain('node-superagent');
 
-        expect(collectRes.generatorTemplate).to.deep
-          .equal(generator.generatorTemplate);
-        expect(collectRes.context).to.deep.equal(generator.context);
-        expect(collectRes.subjects).to.deep.equal(generator.subjects);
-        expect(collectRes.res.request.header.Authorization)
-          .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
-        expect(generator.connection.simple_oauth.tokenConfig.username)
-          .to.equal('testUser');
-        expect(generator.connection.simple_oauth.tokenConfig.password)
-          .to.equal('testPassword');
+      expect(collectRes.generatorTemplate).to.deep
+        .equal(generator.generatorTemplate);
+      expect(collectRes.context).to.deep.equal(generator.context);
+      expect(collectRes.subjects).to.deep.equal(generator.subjects);
+      expect(collectRes.res.request.header.Authorization)
+        .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+      expect(generator.connection.simple_oauth.tokenConfig.username)
+        .to.equal('testUser');
+      expect(generator.connection.simple_oauth.tokenConfig.password)
+        .to.equal('testPassword');
 
-        done();
-      })
-      .catch(done);
+      done();
+    })
+    .catch(done);
   });
 
   it('collecting data with masking details, connection undefined', (done) => {
