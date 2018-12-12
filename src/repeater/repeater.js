@@ -16,6 +16,10 @@ const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 let hbFunc;
 
+const offsetInterval = 1;
+const offsetSpace = 60;
+let startOffset = 0;
+
 /**
  * Tracks all the repeaters defined in the collectors.
  * Each key in the tracker is the name of the repeater ('heartbeat', or a
@@ -51,6 +55,10 @@ function stop(name) {
     return;
   }
 
+  if (tracker[name].timeoutId) {
+    clearTimeout(tracker[name].timeoutId);
+  }
+
   if (tracker[name].intervalId) {
     clearInterval(tracker[name].intervalId);
   }
@@ -73,6 +81,11 @@ function pause(name) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
 
+  if (tracker[name].timeoutId) {
+    clearTimeout(tracker[name].timeoutId);
+    delete tracker[name].timeoutId;
+  }
+
   if (tracker[name].intervalId) {
     clearInterval(tracker[name].intervalId);
     delete tracker[name].intervalId;
@@ -86,7 +99,7 @@ function pause(name) {
 
 function getPaused() {
   return Object.values(tracker)
-    .filter(gen => !gen.intervalId)
+    .filter(gen => !gen.timeoutId && !gen.intervalId)
     .map(gen => gen.name);
 }
 
@@ -118,6 +131,7 @@ function resume(name) {
 function stopGenerators() {
   debug('stopGenerators');
   Object.keys(tracker).filter(notHeartbeat).forEach(stop);
+  startOffset = 1;
 } // stopGenerators
 
 /**
@@ -144,6 +158,7 @@ function resumeGenerators() {
 function stopAllRepeaters() {
   debug('stopAllRepeaters');
   Object.keys(tracker).forEach(stop);
+  startOffset = 0;
   debug('now tracking %O', Object.keys(tracker));
   return tracker;
 } // stopAllRepeaters
@@ -183,9 +198,15 @@ function validateDefinition(def) {
  * @throws {ValidationError} - Thrown by validateDefinition
  */
 function create(def) {
+  // clone def object
+  const { name, interval, func } = def;
+  def = { name, interval, func };
+
   validateDefinition(def);
   debug('create %O', def);
-  def.intervalId = setInterval(def.func, def.interval);
+  const initialRun = runOnceAndSetInterval.bind(null, def.func, def);
+  def.timeoutId = setTimeout(initialRun, startOffset * 1000);
+  startOffset = (startOffset + offsetInterval) % offsetSpace;
   tracker[def.name] = def;
   logger.info({
     activity: 'repeater:created',
@@ -195,6 +216,12 @@ function create(def) {
   });
   return def;
 } // create
+
+function runOnceAndSetInterval(fn, def) {
+  delete def.timeoutId;
+  def.intervalId = setInterval(fn, def.interval);
+  return fn();
+} // runOnceAndSetInterval
 
 /**
  * Convenience function to create a new generator repeater.
