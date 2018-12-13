@@ -24,10 +24,6 @@ const AUTH_HEADER = 'headers.Authorization';
 const configModule = require('../config/config');
 const errors = require('../errors');
 
-const DEFAULT_TIMEOUT_RESPONSE_MILLIS = 10000; // TODO move to Refocus config
-const DEFAULT_TIMEOUT_DEADLINE_MILLIS = 30000; // TODO move to Refocus config
-const MAX_RETRIES = 3; // TODO move to Refocus config
-
 /**
  * Helper function returns true if err is Unauthorized AND token is present
  * with simple oauth object. In this situation, we will treat this token as
@@ -63,17 +59,21 @@ function requiresSSLOnly() {
  * @returns {Request} - the superagent request
  */
 function generateRequest(gen) {
+  const refconf = configModule.getConfig().refocus;
+
   // ref. https://visionmedia.github.io/superagent/#timeouts
   const conn = gen.generatorTemplate.connection;
   const genTimeout = {
-    response: get(gen, 'timeout.response') || DEFAULT_TIMEOUT_RESPONSE_MILLIS,
-    deadline: get(gen, 'timeout.deadline') || DEFAULT_TIMEOUT_DEADLINE_MILLIS,
+    response:
+      get(gen, 'timeout.response') || refconf.timeoutResponseMillis || 10000,
+    deadline:
+      get(gen, 'timeout.deadline') || refconf.timeoutDeadlineMillis || 30000,
   };
   const req = request
     .get(gen.preparedUrl)
     .set(gen.preparedHeaders)
     .timeout(genTimeout)
-    .retry(MAX_RETRIES);
+    .retry(refconf.maxRetries || 3);
 
   if (conn.dataSourceProxy) {
     req.proxy(conn.dataSourceProxy);
