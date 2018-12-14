@@ -196,7 +196,6 @@ function prepareRemoteRequest(generator) {
       }
     }
 
-
     // Prepare headers
     generator.preparedHeaders = rce.prepareHeaders(conn.headers, context);
 
