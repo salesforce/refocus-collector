@@ -99,6 +99,39 @@ describe('test/utils/commonUtils.js >', () => {
       });
       done();
     });
+
+    it('ok, sanitize entire object', (done) => {
+      const obj = {
+        accessToken: 'a310u',
+        username: 'refocus-collector-user',
+        somethingNested: {
+          a: 1,
+          b: [3, 4, 5],
+          bearerToken: 'qwertyuiop',
+          anotherToken: '1234567890123456789012345678901234567890',
+          nested2: {
+            nestedToken: '--------------------',
+          },
+        },
+      };
+
+      const sanitized = sanitize(obj,
+        ['accessToken', 'somethingNested']);
+      expect(sanitized).to.deep.equal({
+        accessToken: '...a310u',
+        username: 'refocus-collector-user',
+        somethingNested: {
+          a: 1,
+          b: [3, 4, 5],
+          bearerToken: '...yuiop',
+          anotherToken: '...67890',
+          nested2: {
+            nestedToken: '...-----',
+          },
+        },
+      });
+      done();
+    });
   });
 
   describe('collector metadata >', () => {
