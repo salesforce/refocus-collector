@@ -145,7 +145,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
 
     (err) => {
       debug('doBulkUpsert err %O', err);
-      logger.error(err.message);
+      logger.error(err);
       /*
        * Don't Promise.reject(...) this error, because there is no handler
        * for the rejection.

@@ -23,6 +23,7 @@ const rce = require('@salesforce/refocus-collector-eval');
 const AUTH_HEADER = 'headers.Authorization';
 const configModule = require('../config/config');
 const errors = require('../errors');
+const sanitize = require('../utils/commonUtils').sanitize;
 
 /**
  * Helper function returns true if err is Unauthorized AND token is present
@@ -37,7 +38,7 @@ const errors = require('../errors');
 function shouldRequestNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  const token = generator.token;
+  const token = generator.OAuthToken;
   return unauthorized && simpleOauth && token;
 } // shouldRequestNewToken
 
@@ -109,7 +110,7 @@ function sendRemoteRequest(generator) {
       if (err) {
         if (shouldRequestNewToken(err, generator)) {
           debug('sendRemoteRequest token expired, requesting a new one');
-          generator.token = null;
+          generator.OAuthToken = null;
 
           // eslint-disable-next-line no-use-before-define
           return doCollect(generator)
@@ -146,11 +147,16 @@ function sendRemoteRequest(generator) {
  */
 function prepareRemoteRequest(generator) {
   debug('Entered "prepareRemoteRequest" for "%s"', generator.name);
+  const { context, aspects, subjects, connection } = generator;
   return Promise.resolve()
 
-  // get token
+  // get new OAuthToken if necessary
   .then(() => {
-    if (!generator.token && get(generator, 'connection.simple_oauth')) {
+    if (!generator.OAuthToken && get(generator, 'connection.simple_oauth')) {
+      if (generator.connection) {
+        generator.connection = rce.expandObject(connection, context);
+      }
+
       const method = generator.connection.simple_oauth.method;
       const simpleOauth = generator.connection.simple_oauth;
 
@@ -174,24 +180,14 @@ function prepareRemoteRequest(generator) {
   })
 
   .then((token) => {
-    if (token) generator.token = token;
+    if (token) generator.OAuthToken = token;
 
-    const { context, aspects, subjects } = generator;
+    // Prepare auth
     const conn = generator.generatorTemplate.connection;
-    if (generator.connection) {
-      generator.connection = rce.expandObject(generator.connection, context);
-    }
-
-    // Add the url to the generator so the handler has access to it later.
-    generator.preparedUrl = rce.prepareUrl(context, aspects, subjects, conn);
-    debug('prepareRemoteRequest: preparedUrl = %s', generator.preparedUrl);
-
-    const simpleOauth = get(generator, 'connection.simple_oauth');
-
-    // If token is present, add to request header.
-    if (generator.token) {
+    if (generator.OAuthToken) {
       // Expecting accessToken or access_token from remote source.
-      const accessToken = generator.token.accessToken || generator.token.access_token;
+      const accessToken = generator.OAuthToken.accessToken || generator.OAuthToken.access_token;
+      const simpleOauth = get(generator, 'connection.simple_oauth');
       if (get(simpleOauth, 'tokenFormat')) {
         set(conn, AUTH_HEADER,
           simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
@@ -200,11 +196,19 @@ function prepareRemoteRequest(generator) {
       }
     }
 
-    /*
-     * Add the prepared headers to the generator so the handler has access to
-     * them later for validation.
-     */
+
+    // Prepare headers
     generator.preparedHeaders = rce.prepareHeaders(conn.headers, context);
+
+    // Prepare url
+    generator.preparedUrl = rce.prepareUrl(context, aspects, subjects, conn);
+
+    debug('prepareRemoteRequest: preparedGenerator: %O', sanitize({
+      preparedUrl: generator.preparedUrl,
+      preparedHeaders: generator.preparedHeaders,
+      OAuthToken: generator.OAuthToken,
+      connection: generator.connection,
+    }, ['OAuthToken', 'Authorization', 'simple_oauth']));
     return generator;
   });
 } // prepareRemoteRequest

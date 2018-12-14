@@ -492,7 +492,7 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
-      token: {
+      OAuthToken: {
         accessToken: 'eegduygsugfiusguguygyfkufyg',
       },
       generatorTemplate: {
