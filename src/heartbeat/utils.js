@@ -113,8 +113,8 @@ function assignContext(ctx, def, collectorToken, res) {
  */
 function setupRepeater(generator) {
   const genIsBulk = commonUtils.isBulk(generator);
-  debug('setupRepeater (%s) for generator %O',
-    genIsBulk ? 'bulk' : 'by subject', sanitize(generator));
+  debug('setupRepeater (%s) for generator %O', genIsBulk ? 'bulk' : 'by subject',
+    sanitize(generator, ['token', 'context', 'simple_oauth']));
   const collFunc = genIsBulk ? collectBulk : collectBySubject;
   const handlerFunc =
     genIsBulk ? handleCollectResponseBulk : handleCollectResponseBySubject;
@@ -161,7 +161,8 @@ function addGenerators(res) {
           err.message);
       }
 
-      debug('Generator added: %O', sanitize(g));
+      debug('Generator added: %O',
+        sanitize(g, ['token', 'context', 'simple_oauth']));
     });
   } else {
     debug('No generators to add.');
@@ -229,7 +230,8 @@ function updateGenerators(res) {
           err.message);
       }
 
-      debug('Generator updated: %O', sanitize(g));
+      debug('Generator updated: %O',
+        sanitize(g, ['token', 'context', 'simple_oauth']));
     });
   } else {
     debug('No generators to update.');
