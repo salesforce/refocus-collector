@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/salesforce/refocus-collector#readme",
   "dependencies": {
-    "@salesforce/refocus-collector-eval": "^1.11.0",
+    "@salesforce/refocus-collector-eval": "^1.11.1",
     "bluebird": "^3.5.3",
     "commander": "^2.19.0",
     "debug": "^3.2.6",
