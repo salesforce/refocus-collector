@@ -144,23 +144,27 @@ module.exports = {
       return object;
     }
 
-    function doTraverse(obj) {
+    function doTraverse(obj, keysToSanitize, sanitizeAll=false) {
       if (obj) {
-        keys.forEach((key) => {
-          if (obj.hasOwnProperty(key) && typeof obj[key] === 'string') {
-            obj[key] = '...' + obj[key].slice(-5);
+        Object.entries(obj).forEach(([key, val]) => {
+          const doSanitize = keysToSanitize.includes(key) || sanitizeAll;
+          if (typeof val === 'string' && doSanitize) {
+            obj[key] = '...' + val.slice(-5);
+          } else if (typeof val === 'object' && !Array.isArray(val)) {
+            if (doSanitize) {
+              doTraverse(val, [], true);
+            } else {
+              doTraverse(val, keysToSanitize);
+            }
           }
         });
-        Object.keys(obj)
-        .filter((k) => typeof obj[k] === 'object' && !Array.isArray(obj[k]))
-        .forEach((k) => obj[k] = doTraverse(obj[k]));
       }
 
       return obj;
     }
 
     let sanitized = JSON.parse(JSON.stringify(object)); // copy
-    sanitized = doTraverse(sanitized);
+    sanitized = doTraverse(sanitized, keys);
     return sanitized;
   }, // sanitize
 
