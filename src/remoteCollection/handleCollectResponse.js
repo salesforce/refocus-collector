@@ -190,11 +190,12 @@ function generateSamples(collectRes) {
   const func = RefocusCollectorEval.getTransformFunction(tr, status);
   if (func) {
     return RefocusCollectorEval.safeTransform(func, args);
-  } else {
-    const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
-      `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
-    return errorSamples(collectRes, errorMessage);
   }
+
+  // Default error samples
+  const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
+    `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
+  return errorSamples(collectRes, errorMessage);
 } // generateSamples
 
 module.exports = {
