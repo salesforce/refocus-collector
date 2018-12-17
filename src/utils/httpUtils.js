@@ -18,6 +18,8 @@ const bulkUpsertEndpoint = require('../constants').bulkUpsertEndpoint;
 const findSubjectsEndpoint = require('../constants').findSubjectsEndpoint;
 const config = require('../config/config');
 const logger = require('winston');
+const TOO_MANY_REQUESTS = 429;
+const MILLIS_PER_SEC = 1000;
 
 /**
  * Perform a post operation on a given endpoint point with the given token and
@@ -47,7 +49,10 @@ function doPost(url, token, proxy, body, cutoff = Infinity) {
         .send(body || {})
         .set('Authorization', token)
         .set('collector-name', config.getConfig().name);
-      if (proxy) req.proxy(proxy);
+      if (proxy) {
+        req.proxy(proxy);
+      }
+
       return req;
     }
   });
@@ -80,10 +85,12 @@ function makeRequestWithRetry(reqInfo) {
   }
 
   return makeRequest().then((res) => resolve(res), (err) => {
-    if (err.status === 429) {
+    if (err.status === TOO_MANY_REQUESTS) {
       // Retry with backoff. Convert waitTime to milliseconds
-      const waitTime = (err.response.headers['retry-after'] + 1) * numAttempts * 1000;
-      debug(`Attempt #${numAttempts} was a 429. Retrying in ${waitTime} milliseconds...`);
+      const waitTime = (err.response.headers['retry-after'] + 1) *
+        numAttempts * MILLIS_PER_SEC;
+      debug(`Attempt #${numAttempts} was a 429. Retrying in ${waitTime} ` +
+        'milliseconds...');
 
       // debug(err.response.error.path);
       reqInfo.numAttempts = numAttempts + 1;
@@ -110,6 +117,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   if (!userToken) {
     const e = new ValidationError('doBulkUpsert missing token');
     logger.error(e.message);
+
     /*
      * Don't Promise.reject(...) this error, because there is no handler for
      * the rejection.
@@ -120,6 +128,7 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   if (!Array.isArray(arr)) {
     const e = new ValidationError('doBulkUpsert missing array of samples');
     logger.error(e.message);
+
     /*
      * Don't Promise.reject(...) this error, because there is no handler for
      * the rejection.
@@ -128,30 +137,29 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   }
 
   // Don't bother sending a POST if the array is empty.
-  if (arr.length === 0) return Promise.resolve(true);
+  if (arr.length === 0) {
+    return Promise.resolve(true);
+  }
 
   url += bulkUpsertEndpoint;
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
     doPost(url, userToken, proxy, arr, intervalSecs)
-    .then((res) => {
-      debug('doBulkUpsert returned OK %O', res.body);
-      logger.info({
-        activity: 'bulkUpsert',
-        numSamples: arr.length,
-      });
-      return resolve(res);
-    },
+      .then((res) => {
+        debug('doBulkUpsert returned OK %O', res.body);
+        return resolve(res);
+      },
 
-    (err) => {
-      debug('doBulkUpsert err %O', err);
-      logger.error(err);
-      /*
-       * Don't Promise.reject(...) this error, because there is no handler
-       * for the rejection.
-       */
-      return resolve(err);
-    });
+      (err) => {
+        debug('doBulkUpsert err %O', err);
+        logger.error(err);
+
+        /*
+         * Don't Promise.reject(...) this error, because there is no handler
+         * for the rejection.
+         */
+        return resolve(err);
+      });
   });
 } // doBulkUpsert
 
@@ -164,15 +172,18 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
  *  {String} proxy - Optional proxy url
  *  {String} subjectQuery - the query string
  * @throws {ValidationError} if argument(s) is missing
- * @returns {Promise} Promise which resolves to generator object with subject array attached.
+ * @returns {Promise} Promise which resolves to generator object with subject
+ *  array attached.
  */
 function attachSubjectsToGenerator(generator) {
   const { url, proxy } = generator.refocus;
   const { token, subjectQuery, intervalSecs } = generator;
   const start = Date.now();
 
-  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, subjectQuery=%s)', url,
-    token ? 'HAS_TOKEN' : 'MISSING', proxy, subjectQuery);
+  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, ' +
+    'subjectQuery=%s)', url, token ? 'HAS_TOKEN' : 'MISSING', proxy,
+  subjectQuery);
+
   if (!url) {
     const e = new ValidationError('Missing refocus url');
     logger.error('attachSubjectsToGenerator', e.message);
@@ -191,6 +202,24 @@ function attachSubjectsToGenerator(generator) {
     return Promise.reject(e);
   }
 
+  function makeRequest() {
+    const qry = subjectQuery.startsWith('?') ? subjectQuery.slice(1) :
+      subjectQuery;
+    const req = request.get(url + findSubjectsEndpoint)
+      .query(qry)
+      .set('Authorization', token)
+      .set('collector-name', config.getConfig().name);
+    if (proxy) {
+      req.proxy(proxy);
+    }
+
+    return req.then((res) => {
+      debug('attachSubjectsToGenerator returning %O', res.body);
+      generator.subjects = res.body || [];
+      return generator;
+    });
+  }
+
   return new Promise((resolve, reject) => {
     makeRequestWithRetry({
       makeRequest,
@@ -200,19 +229,6 @@ function attachSubjectsToGenerator(generator) {
       start,
       cutoff: intervalSecs,
     });
-
-    function makeRequest() {
-      const req = request.get(url + findSubjectsEndpoint)
-        .query(subjectQuery.startsWith('?') ? subjectQuery.slice(1) : subjectQuery)
-      .set('Authorization', token)
-      .set('collector-name', config.getConfig().name);
-      if (proxy) req.proxy(proxy);
-      return req.then((res) => {
-        debug('attachSubjectsToGenerator returning %O', res.body);
-        generator.subjects = res.body || [];
-        return generator;
-      });
-    }
   });
 } // attachSubjectsToGenerator
 
