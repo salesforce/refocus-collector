@@ -200,6 +200,7 @@ function generateSamples(collectRes) {
     return RefocusCollectorEval.safeTransform(func, args);
   }
 
+  // Default error samples
   const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
     `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
   return errorSamples(collectRes, errorMessage);
