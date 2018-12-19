@@ -91,6 +91,36 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       }
     });
 
+    it('error - res is already an error', (done) => {
+      try {
+        validateCollectResponse({
+          res: new Error('I am an error'),
+          preparedUrl: 'abc.com',
+          name: 'Foo',
+        });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('message', 'I am an error');
+        done();
+      }
+    });
+
+    it('error - res is already an error and has retries', (done) => {
+      const res = new Error('I am an error');
+      res.retries = 1;
+      try {
+        validateCollectResponse({
+          res,
+          preparedUrl: 'abc.com',
+          name: 'Foo',
+        });
+        done('Expecting error');
+      } catch (err) {
+        expect(err).to.have.property('message', 'I am an error (1 retries)');
+        done();
+      }
+    });
+
     it('error - res missing status code', (done) => {
       try {
         validateCollectResponse({ res: {}, url: 'abc.com', name: 'Foo' });
