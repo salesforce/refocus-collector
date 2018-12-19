@@ -159,7 +159,6 @@ function sendSamples(gen, samples) {
   logger.info({
     activity: 'upsert:samples',
     generator: gen.name,
-    url: gen.preparedUrl,
     numSamples: samples.length,
   });
   const cr = configModule.getConfig().refocus;
