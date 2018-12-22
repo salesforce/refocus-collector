@@ -113,7 +113,7 @@ function resume(name) {
     throw new errors.ResourceNotFoundError(`Repeater "${name}" not found`);
   }
 
-  if (!tracker[name].intervalId) {
+  if (!tracker[name].intervalId && !tracker[name].timeoutId) {
     const def = tracker[name];
     delete tracker[name];
     create(def);

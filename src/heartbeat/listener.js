@@ -31,8 +31,10 @@ let pausedAfterHeartbeatError = false;
 function onError(err) {
   debug('heartbeat/listener.onError: %O', err);
   logger.error('heartbeat error: ', err.message);
-  repeater.pauseGenerators();
-  pausedAfterHeartbeatError = true;
+  if (!pausedAfterHeartbeatError) {
+    repeater.pauseGenerators();
+    pausedAfterHeartbeatError = true;
+  }
   return err;
 } // onError
 
