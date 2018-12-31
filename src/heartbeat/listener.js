@@ -35,6 +35,7 @@ function onError(err) {
     repeater.pauseGenerators();
     pausedAfterHeartbeatError = true;
   }
+
   return err;
 } // onError
 
