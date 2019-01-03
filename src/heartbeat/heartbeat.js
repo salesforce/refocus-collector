@@ -11,6 +11,8 @@
  */
 'use strict'; // eslint-disable-line strict
 const debug = require('debug')('refocus-collector:heartbeat');
+const logger = require('winston');
+const get = require('just-safe-get');
 const configModule = require('../config/config');
 const listener = require('./listener');
 const httpUtils = require('../utils/httpUtils');
@@ -33,6 +35,16 @@ module.exports = () => {
   const cutoff = cr.heartbeatIntervalMillis * heartbeatCutoffPercentage;
   const existing = config.metadata;
   const current = u.getCurrentMetadata();
+  logger.info({
+    activity: 'heartbeat',
+    name: config.name,
+    numGenerators: Object.keys(config.generators).length,
+    rss: get(current, 'processInfo.memoryUsage.rss'),
+    external: get(current, 'processInfo.memoryUsage.external'),
+    heapUsed: get(current, 'processInfo.memoryUsage.heapUsed'),
+    heapTotal: get(current, 'processInfo.memoryUsage.heapTotal'),
+    uptime: get(current, 'processInfo.uptime'),
+  });
   const changed = u.getChangedMetadata(existing, current);
   Object.assign(existing, current);
   const requestbody = {
