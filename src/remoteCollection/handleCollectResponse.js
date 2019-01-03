@@ -51,17 +51,26 @@ function validateCollectResponse(cr, resSchema) {
     throw new errors.ValidationError(`No response from ${cr.preparedUrl}`);
   }
 
+  // It's already an error!
+  if (cr.res instanceof Error) {
+    if (cr.res.hasOwnProperty('retries')) {
+      cr.res.message += ` (${cr.res.retries} retries)`;
+    }
+
+    throw cr.res;
+  }
+
   // Invalid response: missing status code.
   if (!cr.res.hasOwnProperty('statusCode')) {
-    console.error(`Invalid response from ${cr.preparedUrl}: ` +
+    logger.error(`Invalid response from ${cr.preparedUrl}: ` +
       'missing HTTP status code', cr.res);
     throw new errors.ValidationError('Invalid response from ' +
       `${cr.preparedUrl}: missing HTTP status code`);
   }
 
   // Expecting response status code to be 3 digits.
-  if (!/\d\d\d/.test(cr.res.statusCode)) {
-    console.error(`Invalid response from ${cr.preparedUrl}: ` +
+  if (!(/\d\d\d/).test(cr.res.statusCode)) {
+    logger.error(`Invalid response from ${cr.preparedUrl}: ` +
       `invalid HTTP status code "${cr.res.statusCode}"`, cr.res);
     throw new errors.ValidationError('Invalid response from ' +
       `${cr.preparedUrl}: invalid HTTP status code "${cr.res.statusCode}"`);
@@ -74,7 +83,6 @@ function validateCollectResponse(cr, resSchema) {
   if (resSchema) {
     RefocusCollectorEval.validateResponseBody(cr.res, resSchema);
   }
-
 } // validateCollectResponse
 
 /**
@@ -112,12 +120,12 @@ function prepareTransformArgs(generator) {
  */
 function handleCollectResponseBySubject(collectResArray) {
   return Promise.map(collectResArray, (res) => generateSamples(res))
-  .then((samplesBySubject) =>
-    samplesBySubject.reduce((x, y) => [...x, ...y])
-  )
-  .then((samples) =>
-    sendSamples(collectResArray[0], samples)
-  );
+    .then((samplesBySubject) =>
+      samplesBySubject.reduce((x, y) => [...x, ...y])
+    )
+    .then((samples) =>
+      sendSamples(collectResArray[0], samples)
+    );
 } // handleCollectResponseBySubject
 
 /**
@@ -151,7 +159,6 @@ function sendSamples(gen, samples) {
   logger.info({
     activity: 'upsert:samples',
     generator: gen.name,
-    url: gen.preparedUrl,
     numSamples: samples.length,
   });
   const cr = configModule.getConfig().refocus;
@@ -190,11 +197,12 @@ function generateSamples(collectRes) {
   const func = RefocusCollectorEval.getTransformFunction(tr, status);
   if (func) {
     return RefocusCollectorEval.safeTransform(func, args);
-  } else {
-    const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
-      `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
-    return errorSamples(collectRes, errorMessage);
   }
+
+  // Default error samples
+  const errorMessage = `${collectRes.preparedUrl} returned HTTP status ` +
+    `${collectRes.res.statusCode}: ${collectRes.res.statusMessage}`;
+  return errorSamples(collectRes, errorMessage);
 } // generateSamples
 
 module.exports = {
