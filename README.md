@@ -61,3 +61,4 @@ Prerequisite: NPM and Node.js
 # Version History
 - 1.1.1
     - Simplify the heartbeat payload - send up all the process info, not just delta from last heartbeat
+
