@@ -20,7 +20,7 @@ const heartbeatCutoffPercentage =
 
 /**
  * Send a heartbeat to the Refocus server
- * @returns {Request} - the request sent to the Refocus server
+ * @returns {Promise<Request>} - the request sent to the Refocus server
  */
 module.exports = () => {
   debug('Entered heartbeat');
@@ -31,16 +31,12 @@ module.exports = () => {
   debug('heartbeat config.refocus %O', sanitized);
   const urlToPost = `${cr.url}/v1/collectors/${config.name}/heartbeat`;
   const cutoff = cr.heartbeatIntervalMillis * heartbeatCutoffPercentage;
-  const existing = config.metadata;
-  const current = u.getCurrentMetadata();
-  const changed = u.getChangedMetadata(existing, current);
-  Object.assign(existing, current);
-  const requestbody = {
+  const requestBody = {
     timestamp,
-    collectorConfig: changed,
+    collectorConfig: u.getCurrentMetadata(),
   };
 
-  return httpUtils.doPost(urlToPost, cr.collectorToken, cr.proxy, requestbody,
+  return httpUtils.doPost(urlToPost, cr.collectorToken, cr.proxy, requestBody,
     cutoff)
     .then((res) => listener.onSuccess(res.body, timestamp))
     .catch(listener.onError);
