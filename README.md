@@ -53,6 +53,11 @@ Prerequisite: NPM and Node.js
 
 -----
 
-[Introduction to Collectors](docs/pages/collectorintro.md)
-[Introduction to Sample Generators](docs/pages/samplegenintro.md)
+- [Introduction to Collectors](docs/pages/collectorintro.md)
+- [Introduction to Sample Generators](docs/pages/samplegenintro.md)
 
+-----
+
+# Version History
+- 1.1.1
+    - Simplify the heartbeat payload - send up all the process info, not just delta from last heartbeat

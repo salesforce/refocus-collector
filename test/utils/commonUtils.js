@@ -174,57 +174,5 @@ describe('test/utils/commonUtils.js >', () => {
       expect(metadata.version).to.be.a('string');
       done();
     });
-
-    it('getChangedMetadata() - no changes', (done) => {
-      config.initializeConfig();
-      const existing = config.getConfig().metadata;
-      const current = {
-        osInfo: existing.osInfo,
-        processInfo: existing.processInfo,
-        version: existing.version,
-      };
-
-      const changed = commonUtils.getChangedMetadata(existing, current);
-      expect(changed).to.be.an('object');
-      expect(changed).to.be.empty;
-      done();
-    });
-
-    it('getChangedMetadata() - changes', (done) => {
-      config.initializeConfig();
-      const existing = config.getConfig().metadata;
-      const osInfo = JSON.parse(JSON.stringify(existing.osInfo));
-      const processInfo = JSON.parse(JSON.stringify(existing.processInfo));
-      const version = existing.version;
-      const current = {
-        osInfo,
-        processInfo,
-        version,
-      };
-
-      current.osInfo.arch = 'changed';
-      current.processInfo.memoryUsage.heapTotal = 1;
-      current.processInfo.version = 'changed';
-      current.version = 'changed';
-      const changed = commonUtils.getChangedMetadata(existing, current);
-
-      expect(changed).to.be.an('object');
-      expect(changed).to.have.all.keys('osInfo', 'processInfo', 'version');
-
-      expect(changed.osInfo).to.exist;
-      expect(changed.osInfo).to.be.an('object');
-      expect(changed.osInfo).to.have.all.keys('arch');
-      expect(changed.osInfo.arch).to.equal('changed');
-
-      expect(changed.processInfo).to.exist;
-      expect(changed.processInfo).to.have.all.keys('memoryUsage', 'version');
-      expect(changed.processInfo.memoryUsage).to.have.all.keys('heapTotal');
-      expect(changed.processInfo.memoryUsage.heapTotal).to.equal(1);
-      expect(changed.processInfo.version).to.equal('changed');
-
-      expect(changed.version).to.equal('changed');
-
-      done();
-    });
   });
 });
