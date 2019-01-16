@@ -13,10 +13,11 @@ const repeater = require('../../src/repeater/repeater');
 const tracker = repeater.tracker;
 const expect = require('chai').expect;
 const ref = { url: 'mock.refocus.com' };
-const logger = require('winston');
+const sinon = require('sinon');
 const u = require('./util');
 const MILLIS = 1000;
-logger.configure({ level: 0 });
+const logger = require('winston');
+logger.configure({ level: 2 });
 
 describe('test/repeater/repeater.js >', () => {
   afterEach(() => repeater.stopAllRepeaters());
@@ -46,6 +47,66 @@ describe('test/repeater/repeater.js >', () => {
       expect(ret.name).to.equal('Generator0');
       expect(tracker.Generator0).to.equal(ret);
       done();
+    });
+
+    describe('createGeneratorRepeater failure >', () => {
+      let winstonInfoStub;
+      before(() => {
+        // stub winston error to test the logs
+        winstonInfoStub = sinon.stub(logger, 'error');
+      });
+
+      afterEach(() => {
+        winstonInfoStub.reset();
+      });
+
+      after(() => {
+        // restore winston stub
+        winstonInfoStub.restore();
+      });
+
+      it('not ok, failure on starting a new generator repeat', (done) => {
+        const funcThrowsErr = () => Promise.reject(new Error('error message'));
+        const def = {
+          name: 'Generator0',
+          intervalSecs: 1,
+          context: {},
+          generatorTemplate: {
+            name: 'sgt0',
+            version: '1.0.0',
+            connection: {
+              headers: {
+                Authorization: 'abddr121345bb',
+              },
+              url: 'http://example.com',
+              bulk: true,
+            },
+          },
+          refocus: ref,
+          subjectQuery: '?absolutePath=oneSubject',
+        };
+
+        // create repeater
+        const ret = repeater.createGeneratorRepeater(def, funcThrowsErr);
+
+        // call repeater function and check error log
+        ret.func(def)
+        .then(() => {
+          expect(logger.error.calledOnce).to.be.true;
+          expect(logger.error.args[0][0])
+            .to.have.property('generator', 'Generator0');
+          expect(logger.error.args[0][0])
+            .to.have.property('generatorTemplate', 'sgt0');
+          expect(logger.error.args[0][0])
+            .to.have.property('sgtVersion', '1.0.0');
+          expect(logger.error.args[0][0])
+            .to.have.property(
+              'message', 'onFailure: task returned error: error message'
+            );
+          done();
+        })
+        .catch(done);
+      });
     });
   });
 
