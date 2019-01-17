@@ -253,9 +253,7 @@ function createGeneratorRepeater(generator, func) {
   return create({
     name: generator.name,
     interval: 1000 * generator.intervalSecs, // convert to millis
-    func: () => func(generator).catch((err) => {
-      onFailure(err, generator);
-    }),
+    func: () => func(generator).catch((err) => onFailure(err, generator)),
   });
 } // createGeneratorRepeater
 
