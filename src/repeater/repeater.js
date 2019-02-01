@@ -36,10 +36,25 @@ function notHeartbeat(key) {
  * an error.
  *
  * @param {Object} err - Error thrown by the repeatable task.
+ * @param {Object} generator - Optional generator object.
  */
-function onFailure(err) {
+function onFailure(err, generator) {
   debug('onFailure %O', err);
-  logger.error(`onFailure: task returned error: ${err.message}`);
+
+  // default error details
+  let errorDetails = `onFailure: task returned error: ${err.message}`;
+
+  // log generator details if available
+  if (generator && generator.generatorTemplate) {
+    errorDetails = {
+      message: `onFailure: task returned error: ${err.message}`,
+      generator: `${generator.name}`,
+      generatorTemplate: `${generator.generatorTemplate.name}`,
+      sgtVersion: `${generator.generatorTemplate.version}`,
+    };
+  }
+
+  logger.error(errorDetails);
 } // onFailure
 
 /**
@@ -238,7 +253,7 @@ function createGeneratorRepeater(generator, func) {
   return create({
     name: generator.name,
     interval: 1000 * generator.intervalSecs, // convert to millis
-    func: () => func(generator).catch(onFailure),
+    func: () => func(generator).catch((err) => onFailure(err, generator)),
   });
 } // createGeneratorRepeater
 
