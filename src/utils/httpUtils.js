@@ -20,6 +20,8 @@ const config = require('../config/config');
 const logger = require('winston');
 const TOO_MANY_REQUESTS = 429;
 const MILLIS_PER_SEC = 1000;
+const IS_PUBLISHED_TRUE = 'isPublished=true';
+const IS_PUBLISHED_FALSE = 'isPublished=false';
 
 /**
  * Perform a post operation on a given endpoint point with the given token and
@@ -163,6 +165,28 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
   });
 } // doBulkUpsert
 
+function validateSubjectQuery(q) {
+  debug('validateSubjectQuery("%s")', q);
+  if (!q) {
+    const e = new ValidationError('Missing subject query');
+    logger.error('attachSubjectsToGenerator', e.message);
+    throw e;
+  }
+
+  let qry = q.startsWith('?') ? q.slice(1) : q;
+
+  if (qry.includes(IS_PUBLISHED_FALSE)) {
+    throw new Error('NO_SUBJECTS');
+  }
+
+  if (!qry.includes(IS_PUBLISHED_TRUE)) {
+    qry += '&' + IS_PUBLISHED_TRUE;
+  }
+
+  debug('validateSubjectQuery returning %s', qry);
+  return qry;
+} // validateSubjectQuery
+
 /**
  * Find Refocus subjects using query parameters.
  *
@@ -190,10 +214,17 @@ function attachSubjectsToGenerator(generator) {
     return Promise.reject(e);
   }
 
-  if (!subjectQuery) {
-    const e = new ValidationError('Missing subject query');
-    logger.error('attachSubjectsToGenerator', e.message);
-    return Promise.reject(e);
+  let qry;
+  try {
+    qry = validateSubjectQuery(subjectQuery);
+  } catch (err) {
+    debug('validateSubjectQuery threw', err);
+    if (err.message === 'NO_SUBJECTS') {
+      generator.subjects = [];
+      return Promise.resolve(generator);
+    }
+
+    return Promise.reject(err);
   }
 
   if (!token) {
@@ -203,8 +234,6 @@ function attachSubjectsToGenerator(generator) {
   }
 
   function makeRequest() {
-    const qry = subjectQuery.startsWith('?') ? subjectQuery.slice(1) :
-      subjectQuery;
     const req = request.get(url + findSubjectsEndpoint)
       .query(qry)
       .set('Authorization', token)
@@ -236,4 +265,5 @@ module.exports = {
   doBulkUpsert,
   doPost,
   attachSubjectsToGenerator,
+  validateSubjectQuery, // export for testing only
 };
