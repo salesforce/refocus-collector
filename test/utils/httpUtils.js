@@ -344,16 +344,6 @@ describe('test/utils/httpUtils.js >', () => {
       expect(q).to.equal('a=b&c=d&isPublished=true');
     });
 
-    it('includes isPublished false', () => {
-      try {
-        httpUtils.validateSubjectQuery('a=b&isPublished=false');
-        throw new Error('expecting error');
-      } catch (err) {
-        expect(err).to.have.property('name', 'Error');
-        expect(err).to.have.property('message', 'NO_SUBJECTS');
-      }
-    });
-
     it('includes isPublished true', () => {
       const q = httpUtils.validateSubjectQuery('a=b&isPublished=true&c=d');
       expect(q).to.equal('a=b&isPublished=true&c=d');
