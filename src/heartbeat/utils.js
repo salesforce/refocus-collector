@@ -161,7 +161,9 @@ function addGenerators(res) {
           err.message);
       }
 
-      debug('Generator added: %O', sanitize(g, ['token', 'context']));
+      debug('Generator added: %O (%s v%s)',
+        sanitize(g, ['token', 'context']), g.generatorTemplate.name,
+        g.generatorTemplate.version);
     });
   } else {
     debug('No generators to add.');
@@ -216,7 +218,8 @@ function updateGenerators(res) {
       g.refocus = { url: cr.url };
       if (cr.proxy) g.refocus.proxy = cr.proxy;
 
-      Object.keys(g).forEach((key) => config.generators[g.name][key] = g[key]);
+      Object.keys(g).forEach((key) =>
+        config.generators[g.name][key] = g[key]);
 
       // Repeaters cannot be updated--stop old ones and create new ones.
       try {
@@ -229,7 +232,9 @@ function updateGenerators(res) {
           err.message);
       }
 
-      debug('Generator updated: %O', sanitize(g, ['token', 'context']));
+      debug('Generator updated: %O (%s v%s)',
+        sanitize(g, ['token', 'context']), g.generatorTemplate.name,
+        g.generatorTemplate.version);
     });
   } else {
     debug('No generators to update.');
