@@ -45,4 +45,12 @@ module.exports = {
   },
 
   heartbeatRepeatName: 'heartbeat',
+
+  connection: {
+    maxRetries: 3,
+    timeout: {
+      response: 10000,
+      deadline: 30000,
+    },
+  },
 };
