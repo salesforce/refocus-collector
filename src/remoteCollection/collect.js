@@ -105,6 +105,14 @@ function sendRemoteRequest(generator) {
     return Promise.resolve(generator);
   }
 
+  /*
+   * Don't bother sending request if prepareRemoteRequest already set error as
+   * generator.res.
+   */
+  if (generator.hasOwnProperty('res') && generator.res instanceof Error) {
+    return Promise.resolve(generator);
+  }
+
   const req = generateRequest(generator);
 
   return new Promise((resolve) => {
