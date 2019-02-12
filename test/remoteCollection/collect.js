@@ -20,8 +20,8 @@ logger.configure({ level: 0 });
 require('superagent-proxy')(request);
 const configModule = require('../../src/config/config');
 
+/* eslint-disable no-magic-numbers */
 describe('test/remoteCollection/collect.js >', () => {
-
   before((done) => {
     configModule.clearConfig();
     configModule.initializeConfig();
@@ -177,7 +177,7 @@ describe('test/remoteCollection/collect.js >', () => {
             Authorization: 'abddr121345bb',
           },
           url: 'http://www.xyz.com/status',
-          simple_oauth: 'ownerPassword',
+          simple_oauth: 'ownerPassword', // eslint-disable-line camelcase
         },
         transform: {
           default: 'return [{ name: "Fremont|Delay", value: 10 }, ' +
@@ -186,7 +186,7 @@ describe('test/remoteCollection/collect.js >', () => {
       },
       subjects: [{ absolutePath: 'EastBay' }],
       connection: {
-        simple_oauth: {
+        simple_oauth: { // eslint-disable-line camelcase
           credentials: {
             client: {
               id: '11bogus',
@@ -231,28 +231,28 @@ describe('test/remoteCollection/collect.js >', () => {
         { 'Content-Type': 'application/json' });
 
     collect.doCollect(generator)
-    .then((collectRes) => {
-      expect(collectRes.res).to.not.equal(undefined);
-      expect(collectRes.res.status).to.equal(httpStatus.OK);
-      expect(collectRes.res.body).to.deep.equal(remoteData);
+      .then((collectRes) => {
+        expect(collectRes.res).to.not.equal(undefined);
+        expect(collectRes.res.status).to.equal(httpStatus.OK);
+        expect(collectRes.res.body).to.deep.equal(remoteData);
 
-      expect(collectRes.res.req.headers['user-agent'])
-        .to.contain('node-superagent');
+        expect(collectRes.res.req.headers['user-agent'])
+          .to.contain('node-superagent');
 
-      expect(collectRes.generatorTemplate).to.deep
-        .equal(generator.generatorTemplate);
-      expect(collectRes.context).to.deep.equal(generator.context);
-      expect(collectRes.subjects).to.deep.equal(generator.subjects);
-      expect(collectRes.res.request.header.Authorization)
-        .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
-      expect(generator.connection.simple_oauth.tokenConfig.username)
-        .to.equal('testUser');
-      expect(generator.connection.simple_oauth.tokenConfig.password)
-        .to.equal('testPassword');
+        expect(collectRes.generatorTemplate).to.deep
+          .equal(generator.generatorTemplate);
+        expect(collectRes.context).to.deep.equal(generator.context);
+        expect(collectRes.subjects).to.deep.equal(generator.subjects);
+        expect(collectRes.res.request.header.Authorization)
+          .to.equal('Bearer eegduygsugfiusguguygyfkufyg');
+        expect(generator.connection.simple_oauth.tokenConfig.username)
+          .to.equal('testUser');
+        expect(generator.connection.simple_oauth.tokenConfig.password)
+          .to.equal('testPassword');
 
-      done();
-    })
-    .catch(done);
+        done();
+      })
+      .catch(done);
   });
 
   it('collecting data with masking details, connection undefined', (done) => {
@@ -427,8 +427,7 @@ describe('test/remoteCollection/collect.js >', () => {
       connection: {
         simple_oauth: { // eslint-disable-line camelcase
           credentials: {
-            client: {
-            },
+            client: {},
             auth: {
               tokenHost: 'https://xyztest.argusTest.com',
               tokenPath: '/argusws/v2/auth/login',
@@ -574,7 +573,7 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(collectRes.res).to.not.equal(undefined);
         expect(collectRes.res.status).to
           .equal(httpStatus.SERVICE_UNAVAILABLE);
-        expect(collectRes.res.body.error.message)
+        expect(collectRes.res.response.body.error.message)
           .to.contain('Server is down');
         done();
       })

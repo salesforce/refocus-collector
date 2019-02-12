@@ -14,11 +14,13 @@ const logger = require('winston');
 const errors = require('../errors');
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
-let hbFunc;
-
+const MILLISECONDS_PER_SECOND = 1000;
+const ZERO = 0;
+const ONE = 1;
 const offsetInterval = 1;
 const offsetSpace = 60;
-let startOffset = 0;
+let startOffset = ZERO;
+let hbFunc;
 
 /**
  * Tracks all the repeaters defined in the collectors.
@@ -27,6 +29,13 @@ let startOffset = 0;
  */
 const tracker = {};
 
+/**
+ * Returns true if the key is *not* heartbeat (e.g. if it is a generator
+ * repeater).
+ *
+ * @param {String} key - the repeater key
+ * @returns {Boolean} true if the key is not heartbeat
+ */
 function notHeartbeat(key) {
   return key !== heartbeatRepeatName;
 } // notHeartbeat
@@ -112,11 +121,84 @@ function pause(name) {
   });
 } // pause
 
+/**
+ * Retrieve paused repeaters.
+ *
+ * @returns {*[]}
+ */
 function getPaused() {
   return Object.values(tracker)
-    .filter(gen => !gen.timeoutId && !gen.intervalId)
-    .map(gen => gen.name);
+    .filter((gen) => !gen.timeoutId && !gen.intervalId)
+    .map((gen) => gen.name);
 }
+
+/**
+ * Validate the repeater definition.
+ *
+ * @param {Object} def - Repeater definition object with the following
+ *  attributes:
+ *  {String} name - required, unique name for the repeater
+ *  {Number} interval - required, repeat interval in milliseconds
+ *  {Function} func - required, function to execute repeatedly
+ * @throws {ValidationError} - Invalid repeater def or name collision
+ */
+function validateDefinition(def) {
+  debug('validateDefinition %O', def);
+  const val = repeaterSchema.validate(def);
+  if (val.error) {
+    debug('validateDefinition error', val);
+    throw new errors.ValidationError(val.error.message);
+  }
+
+  if (tracker[def.name]) {
+    throw new errors.ValidationError('Duplicate repeater name violation: ' +
+      def.name);
+  }
+} // validateDefinition
+
+/**
+ * Runs the function once then sets the repeater interval.
+ *
+ * @param {Function} fn - the function to execute
+ * @param {Object} def - the repeater definition object
+ * @returns {*}
+ */
+function runOnceAndSetInterval(fn, def) {
+  delete def.timeoutId;
+  def.intervalId = setInterval(fn, def.interval);
+  return fn();
+} // runOnceAndSetInterval
+
+/**
+ * Start a repeater and track it in the tracker.
+ *
+ * @param {Object} defn - Repeater definition object with the following
+ *  attributes:
+ *  {String} name - required, unique name for the repeater
+ *  {Number} interval - required, repeat interval in milliseconds
+ *  {Function} func - required, function to execute repeatedly
+ * @throws {ValidationError} - Thrown by validateDefinition
+ * @returns {Object} the updated repeater definition object
+ */
+function create(defn) {
+  // clone def object
+  const { name, interval, func } = defn;
+  const def = { name, interval, func };
+
+  validateDefinition(def);
+  debug('create %O', def);
+  const initialRun = runOnceAndSetInterval.bind(null, def.func, def);
+  def.timeoutId = setTimeout(initialRun, startOffset * MILLISECONDS_PER_SECOND);
+  startOffset = (startOffset + offsetInterval) % offsetSpace;
+  tracker[def.name] = def;
+  logger.info({
+    activity: 'repeater:created',
+    name: def.name,
+    funcName: def.func.name,
+    interval: def.interval,
+  });
+  return def;
+} // create
 
 /**
  * Resumes a paused repeater, given its name
@@ -146,7 +228,7 @@ function resume(name) {
 function stopGenerators() {
   debug('stopGenerators');
   Object.keys(tracker).filter(notHeartbeat).forEach(stop);
-  startOffset = 1;
+  startOffset = ONE;
 } // stopGenerators
 
 /**
@@ -173,70 +255,10 @@ function resumeGenerators() {
 function stopAllRepeaters() {
   debug('stopAllRepeaters');
   Object.keys(tracker).forEach(stop);
-  startOffset = 0;
+  startOffset = ZERO;
   debug('now tracking %O', Object.keys(tracker));
   return tracker;
 } // stopAllRepeaters
-
-/**
- * Validate the repeater definition.
- *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- *  {Function} func - required, function to execute repeatedly
- * @throws {ValidationError} - Invalid repeater def or name collision
- */
-function validateDefinition(def) {
-  debug('validateDefinition %O', def);
-  const val = repeaterSchema.validate(def);
-  if (val.error) {
-    debug('validateDefinition error', val);
-    throw new errors.ValidationError(val.error.message);
-  }
-
-  if (tracker[def.name]) {
-    throw new errors.ValidationError('Duplicate repeater name violation: ' +
-      def.name);
-  }
-} // validateDefinition
-
-/**
- * Start a repeater and track it in the tracker.
- *
- * @param {Object} def - Repeater definition object with the following
- *  attributes:
- *  {String} name - required, unique name for the repeater
- *  {Number} interval - required, repeat interval in milliseconds
- *  {Function} func - required, function to execute repeatedly
- * @throws {ValidationError} - Thrown by validateDefinition
- */
-function create(def) {
-  // clone def object
-  const { name, interval, func } = def;
-  def = { name, interval, func };
-
-  validateDefinition(def);
-  debug('create %O', def);
-  const initialRun = runOnceAndSetInterval.bind(null, def.func, def);
-  def.timeoutId = setTimeout(initialRun, startOffset * 1000);
-  startOffset = (startOffset + offsetInterval) % offsetSpace;
-  tracker[def.name] = def;
-  logger.info({
-    activity: 'repeater:created',
-    name: def.name,
-    funcName: def.func.name,
-    interval: def.interval,
-  });
-  return def;
-} // create
-
-function runOnceAndSetInterval(fn, def) {
-  delete def.timeoutId;
-  def.intervalId = setInterval(fn, def.interval);
-  return fn();
-} // runOnceAndSetInterval
 
 /**
  * Convenience function to create a new generator repeater.
@@ -245,24 +267,27 @@ function runOnceAndSetInterval(fn, def) {
  *  {String} name - required, unique name for the repeater
  *  {Number} intervalSecs - required, repeat interval in milliseconds
  * @param {Function} func - pass in the function to call on each interval
- *
  * @throws {ValidationError} - Thrown by validateDefinition, called by
  *  repeater.create
+ * @returns {Object} the updated repeater definition object
  */
 function createGeneratorRepeater(generator, func) {
   return create({
     name: generator.name,
-    interval: 1000 * generator.intervalSecs, // convert to millis
+    interval: MILLISECONDS_PER_SECOND * generator.intervalSecs,
     func: () => func(generator).catch((err) => onFailure(err, generator)),
   });
 } // createGeneratorRepeater
 
 /**
-* Convenience function to create a new heartbeat repeater.
-*
-* @throws {ValidationError} - Thrown by validateDefinition, called by
-*  repeater.create
-*/
+ * Convenience function to create a new heartbeat repeater.
+ *
+ * @param {Function} func - the function to execute
+ * @param {Number} interval - the repeater interval
+ * @throws {ValidationError} - Thrown by validateDefinition, called by
+ *  repeater.create
+ * @returns {Object} the updated repeater definition object
+ */
 function createHeartbeatRepeater(func, interval) {
   hbFunc = func;
   return create({
@@ -275,6 +300,7 @@ function createHeartbeatRepeater(func, interval) {
 /**
  * Convenience function to update the heartbeat repeater
  *
+ * @param {Number} interval - the repeater interval
  * @throws {ValidationError} - Thrown by stop, createHeartbeatRepeater
  */
 function updateHeartbeatRepeater(interval) {
