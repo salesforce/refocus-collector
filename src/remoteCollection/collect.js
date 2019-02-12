@@ -135,7 +135,13 @@ function sendRemoteRequest(generator) {
         } // shouldRequestNewToken
 
         debug('sendRemoteRequest returned error %O', err);
-        generator.res = err;
+        if (get(generator, 'connection.simple_oauth')) {
+          const method = generator.connection.simple_oauth.method;
+          generator.res =
+            new Error(`simple-oauth2 (method=${method}): ${err.message}`);
+        } else {
+          generator.res = err;
+        }
       } else if (res) {
         debug('sendRemoteRequest returned OK');
         generator.res = res;
@@ -190,7 +196,8 @@ function prepareRemoteRequest(generator) {
             // force handleCollectResponse to generate error samples with the
             // error message.
             debug('simple-oauth2 (method=%s)', method, err);
-            generator.res = err;
+            generator.res =
+              new Error(`simple-oauth2 (method=${method}): ${err.message}`);
           });
       }
 
