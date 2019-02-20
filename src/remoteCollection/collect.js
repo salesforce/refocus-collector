@@ -135,13 +135,7 @@ function sendRemoteRequest(generator) {
         } // shouldRequestNewToken
 
         debug('sendRemoteRequest returned error %O', err);
-        if (get(generator, 'connection.simple_oauth')) {
-          const method = generator.connection.simple_oauth.method;
-          generator.res =
-            new Error(`simple-oauth2 (method=${method}): ${err.message}`);
-        } else {
-          generator.res = err;
-        }
+        generator.res = err;
       } else if (res) {
         debug('sendRemoteRequest returned OK');
         generator.res = res;
