@@ -140,7 +140,12 @@ function generateSamples(collectRes) {
    */
   const func = RefocusCollectorEval.getTransformFunction(tr, status);
   if (func) {
-    return RefocusCollectorEval.safeTransform(func, args);
+    try {
+      return RefocusCollectorEval.safeTransform(func, args);
+    } catch (err) {
+      const errorMessage = `Transform error: ${err.message} (${collectRes.preparedUrl})`;
+      return errorSamples(collectRes, errorMessage);
+    }
   }
 
   // Default error samples

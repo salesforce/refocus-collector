@@ -138,11 +138,6 @@ function doBulkUpsert(url, userToken, intervalSecs, proxy, arr) {
     return Promise.resolve(e);
   }
 
-  // Don't bother sending a POST if the array is empty.
-  if (arr.length === 0) {
-    return Promise.resolve(true);
-  }
-
   url += bulkUpsertEndpoint;
   return new Promise((resolve) => {
     debug('Bulk upserting %d samples to %s', arr.length, url);
