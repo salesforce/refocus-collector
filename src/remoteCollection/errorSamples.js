@@ -11,7 +11,7 @@
  */
 const debug =
   require('debug')('refocus-collector:remoteCollection:errorSamples');
-const maxMessageBodyLength = 4096;
+const { maxMessageBodyLength } = require('../constants');
 
 module.exports = (collectResponse, messageBody) => {
   debug('errorSamples', collectResponse.name, messageBody);
