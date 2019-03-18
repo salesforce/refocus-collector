@@ -26,7 +26,7 @@ describe('test/remoteCollection/errorSamples.js >', () => {
         messageCode: 'ERROR',
         messageBody: '1234567890',
         value: 'ERROR',
-      }
+      },
     ]);
   });
 
@@ -38,7 +38,7 @@ describe('test/remoteCollection/errorSamples.js >', () => {
         messageCode: 'ERROR',
         messageBody: ''.padEnd(4096),
         value: 'ERROR',
-      }
+      },
     ]);
   });
 
@@ -48,9 +48,9 @@ describe('test/remoteCollection/errorSamples.js >', () => {
       {
         name: 'subject1|aspect1',
         messageCode: 'ERROR',
-        messageBody: ''.padEnd(4093)+'...',
+        messageBody: ''.padEnd(4093) + '...',
         value: 'ERROR',
-      }
+      },
     ]);
   });
 });

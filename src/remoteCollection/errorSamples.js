@@ -16,7 +16,7 @@ const { maxMessageBodyLength } = require('../constants');
 module.exports = (collectResponse, messageBody) => {
   debug('errorSamples', collectResponse.name, messageBody);
   if (messageBody.length > maxMessageBodyLength) {
-    messageBody = messageBody.slice(0, maxMessageBodyLength-3) + '...';
+    messageBody = messageBody.slice(0, maxMessageBodyLength - 3) + '...';
   }
 
   const samples = [];
