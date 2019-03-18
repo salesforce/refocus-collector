@@ -11,9 +11,14 @@
  */
 const debug =
   require('debug')('refocus-collector:remoteCollection:errorSamples');
+const maxMessageBodyLength = 4096;
 
 module.exports = (collectResponse, messageBody) => {
   debug('errorSamples', collectResponse.name, messageBody);
+  if (messageBody.length > maxMessageBodyLength) {
+    messageBody = messageBody.slice(0, maxMessageBodyLength-3) + '...';
+  }
+
   const samples = [];
   collectResponse.aspects.forEach((a) => {
     collectResponse.subjects.forEach((s) => {
