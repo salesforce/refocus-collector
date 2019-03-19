@@ -53,4 +53,6 @@ module.exports = {
       deadline: 30000,
     },
   },
+
+  maxMessageBodyLength: 4096,
 };
