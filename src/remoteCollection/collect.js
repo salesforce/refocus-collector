@@ -24,6 +24,7 @@ const AUTH_HEADER = 'headers.Authorization';
 const configModule = require('../config/config');
 const errors = require('../errors');
 const sanitize = require('../utils/commonUtils').sanitize;
+const genGlobal = require('../config/generatorsGlobal.js');
 
 /**
  * Helper function returns true if err is Unauthorized AND token is present
@@ -38,7 +39,8 @@ const sanitize = require('../utils/commonUtils').sanitize;
 function shouldRequestNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  const token = generator.OAuthToken;
+  const token = genGlobal.getGeneratorGlobal(
+    generator.name, 'OAuthToken');
   return unauthorized && simpleOauth && token;
 } // shouldRequestNewToken
 
@@ -72,6 +74,7 @@ function generateRequest(gen) {
       get(gen, 'timeout.deadline') || refConf.timeoutDeadlineMillis ||
       constants.connection.timeout.deadline,
   };
+
   const req = request
     .get(gen.preparedUrl)
     .set(gen.preparedHeaders)
@@ -120,7 +123,9 @@ function sendRemoteRequest(generator) {
       if (err) {
         if (shouldRequestNewToken(err, generator)) {
           debug('sendRemoteRequest token expired, requesting a new one');
-          generator.OAuthToken = null;
+          genGlobal.updateGeneratorGlobal(
+            generator.name, 'OAuthToken', null
+          );
 
           // eslint-disable-next-line no-use-before-define
           return doCollect(generator)
@@ -167,7 +172,8 @@ function prepareRemoteRequest(generator) {
 
   // get new OAuthToken if necessary
     .then(() => {
-      if (!generator.OAuthToken && get(generator, 'connection.simple_oauth')) {
+      if (!genGlobal.getGeneratorGlobal(generator.name, 'OAuthToken') &&
+        get(generator, 'connection.simple_oauth')) {
         if (generator.connection) {
           generator.connection = rce.expandObject(connection, context);
         }
@@ -205,7 +211,11 @@ function prepareRemoteRequest(generator) {
     })
     .then((token) => {
       if (token) {
+        genGlobal.updateGeneratorGlobal(generator.name, 'OAuthToken', token);
         generator.OAuthToken = token;
+      } else { // token exists in genGlobal because of condition check before
+        generator.OAuthToken = genGlobal.getGeneratorGlobal(
+          generator.name, 'OAuthToken');
       }
 
       // Prepare auth
