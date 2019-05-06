@@ -24,7 +24,7 @@ const AUTH_HEADER = 'headers.Authorization';
 const configModule = require('../config/config');
 const errors = require('../errors');
 const sanitize = require('../utils/commonUtils').sanitize;
-const genGlobal = require('../config/generatorsGlobal.js');
+const genAuth = require('../config/generatorAuth.js');
 
 /**
  * Helper function returns true if err is Unauthorized AND token is present
@@ -39,7 +39,7 @@ const genGlobal = require('../config/generatorsGlobal.js');
 function shouldRequestNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  const token = genGlobal.getGeneratorGlobal(
+  const token = genAuth.getGeneratorAuth(
     generator.name, 'OAuthToken');
   return unauthorized && simpleOauth && token;
 } // shouldRequestNewToken
@@ -123,7 +123,7 @@ function sendRemoteRequest(generator) {
       if (err) {
         if (shouldRequestNewToken(err, generator)) {
           debug('sendRemoteRequest token expired, requesting a new one');
-          genGlobal.updateGeneratorGlobal(
+          genAuth.updateGeneratorAuth(
             generator.name, 'OAuthToken', null
           );
 
@@ -172,7 +172,7 @@ function prepareRemoteRequest(generator) {
 
   // get new OAuthToken if necessary
     .then(() => {
-      if (!genGlobal.getGeneratorGlobal(generator.name, 'OAuthToken') &&
+      if (!genAuth.getGeneratorAuth(generator.name, 'OAuthToken') &&
         get(generator, 'connection.simple_oauth')) {
         if (generator.connection) {
           generator.connection = rce.expandObject(connection, context);
@@ -210,20 +210,20 @@ function prepareRemoteRequest(generator) {
       return null;
     })
     .then((token) => {
+      let generatorToken;
       if (token) {
-        genGlobal.updateGeneratorGlobal(generator.name, 'OAuthToken', token);
-        generator.OAuthToken = token;
-      } else { // token exists in genGlobal because of condition check before
-        generator.OAuthToken = genGlobal.getGeneratorGlobal(
-          generator.name, 'OAuthToken');
+        genAuth.updateGeneratorAuth(generator.name, 'OAuthToken', token);
+        generatorToken = token;
+      } else { // token exists in genAuth because of condition check before
+        generatorToken = genAuth.getGeneratorAuth(generator.name, 'OAuthToken');
       }
 
       // Prepare auth
       const conn = generator.generatorTemplate.connection;
-      if (generator.OAuthToken) {
+      if (generatorToken) {
         // Expecting accessToken or access_token from remote source.
-        const accessToken = generator.OAuthToken.accessToken ||
-          generator.OAuthToken.access_token;
+        const accessToken = generatorToken.accessToken ||
+          generatorToken.access_token;
         const simpleOauth = get(generator, 'connection.simple_oauth');
         if (get(simpleOauth, 'tokenFormat')) {
           set(conn, AUTH_HEADER,
@@ -242,7 +242,7 @@ function prepareRemoteRequest(generator) {
       debug('prepareRemoteRequest: preparedGenerator: %O', sanitize({
         preparedUrl: generator.preparedUrl,
         preparedHeaders: generator.preparedHeaders,
-        OAuthToken: generator.OAuthToken,
+        OAuthToken: generatorToken,
         connection: generator.connection,
       }, ['OAuthToken', 'Authorization', 'simple_oauth']));
       return generator;

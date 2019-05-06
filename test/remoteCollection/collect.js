@@ -19,7 +19,7 @@ const logger = require('winston');
 logger.configure({ level: 0 });
 require('superagent-proxy')(request);
 const configModule = require('../../src/config/config');
-const genGlobal = require('../../src/config/generatorsGlobal');
+const genAuth = require('../../src/config/generatorAuth');
 
 /* eslint-disable no-magic-numbers */
 describe('test/remoteCollection/collect.js >', () => {
@@ -30,13 +30,13 @@ describe('test/remoteCollection/collect.js >', () => {
   });
 
   beforeEach((done) => {
-    genGlobal.initializeGeneratorsGlobal();
+    genAuth.initializeGeneratorAuth();
     done();
   });
 
   describe('generatorsGlobal initialized empty >', () => {
     beforeEach((done) => {
-      genGlobal.initializeGeneratorsGlobal();
+      genAuth.initializeGeneratorAuth();
       done();
     });
 
@@ -498,7 +498,7 @@ describe('test/remoteCollection/collect.js >', () => {
     });
 
     it('collecting data with access token', (done) => {
-      genGlobal.updateGeneratorGlobal('Generator0', 'OAuthToken', {
+      genAuth.updateGeneratorAuth('Generator0', 'OAuthToken', {
         accessToken: 'eegduygsugfiusguguygyfkufyg',
       });
 
@@ -837,7 +837,7 @@ describe('test/remoteCollection/collect.js >', () => {
 
   describe('generatorsGlobal shared >', () => {
     before((done) => {
-      genGlobal.initializeGeneratorsGlobal();
+      genAuth.initializeGeneratorAuth();
       done();
     });
 

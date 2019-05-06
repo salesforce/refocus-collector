@@ -23,7 +23,7 @@ const hbUtils = require('../heartbeat/utils');
 const doPost = require('../utils/httpUtils.js').doPost;
 const errors = require('../errors');
 const COLLECTOR_START_PATH = '/v1/collectors/start';
-const genGlobal = require('../config/generatorsGlobal.js');
+const genAuth = require('../config/generatorAuth.js');
 
 logger.configure({
   transports: [
@@ -38,7 +38,7 @@ logger.configure({
  */
 function execute() {
   debug('Entered start.execute');
-  genGlobal.initializeGeneratorsGlobal();
+  genAuth.initializeGeneratorAuth();
   const config = configModule.getConfig();
   const cr = config.refocus;
   const url = cr.url + COLLECTOR_START_PATH;
