@@ -30,19 +30,55 @@ const genAuth = require('../config/generatorAuth.js');
  * Helper function returns true if err is Unauthorized AND token is present
  * with simple oauth object. In this situation, we will treat this token as
  * expired and request a new one.
+ * If token is not present, that means some other generator is on its way to
+ * get a new token. We wait and check for token at given intervals for a time
+ * period.
  *
  * @param {Error} err - the error
  * @param {Object} generator - the generator object
  * @returns {Boolean} true if err is Unauthorized AND token is present with
  *  simple oauth object
  */
-function shouldRequestNewToken(err, generator) {
+function shouldHandleNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  const token = genAuth.getGeneratorAuth(
-    generator.name, 'OAuthToken');
-  return unauthorized && simpleOauth && token;
-} // shouldRequestNewToken
+  let token = genAuth.getGeneratorAuth(generator.name, 'OAuthToken');
+  if (unauthorized && simpleOauth) {
+    if (token) { // unauthorized status because of token expiry
+      debug('sendRemoteRequest token expired, requesting a new one');
+      genAuth.updateGeneratorAuth(
+        generator.name, 'OAuthToken', null
+      );
+
+      return true;
+    }
+
+    /**
+     * Otherwise, some other generator already on its way to get a new token.
+     * Try to get updated token every 100ms (default) and give up on waiting
+     * after 5 seconds (default).
+     */
+
+    const startTime = new Date().getTime();
+    const tokenWaitInterval = 100 || Number(process.env.TOKEN_WAIT_INTERVAL);
+    const tokenWaitTimeout = 5000 || Number(process.env.TOKEN_WAIT_TIMEOUT);
+    const waitForToken = setInterval(() => {
+      if (new Date().getTime() - startTime > tokenWaitTimeout) {
+        clearInterval(waitForToken);
+        return;
+      }
+
+      if (genAuth.getGeneratorAuth(generator.name, 'OAuthToken')) {
+        clearInterval(waitForToken);
+        token = genAuth.getGeneratorAuth(generator.name, 'OAuthToken');
+      }
+    }, tokenWaitInterval); // interval set at 100 milliseconds
+
+    return unauthorized && simpleOauth && token;
+  }
+
+  return false;
+} // shouldHandleNewToken
 
 /**
  * Helper fn returning
@@ -121,12 +157,7 @@ function sendRemoteRequest(generator) {
   return new Promise((resolve) => {
     req.end((err, res) => {
       if (err) {
-        if (shouldRequestNewToken(err, generator)) {
-          debug('sendRemoteRequest token expired, requesting a new one');
-          genAuth.updateGeneratorAuth(
-            generator.name, 'OAuthToken', null
-          );
-
+        if (shouldHandleNewToken(err, generator)) {
           // eslint-disable-next-line no-use-before-define
           return doCollect(generator)
             .then((resp) => {
@@ -137,7 +168,7 @@ function sendRemoteRequest(generator) {
 
               return resolve(generator);
             });
-        } // shouldRequestNewToken
+        } // shouldHandleNewToken
 
         debug('sendRemoteRequest returned error %O', err);
         if (get(generator, 'connection.simple_oauth')) {
