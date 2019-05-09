@@ -39,9 +39,7 @@ const genAuth = require('../config/generatorAuth.js');
 function shouldRequestNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  const token = genAuth.getGeneratorAuth(
-    generator.name, 'OAuthToken');
-  return unauthorized && simpleOauth && token;
+  return unauthorized && simpleOauth;
 } // shouldRequestNewToken
 
 /**
