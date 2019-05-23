@@ -36,7 +36,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         validateCollectResponse();
         done('Expecting error');
       } catch (err) {
-        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('name', 'TypeError');
         done();
       }
     });
@@ -46,7 +46,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         validateCollectResponse(null);
         done('Expecting error');
       } catch (err) {
-        expect(err).to.have.property('name', 'ValidationError');
+        expect(err).to.have.property('name', 'TypeError');
         done();
       }
     });
@@ -264,18 +264,10 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
       configModule.clearConfig();
     });
 
-    const collectRes = {
+    const generator = {
       name: generatorName,
       aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
       context: {},
-      res: {
-        statusCode: 200,
-        statusMessage: 'MOCK STATUS MESSAGE',
-        body: {
-          text: '{ "a": "text" }',
-        },
-      },
-      subjects: [{ absolutePath: 'S1.S2', name: 'S2', }],
       generatorTemplate: {
         connection: {
           bulk: true,
@@ -306,78 +298,88 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
           }),
         },
       },
-      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+    };
+
+    const requestData = {
+      subjects: [{ absolutePath: 'S1.S2', name: 'S2', }],
       preparedUrl: 'abc.com',
+      res: {
+        statusCode: 200,
+        statusMessage: 'MOCK STATUS MESSAGE',
+        body: {
+          text: '{ "a": "text" }',
+        },
+      },
     };
 
     it('OK', () => {
-      collectRes.res.statusCode = 200;
+      requestData.res.statusCode = 200;
       const expected = [
         { name: 'S1.S2|A1', value: '10' }, { name: 'S1.S2|A2', value: '2' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - 404', () => {
-      collectRes.res.statusCode = 404;
+      requestData.res.statusCode = 404;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'NOT FOUND' },
         { name: 'S1.S2|A2', messageBody: 'NOT FOUND' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - 401', () => {
-      collectRes.res.statusCode = 401;
+      requestData.res.statusCode = 401;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - 403', () => {
-      collectRes.res.statusCode = 403;
+      requestData.res.statusCode = 403;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
         { name: 'S1.S2|A2', messageBody: 'UNAUTHORIZED OR FORBIDDEN' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - 500', () => {
-      collectRes.res.statusCode = 500;
+      requestData.res.statusCode = 500;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - 503', () => {
-      collectRes.res.statusCode = 503;
+      requestData.res.statusCode = 503;
       const expected = [
         { name: 'S1.S2|A1', messageBody: 'SERVER ERROR' },
         { name: 'S1.S2|A2', messageBody: 'SERVER ERROR' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('error handler match - override 200', () => {
-      collectRes.res.statusCode = 200;
-      collectRes.generatorTemplate.transform.errorHandlers['200'] =
+      requestData.res.statusCode = 200;
+      generator.generatorTemplate.transform.errorHandlers['200'] =
         'return [{ name: "S1.S2|A1", messageBody: "OK" },'
         + ' { name: "S1.S2|A2", messageBody: "OK" }]';
       const expected = [
@@ -385,49 +387,49 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         { name: 'S1.S2|A2', messageBody: 'OK' },
       ];
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('no match - default error handler', () => {
-      collectRes.res.statusCode = 400;
-      collectRes.res.statusMessage = 'MOCK 400';
+      requestData.res.statusCode = 400;
+      requestData.res.statusMessage = 'MOCK 400';
       const message = `abc.com returned HTTP status 400: MOCK 400`;
       const expected = defaultErrorSamples(message);
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('no error handlers - default error handler', () => {
-      collectRes.generatorTemplate.transform.errorHandlers = {};
-      collectRes.res.statusCode = 404;
-      collectRes.res.statusMessage = 'MOCK 404';
+      generator.generatorTemplate.transform.errorHandlers = {};
+      requestData.res.statusCode = 404;
+      requestData.res.statusMessage = 'MOCK 404';
       const message = `abc.com returned HTTP status 404: MOCK 404`;
       const expected = defaultErrorSamples(message);
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('invalid response (no status code) - default error handler', () => {
-      delete collectRes.res.statusCode;
+      delete requestData.res.statusCode;
       const message = 'Invalid response from abc.com: ' +
         'missing HTTP status code (abc.com)';
       const expected = defaultErrorSamples(message);
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
     it('invalid response (schema mismatch) - default error handler', () => {
-      collectRes.res.statusCode = 200;
-      delete collectRes.res.body.text;
+      requestData.res.statusCode = 200;
+      delete requestData.res.body.text;
       const message = 'Response validation failed - /body - ' +
         "should have required property 'text' (abc.com)";
       const expected = defaultErrorSamples(message);
 
-      return handleCollectResponseBulk(collectRes)
+      return handleCollectResponseBulk(generator, requestData)
       .then(() => checkLogs(expected));
     });
 
@@ -489,54 +491,46 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
     const generatorName = 'mockGenerator';
     const config = configModule.getConfig();
 
-    const collectRes = [
+    const generator = {
+      name: generatorName,
+      aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
+      context: {},
+      generatorTemplate: {
+        connection: {
+          bulk: true,
+        },
+        transform: {
+          default: 'return [{ name: "S1.S2|A1", value: "10" },' +
+            ' { name: "S1.S2|A2", value: "2" }]',
+          errorHandlers: {
+            404: 'return [{ name: "S1.S2|A1", messageBody: "NOT FOUND" },'
+              + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
+            '40[13]': 'return [{ name: "S1.S2|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
+              + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
+            '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
+              + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
+          },
+          responseSchema: JSON.stringify({
+            type: 'object',
+            required: ['body'],
+            properties: {
+              body: {
+                type: 'object',
+                required: ['text'],
+                properties: {
+                  text: { type: 'string' },
+                },
+              },
+            },
+          }),
+        },
+      },
+    };
+
+    const requestDataList = [
       {
-        name: generatorName,
-        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-        context: {},
-        res: {
-          statusCode: 200,
-          statusMessage: 'MOCK STATUS MESSAGE',
-          body: {
-            text: '{ "a": "text" }',
-          },
-        },
         subjects: [{ absolutePath: 'S1.S2', name: 'S2', }],
-        generatorTemplate: {
-          connection: {
-            bulk: true,
-          },
-          transform: {
-            default: 'return [{ name: "S1.S2|A1", value: "10" },' +
-              ' { name: "S1.S2|A2", value: "2" }]',
-            errorHandlers: {
-              404: 'return [{ name: "S1.S2|A1", messageBody: "NOT FOUND" },'
-                + ' { name: "S1.S2|A2", messageBody: "NOT FOUND" }]',
-              '40[13]': 'return [{ name: "S1.S2|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
-                + ' { name: "S1.S2|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
-              '5..': 'return [{ name: "S1.S2|A1", messageBody: "SERVER ERROR" },'
-                + ' { name: "S1.S2|A2", messageBody: "SERVER ERROR" }]',
-            },
-            responseSchema: JSON.stringify({
-              type: 'object',
-              required: ['body'],
-              properties: {
-                body: {
-                  type: 'object',
-                  required: ['text'],
-                  properties: {
-                    text: { type: 'string' },
-                  },
-                },
-              },
-            }),
-          },
-        },
         preparedUrl: 'abc.com',
-      }, {
-        name: generatorName,
-        aspects: [{ name: 'A1', timeout: '1m' }, { name: 'A2', timeout: '1m' }],
-        context: {},
         res: {
           statusCode: 200,
           statusMessage: 'MOCK STATUS MESSAGE',
@@ -544,38 +538,16 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
             text: '{ "a": "text" }',
           },
         },
+      }, {
         subjects: [{ absolutePath: 'S1.S3', name: 'S3', }],
-        generatorTemplate: {
-          connection: {
-            bulk: true,
-          },
-          transform: {
-            default: 'return [{ name: "S1.S3|A1", value: "10" },' +
-              ' { name: "S1.S3|A2", value: "2" }]',
-            errorHandlers: {
-              404: 'return [{ name: "S1.S3|A1", messageBody: "NOT FOUND" },'
-                + ' { name: "S1.S3|A2", messageBody: "NOT FOUND" }]',
-              '40[13]': 'return [{ name: "S1.S3|A1", messageBody: "UNAUTHORIZED OR FORBIDDEN" },'
-                + ' { name: "S1.S3|A2", messageBody: "UNAUTHORIZED OR FORBIDDEN" }]',
-              '5..': 'return [{ name: "S1.S3|A1", messageBody: "SERVER ERROR" },'
-                + ' { name: "S1.S3|A2", messageBody: "SERVER ERROR" }]',
-            },
-            responseSchema: JSON.stringify({
-              type: 'object',
-              required: ['body'],
-              properties: {
-                body: {
-                  type: 'object',
-                  required: ['text'],
-                  properties: {
-                    text: { type: 'string' },
-                  },
-                },
-              },
-            }),
+        preparedUrl: 'abc.com',
+        res: {
+          statusCode: 200,
+          statusMessage: 'MOCK STATUS MESSAGE',
+          body: {
+            text: '{ "a": "text" }',
           },
         },
-        preparedUrl: 'abc.com',
       },
     ];
 
@@ -598,7 +570,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         .times(2)
         .reply(httpStatus.OK, {});
 
-      return handleCollectResponseBySubject(collectRes)
+      return handleCollectResponseBySubject(generator, requestDataList)
       .then(() => checkLogs(expected));
     });
   });
@@ -606,10 +578,7 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
   describe('prepareTransformArgs >', () => {
     const generator = {
       name: 'mockGenerator',
-      subjects: [{ absolutePath: 'S1' }, { absolutePath: 'S2' }],
-      aspects: [{ name: 'A1' }, { name: 'A2' }],
       context: { a: 'a', b: 'b' },
-      res: { body: 'aaa' },
       generatorTemplate: {
         connection: {
           bulk: true,
@@ -617,13 +586,15 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
         preparedUrl: 'abc.com',
       },
     };
+    const subjects = [{ absolutePath: 'S1' }, { absolutePath: 'S2' }];
+    const res = { body: 'aaa' };
 
     it('bulk', (done) => {
-      const args = prepareTransformArgs(generator);
+      const args = prepareTransformArgs(generator, subjects, res);
       expect(args).to.have.property('ctx', generator.context);
-      expect(args).to.have.property('res', generator.res);
+      expect(args).to.have.property('res', res);
       expect(args).to.have.property('aspects', generator.aspects);
-      expect(args).to.have.property('subjects', generator.subjects);
+      expect(args).to.have.property('subjects', subjects);
       expect(args).to.not.have.property('name');
       expect(args).to.not.have.property('generatorTemplate');
       done();
@@ -631,11 +602,11 @@ describe('test/remoteCollection/handleCollectResponse.js >', () => {
 
     it('by subject', (done) => {
       generator.generatorTemplate.connection.bulk = false;
-      const args = prepareTransformArgs(generator);
+      const args = prepareTransformArgs(generator, subjects, res);
       expect(args).to.have.property('ctx', generator.context);
-      expect(args).to.have.property('res', generator.res);
+      expect(args).to.have.property('res', res);
       expect(args).to.have.property('aspects', generator.aspects);
-      expect(args).to.have.property('subject', generator.subjects[0]);
+      expect(args).to.have.property('subject', subjects[0]);
       expect(args).to.not.have.property('name');
       expect(args).to.not.have.property('generatorTemplate');
       done();

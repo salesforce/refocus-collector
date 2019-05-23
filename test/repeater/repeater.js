@@ -23,8 +23,6 @@ describe('test/repeater/repeater.js >', () => {
   afterEach(() => repeater.stopAllRepeaters());
 
   describe('createGeneratorRepeater >', () => {
-    const dummyFunc = (x) => Promise.resolve(x);
-
     it('should start a new generator repeat', (done) => {
       const def = {
         name: 'Generator0',
@@ -42,7 +40,7 @@ describe('test/repeater/repeater.js >', () => {
         refocus: ref,
         subjectQuery: '?absolutePath=oneSubject',
       };
-      const ret = repeater.createGeneratorRepeater(def, dummyFunc);
+      const ret = repeater.createGeneratorRepeater(def);
       expect(ret.interval).to.equal(MILLIS * def.intervalSecs);
       expect(ret.name).to.equal('Generator0');
       expect(tracker.Generator0).to.equal(ret);
@@ -66,7 +64,6 @@ describe('test/repeater/repeater.js >', () => {
       });
 
       it('not ok, failure on starting a new generator repeat', (done) => {
-        const funcThrowsErr = () => Promise.reject(new Error('error message'));
         const def = {
           name: 'Generator0',
           intervalSecs: 1,
@@ -78,34 +75,32 @@ describe('test/repeater/repeater.js >', () => {
               headers: {
                 Authorization: 'abddr121345bb',
               },
-              url: 'http://example.com',
               bulk: true,
             },
           },
-          refocus: ref,
+          refocus: {}, // set to empty to trigger error
           subjectQuery: '?absolutePath=oneSubject',
         };
 
         // create repeater
-        const ret = repeater.createGeneratorRepeater(def, funcThrowsErr);
+        repeater.createGeneratorRepeater(def);
 
-        // call repeater function and check error log
-        ret.func(def)
-        .then(() => {
+        setTimeout(() => {
           expect(logger.error.calledOnce).to.be.true;
           expect(logger.error.args[0][0])
+            .to.equal('onFailure: task returned error:');
+          expect(logger.error.args[0][1])
             .to.have.property('generator', 'Generator0');
-          expect(logger.error.args[0][0])
+          expect(logger.error.args[0][1])
             .to.have.property('generatorTemplate', 'sgt0');
-          expect(logger.error.args[0][0])
+          expect(logger.error.args[0][1])
             .to.have.property('sgtVersion', '1.0.0');
-          expect(logger.error.args[0][0])
+          expect(logger.error.args[0][1])
             .to.have.property(
-              'message', 'onFailure: task returned error: error message'
+              'message', 'getSubjectsForGenerator: Missing refocus url'
             );
           done();
-        })
-        .catch(done);
+        }, 100);
       });
     });
   });
