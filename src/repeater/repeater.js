@@ -14,6 +14,10 @@ const logger = require('winston');
 const errors = require('../errors');
 const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
+const commonUtils = require('../utils/commonUtils');
+const { collectBulk, collectBySubject } = require('../remoteCollection/collect');
+const { handleCollectResponseBulk, handleCollectResponseBySubject }  =
+  require('../remoteCollection/handleCollectResponse');
 const MILLISECONDS_PER_SECOND = 1000;
 const ZERO = 0;
 const ONE = 1;
@@ -41,30 +45,31 @@ function notHeartbeat(key) {
 } // notHeartbeat
 
 /**
- * The default function that is called when the task function invocation throws
+ * The default function that is called when the repeater function throws
  * an error.
  *
  * @param {Object} err - Error thrown by the repeatable task.
- * @param {Object} generator - Optional generator object.
  */
-function onFailure(err, generator) {
-  debug('onFailure %O', err);
+function onFailure(err) {
+  logger.error('onFailure: task returned error:', err);
+} // onFailure
 
-  // default error details
-  let errorDetails = `onFailure: task returned error: ${err.message}`;
-
-  // log generator details if available
+/**
+ * The default function that is called when the generator repeater function
+ * throws an error.
+ *
+ * @param {Object} generator - Optional generator object.
+ * @param {Object} err - Error thrown by the repeatable task.
+ */
+function onGeneratorFailure(generator, err) {
   if (generator && generator.generatorTemplate) {
-    errorDetails = {
-      message: `onFailure: task returned error: ${err.message}`,
-      generator: `${generator.name}`,
-      generatorTemplate: `${generator.generatorTemplate.name}`,
-      sgtVersion: `${generator.generatorTemplate.version}`,
-    };
+    err.generator = `${generator.name}`;
+    err.generatorTemplate = `${generator.generatorTemplate.name}`;
+    err.sgtVersion = `${generator.generatorTemplate.version}`;
   }
 
-  logger.error(errorDetails);
-} // onFailure
+  onFailure(err);
+} // onGeneratorFailure
 
 /**
  * Stops the named repeater and deletes it from the tracker.
@@ -264,18 +269,29 @@ function stopAllRepeaters() {
  * Convenience function to create a new generator repeater.
  *
  * @param {Object} generator - The sample generator object
- *  {String} name - required, unique name for the repeater
- *  {Number} intervalSecs - required, repeat interval in milliseconds
- * @param {Function} func - pass in the function to call on each interval
  * @throws {ValidationError} - Thrown by validateDefinition, called by
  *  repeater.create
  * @returns {Object} the updated repeater definition object
  */
-function createGeneratorRepeater(generator, func) {
+function createGeneratorRepeater(generator) {
+  const genIsBulk = commonUtils.isBulk(generator);
+
+  debug('setupRepeater (%s) for generator %O', genIsBulk ? 'bulk' : 'by subject',
+    commonUtils.sanitize(generator, ['token', 'context']));
+
+  const collFunc = genIsBulk ? collectBulk : collectBySubject;
+  const handlerFunc = genIsBulk
+                        ? handleCollectResponseBulk
+                        : handleCollectResponseBySubject;
+
+  const collect = collFunc.bind(null, generator);
+  const handle = handlerFunc.bind(null, generator);
+  const fail = onGeneratorFailure.bind(null, generator);
+
   return create({
     name: generator.name,
     interval: MILLISECONDS_PER_SECOND * generator.intervalSecs,
-    func: () => func(generator).catch((err) => onFailure(err, generator)),
+    func: () => collect().then(handle).catch(fail),
   });
 } // createGeneratorRepeater
 
