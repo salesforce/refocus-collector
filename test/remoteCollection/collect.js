@@ -98,8 +98,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'Bearer eegduygsugfiusguguygyfkufyg',
+          Accept: 'application/json',
+          Authorization: 'Bearer eegduygsugfiusguguygyfkufyg',
         });
 
         expect(res).to.not.equal(undefined);
@@ -154,8 +154,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://bart.gov.api/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.not.equal(undefined);
@@ -241,8 +241,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'Bearer eegduygsugfiusguguygyfkufyg',
+          Accept: 'application/json',
+          Authorization: 'Bearer eegduygsugfiusguguygyfkufyg',
         });
 
         expect(res).to.not.equal(undefined);
@@ -305,8 +305,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.not.equal(undefined);
@@ -403,8 +403,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://xyztest.salesforcetest.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'eegduygsugfiusguguygyfkufyg',
+          Accept: 'application/json',
+          Authorization: 'eegduygsugfiusguguygyfkufyg',
         });
 
         expect(res).to.not.equal(undefined);
@@ -487,8 +487,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://xyztest.argusTest.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'Bearer eegduygsugfiusguguygyfkufyg',
+          Accept: 'application/json',
+          Authorization: 'Bearer eegduygsugfiusguguygyfkufyg',
         });
 
         expect(res).to.not.equal(undefined);
@@ -548,8 +548,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'eegduygsugfiusguguygyfkufyg',
+          Accept: 'application/json',
+          Authorization: 'eegduygsugfiusguguygyfkufyg',
         });
 
         expect(res).to.not.equal(undefined);
@@ -595,8 +595,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://randonUnAvailableUrl.false/');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.not.equal(undefined);
@@ -631,8 +631,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('notaural');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.not.equal(undefined);
@@ -740,8 +740,8 @@ describe('test/remoteCollection/collect.js >', () => {
           expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
           expect(preparedUrl).to.equal('http://foo.io');
           expect(preparedHeaders).to.deep.equal({
-            'Accept': 'application/json',
-            'Authorization': 'some_data',
+            Accept: 'application/json',
+            Authorization: 'some_data',
           });
 
           expect(res).to.not.equal(undefined);
@@ -791,8 +791,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res)
@@ -842,8 +842,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.have.property('status', 200);
@@ -881,8 +881,8 @@ describe('test/remoteCollection/collect.js >', () => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
         expect(preparedHeaders).to.deep.equal({
-          'Accept': 'application/json',
-          'Authorization': 'abddr121345bb',
+          Accept: 'application/json',
+          Authorization: 'abddr121345bb',
         });
 
         expect(res).to.have.property('message', 'socket hang up');
