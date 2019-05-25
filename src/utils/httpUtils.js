@@ -248,7 +248,7 @@ function getSubjectsForGenerator(generator) {
       reject,
       numAttempts: 1,
       start,
-      cutoff: intervalSecs,
+      cutoff: intervalSecs * 1000,
     });
   });
 } // getSubjectsForGenerator

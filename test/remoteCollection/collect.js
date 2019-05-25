@@ -25,6 +25,7 @@ describe('test/remoteCollection/collect.js >', () => {
   before((done) => {
     configModule.clearConfig();
     configModule.initializeConfig();
+    configModule.getConfig().name = 'collector1';
     done();
   });
 
@@ -34,6 +35,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -93,7 +99,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
@@ -124,6 +134,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -149,7 +164,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://bart.gov.api/status');
@@ -176,6 +195,11 @@ describe('test/remoteCollection/collect.js >', () => {
       context: {
         username: 'testUser',
         password: 'testPassword',
+      },
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
       },
       generatorTemplate: {
         connection: {
@@ -236,7 +260,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
@@ -273,6 +301,11 @@ describe('test/remoteCollection/collect.js >', () => {
         username: 'testUser',
         password: 'testPassword',
       },
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -300,7 +333,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
@@ -331,6 +368,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -398,7 +440,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://xyztest.salesforcetest.com/status');
@@ -425,6 +471,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -482,7 +533,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://xyztest.argusTest.com/status');
@@ -511,6 +566,11 @@ describe('test/remoteCollection/collect.js >', () => {
       context: {},
       OAuthToken: {
         accessToken: 'eegduygsugfiusguguygyfkufyg',
+      },
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
       },
       generatorTemplate: {
         connection: {
@@ -543,7 +603,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, remoteData,
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://www.xyz.com/status');
@@ -571,6 +635,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -590,7 +659,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(5)
       .reply(httpStatus.SERVICE_UNAVAILABLE, serverError);
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('http://randonUnAvailableUrl.false/');
@@ -615,6 +688,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -626,7 +704,11 @@ describe('test/remoteCollection/collect.js >', () => {
       connection: {},
     };
     const subjects = [{ absolutePath: 'EastBay' }];
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('notaural');
@@ -649,6 +731,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -668,9 +755,14 @@ describe('test/remoteCollection/collect.js >', () => {
         { 'Content-Type': 'application/json' });
 
     const spy = sinon.spy(request, 'get');
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(() => {
-        expect(spy.returnValues[0]._proxyUri).to.be.equal(dataSourceProxy);
+        expect(spy.withArgs('remoteUrl/status').returnValues[0]._proxyUri)
+          .to.be.equal(dataSourceProxy);
         spy.restore();
         done();
       })
@@ -686,12 +778,17 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
             Authorization: 'abddr121345bb',
           },
-          url: 'remoteUrl' + '/status',
+          url: `${remoteUrl}/status`,
         },
       },
       connection: {},
@@ -704,7 +801,11 @@ describe('test/remoteCollection/collect.js >', () => {
         { 'Content-Type': 'application/json' });
 
     const spy = sinon.spy(request, 'get');
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(() => {
         expect(spy.returnValues[0]._proxyUri).to.be.equal(undefined);
         spy.restore();
@@ -723,6 +824,11 @@ describe('test/remoteCollection/collect.js >', () => {
       const generator = {
         name: 'generator_ssl',
         context: {},
+        subjectQuery: '?absolutePath=EastBay',
+        token: 'abcdefg',
+        refocus: {
+          url: 'http://www.refocus.com',
+        },
         generatorTemplate: {
           connection: {
             headers: {
@@ -735,7 +841,11 @@ describe('test/remoteCollection/collect.js >', () => {
       };
       const subjects = [{ absolutePath: 'EastBay' }];
 
-      collect.doCollect(generator, subjects)
+      nock(generator.refocus.url)
+        .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+        .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+      collect.collectBulk(generator, subjects)
         .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
           expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
           expect(preparedUrl).to.equal('http://foo.io');
@@ -762,6 +872,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -786,7 +901,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(4) // initial req + 3 retries
       .replyWithError(err);
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
@@ -810,6 +929,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -837,7 +961,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .reply(httpStatus.OK, { status: 'OK' },
         { 'Content-Type': 'application/json' });
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
@@ -858,6 +986,11 @@ describe('test/remoteCollection/collect.js >', () => {
       name: 'Generator0',
       intervalSecs: 1,
       context: {},
+      subjectQuery: '?absolutePath=EastBay',
+      token: 'abcdefg',
+      refocus: {
+        url: 'http://www.refocus.com',
+      },
       generatorTemplate: {
         connection: {
           headers: {
@@ -876,7 +1009,11 @@ describe('test/remoteCollection/collect.js >', () => {
       .times(4) // initial req + 3 retries
       .replyWithError(err);
 
-    collect.doCollect(generator, subjects)
+    nock(generator.refocus.url)
+      .get('/v1/subjects?absolutePath=EastBay&isPublished=true')
+      .reply(httpStatus.OK, [{ absolutePath: 'EastBay' }]);
+
+    collect.collectBulk(generator, subjects)
       .then(({ subjects, preparedUrl, preparedHeaders, res }) => {
         expect(subjects).to.deep.equal([{ absolutePath: 'EastBay' }]);
         expect(preparedUrl).to.equal('https://randonUnAvailableUrl.false/');
