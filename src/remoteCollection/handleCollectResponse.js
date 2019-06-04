@@ -215,7 +215,7 @@ function handleCollectError(generator, err) {
   return sendSamples(
     generator,
     errorSamples(generator.name, generator.aspects, err.subjects, err.message)
-  )
+  );
 } // sendSamples
 
 module.exports = {
