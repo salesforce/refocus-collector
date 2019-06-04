@@ -106,14 +106,6 @@ function sendRemoteRequest(generator, requestData) {
     return Promise.resolve(requestData);
   }
 
-  /*
-   * Don't bother sending request if prepareRemoteRequest already set error as
-   * generator.res.
-   */
-  if (requestData.res instanceof Error) {
-    return Promise.resolve(requestData);
-  }
-
   const req = generateRequest(generator, requestData);
 
   return new Promise((resolve, reject) => {
@@ -192,7 +184,8 @@ function prepareRemoteRequest(generator, subjects) {
  * Get new OAuth token if necessary, and attach to generator
  *
  * @param {Object} generator - The generator object
- * @returns {Promise} - resolves to nothing on success, error on failure
+ * @returns {Promise}
+ * @throws {Error} - if token creation fails
  */
 function attachOAuthToken(generator) {
   const { context, connection } = generator;
@@ -230,46 +223,34 @@ function attachOAuthToken(generator) {
       generator.OAuthToken = token;
     }
   })
-
-  // return errors instead of rejecting so we can create error samples
-  .catch(err => err);
+  .catch((err) => {
+    const { method, credentials } = generator.connection.simple_oauth;
+    const { tokenHost, tokenPath } = credentials.auth;
+    err.message = `Error getting OAuth token (method=${method} ` +
+      `url=${tokenHost}/${tokenPath}): ${err.message}`;
+    throw err;
+  });
 } // attachOAuthToken
-
-/**
- * Handle an error when attempting to get the OAuth token. Return a requestData object
- * with the relevant information so it will get logged as an error sample.
- *
- * @param {Error} err - The error that occurred when attempting to get the OAuth token
- * @param {Object} generator - The generator object
- * @param {Array} subjects - Resolved subjects from this generators subjectQuery
- * @returns {Object} - a requestData object with attributes:
- *  subjects, preparedUrl, res
- */
-function handleOAuthError(err, generator, subjects) {
-  const { method, credentials } = generator.connection.simple_oauth;
-  const { tokenHost, tokenPath } = credentials.auth;
-  err.message = `Error getting OAuth token (method=${method}): ${err.message}`;
-  return {
-    subjects,
-    preparedUrl: `${tokenHost}${tokenPath}`,
-    res: err,
-  };
-} // handleOAuthError
 
 /**
  * Handle an error during collection. If it was caused by an expired token, get new token
  * and retry. Otherwise, return the error to create error samples.
  *
- * @param {Error} err - The error that occurred when attempting to get the OAuth token
  * @param {Object} generator - The generator object
+ * @param {Array} subjects - Resolved subjects from this generators subjectQuery
+ * @param {Error} err - The error that occurred when attempting to get the OAuth token
  * @param {Boolean} bulk - bulk arg from collect function
  * @returns {Object} - a requestData object with attributes:
  *  subjects, preparedUrl, res
+ * @throws {Error} - if not a token expiration error
  */
-function handleCollectError(err, generator, bulk) {
+function handleCollectError(generator, subjects, err, bulk) {
   if (err.message === 'OAuth token expired') {
+    // retry collection
     return collect(bulk, generator);
   } else {
+    // attach subjects and throw error, to be converted into error samples later
+    err.subjects = subjects;
     throw err;
   }
 }
@@ -293,7 +274,7 @@ function doCollectBulk(generator, subjects) {
  *
  * @param {Object} generator - The generator object
  * @param {Array} subjects - The subjects to collect data for
- * @returns {Promise} - resolves to a requestData object with attributes:
+ * @returns {Promise} - resolves to an array of requestData objects with attributes:
  *  subjects, preparedUrl, preparedHeaders, res
  * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
@@ -314,17 +295,18 @@ function doCollectBySubject(generator, subjects) {
  *  subjects, preparedUrl, preparedHeaders, res
  */
 function collect(bulk, generator) {
-  return Promise.join(
-           attachOAuthToken(generator),
-           getSubjectsForGenerator(generator),
-         )
-         .then(([err, subjects]) =>
-           err ? handleOAuthError(err, generator, subjects)
-               : bulk ? doCollectBulk(generator, subjects)
-                      : doCollectBySubject(generator, subjects)
-         )
-         .catch((err) =>
-           handleCollectError(err, generator, bulk)
+  return getSubjectsForGenerator(generator)
+         .then((subjects) => Promise.resolve()
+           .then(() =>
+             attachOAuthToken(generator)
+           )
+           .then(() =>
+             bulk ? doCollectBulk(generator, subjects)
+                  : doCollectBySubject(generator, subjects)
+           )
+           .catch((err) =>
+             handleCollectError(generator, subjects, err, bulk)
+           )
          );
 } // collect
 

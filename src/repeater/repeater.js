@@ -16,7 +16,7 @@ const repeaterSchema = require('../utils/schema').repeater;
 const heartbeatRepeatName = require('../constants').heartbeatRepeatName;
 const commonUtils = require('../utils/commonUtils');
 const { collectBulk, collectBySubject } = require('../remoteCollection/collect');
-const { handleCollectResponseBulk, handleCollectResponseBySubject }  =
+const { handleCollectResponseBulk, handleCollectResponseBySubject, handleCollectError }  =
   require('../remoteCollection/handleCollectResponse');
 const MILLISECONDS_PER_SECOND = 1000;
 const ZERO = 0;
@@ -53,23 +53,6 @@ function notHeartbeat(key) {
 function onFailure(err) {
   logger.error('onFailure: task returned error:', err);
 } // onFailure
-
-/**
- * The default function that is called when the generator repeater function
- * throws an error.
- *
- * @param {Object} generator - Optional generator object.
- * @param {Object} err - Error thrown by the repeatable task.
- */
-function onGeneratorFailure(generator, err) {
-  if (generator && generator.generatorTemplate) {
-    err.generator = `${generator.name}`;
-    err.generatorTemplate = `${generator.generatorTemplate.name}`;
-    err.sgtVersion = `${generator.generatorTemplate.version}`;
-  }
-
-  onFailure(err);
-} // onGeneratorFailure
 
 /**
  * Stops the named repeater and deletes it from the tracker.
@@ -286,7 +269,7 @@ function createGeneratorRepeater(generator) {
 
   const collect = collFunc.bind(null, generator);
   const handle = handlerFunc.bind(null, generator);
-  const fail = onGeneratorFailure.bind(null, generator);
+  const fail = handleCollectError.bind(null, generator);
 
   return create({
     name: generator.name,

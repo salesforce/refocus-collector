@@ -88,13 +88,7 @@ describe('test/repeater/repeater.js >', () => {
         setTimeout(() => {
           expect(logger.error.calledOnce).to.be.true;
           expect(logger.error.args[0][0])
-            .to.equal('onFailure: task returned error:');
-          expect(logger.error.args[0][1])
-            .to.have.property('generator', 'Generator0');
-          expect(logger.error.args[0][1])
-            .to.have.property('generatorTemplate', 'sgt0');
-          expect(logger.error.args[0][1])
-            .to.have.property('sgtVersion', '1.0.0');
+            .to.equal('Collection error! Cannot generate error samples!');
           expect(logger.error.args[0][1])
             .to.have.property(
               'message', 'getSubjectsForGenerator: Missing refocus url'

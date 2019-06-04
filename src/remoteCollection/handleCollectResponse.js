@@ -147,8 +147,7 @@ function generateSamples(generator, requestData) {
 /**
  * Validate the samples then send to Refocus using bulk upsert.
  *
- * @param  {Object} gen - The generator object along with the "res"
- *  attribute which maps to the response from the remote data source
+ * @param  {Object} gen - The generator object
  * @param  {Array<Object>} samples - The array of samples to send
  * @returns {Promise<Object>} - resolves to the response from the bulkUpsert
  *  request
@@ -179,7 +178,7 @@ function sendSamples(gen, samples) {
 function handleCollectResponseBySubject(generator, requestDataList) {
   const samples = requestDataList
                   .map((requestData) => generateSamples(generator, requestData))
-                  .reduce((x, y) => [...x, ...y]);
+                  .reduce((x, y) => [...x, ...y], []);
   return sendSamples(generator, samples);
 } // handleCollectResponseBySubject
 
@@ -198,9 +197,31 @@ function handleCollectResponseBulk(generator, requestData) {
   return sendSamples(generator, samples);
 } // handleCollectResponse
 
+/**
+ * Handle errors during collection by sending error samples
+ *
+ * @param  {Object} generator - The generator object
+ * @param  {Error} err - The error that was thrown during collection
+ * @returns {Promise<Object>} - resolves to the response from the bulkUpsert
+ *  request
+ * @throws {ValidationError} if thrown by validateCollectResponse
+ */
+function handleCollectError(generator, err) {
+  if (!err.subjects) {
+    logger.error('Collection error! Cannot generate error samples!', err);
+    return Promise.resolve();
+  }
+
+  return sendSamples(
+    generator,
+    errorSamples(generator.name, generator.aspects, err.subjects, err.message)
+  )
+} // sendSamples
+
 module.exports = {
   handleCollectResponseBulk,
   handleCollectResponseBySubject,
+  handleCollectError,
   validateCollectResponse, // export for testing only
   prepareTransformArgs, // export for testing only
 };
