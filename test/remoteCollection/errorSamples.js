@@ -13,14 +13,13 @@ const expect = require('chai').expect;
 const errorSamples = require('../../src/remoteCollection/errorSamples');
 
 describe('test/remoteCollection/errorSamples.js >', () => {
-  const cr = {
-    aspects: [{ name: 'aspect1' }],
-    subjects: [{ absolutePath: 'subject1' }],
-  };
+  const name = 'gen1';
+  const aspects = [{ name: 'aspect1' }];
+  const subjects = [{ absolutePath: 'subject1' }];
 
   it('creates samples based on subjects/aspects and message', () => {
     const messageBody = '1234567890';
-    expect(errorSamples(cr, messageBody)).to.deep.equal([
+    expect(errorSamples(name, aspects, subjects, messageBody)).to.deep.equal([
       {
         name: 'subject1|aspect1',
         messageCode: 'ERROR',
@@ -32,7 +31,7 @@ describe('test/remoteCollection/errorSamples.js >', () => {
 
   it('not over max length, not truncated', () => {
     const messageBody = ''.padEnd(4096);
-    expect(errorSamples(cr, messageBody)).to.deep.equal([
+    expect(errorSamples(name, aspects, subjects, messageBody)).to.deep.equal([
       {
         name: 'subject1|aspect1',
         messageCode: 'ERROR',
@@ -44,7 +43,7 @@ describe('test/remoteCollection/errorSamples.js >', () => {
 
   it('long message is truncated', () => {
     const messageBody = ''.padEnd(4097);
-    expect(errorSamples(cr, messageBody)).to.deep.equal([
+    expect(errorSamples(name, aspects, subjects, messageBody)).to.deep.equal([
       {
         name: 'subject1|aspect1',
         messageCode: 'ERROR',

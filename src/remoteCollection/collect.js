@@ -14,17 +14,15 @@ const request = require('superagent');
 const get = require('just-safe-get');
 const set = require('just-safe-set');
 const nforce = require('nforce');
+const Promise = require('bluebird');
 require('superagent-proxy')(request);
-const bluebird = require('bluebird');
 const constants = require('../constants');
-const attachSubjectsToGenerator = require('../utils/httpUtils')
-  .attachSubjectsToGenerator;
+const { getSubjectsForGenerator } = require('../utils/httpUtils');
 const rce = require('@salesforce/refocus-collector-eval');
 const AUTH_HEADER = 'headers.Authorization';
 const configModule = require('../config/config');
 const errors = require('../errors');
 const sanitize = require('../utils/commonUtils').sanitize;
-const genAuth = require('../config/generatorAuth.js');
 
 /**
  * Helper function returns true if err is Unauthorized AND token is present
@@ -39,7 +37,8 @@ const genAuth = require('../config/generatorAuth.js');
 function shouldRequestNewToken(err, generator) {
   const unauthorized = err.status === constants.httpStatus.UNAUTHORIZED;
   const simpleOauth = get(generator, 'connection.simple_oauth');
-  return unauthorized && simpleOauth;
+  const token = generator.OAuthToken;
+  return unauthorized && simpleOauth && token;
 } // shouldRequestNewToken
 
 /**
@@ -56,26 +55,27 @@ function requiresSSLOnly() {
  * Helper function to set up the super-agent request to connect to the remote
  * data source. Configures request timeout, retries and proxy.
  *
- * @param {Object} gen - the sample generator
+ * @param {Object} generator - the sample generator
+ * @param {Object} requestData - data specific to this request
  * @returns {Request} - the superagent request
  */
-function generateRequest(gen) {
+function generateRequest(generator, requestData) {
   const refConf = configModule.getConfig().refocus;
 
   // ref. https://visionmedia.github.io/superagent/#timeouts
-  const conn = gen.generatorTemplate.connection;
+  const conn = generator.generatorTemplate.connection;
   const genTimeout = {
     response:
-      get(gen, 'timeout.response') || refConf.timeoutResponseMillis ||
+      get(generator, 'timeout.response') || refConf.timeoutResponseMillis ||
       constants.connection.timeout.response,
     deadline:
-      get(gen, 'timeout.deadline') || refConf.timeoutDeadlineMillis ||
+      get(generator, 'timeout.deadline') || refConf.timeoutDeadlineMillis ||
       constants.connection.timeout.deadline,
   };
 
   const req = request
-    .get(gen.preparedUrl)
-    .set(gen.preparedHeaders)
+    .get(requestData.preparedUrl)
+    .set(requestData.preparedHeaders)
     .timeout(genTimeout)
     .retry(refConf.maxRetries || constants.connection.maxRetries);
 
@@ -91,66 +91,46 @@ function generateRequest(gen) {
  * Automatically retries requests if they fail in a way that is transient or
  * could be due to a flaky internet connection.
  *
- * @param   {Object} generator - the generator object
- * @returns {Promise<Object>} the updated generator object with a "res"
- *  attribute carrying the response from the remote data source
+ * @param {Object} generator - the generator object
+ * @param {Object} requestData - data specific to this request
+ * @returns {Promise} - resolves to the requestData object
  */
-function sendRemoteRequest(generator) {
+function sendRemoteRequest(generator, requestData) {
   debug('Entered "sendRemoteRequest" for "%s"', generator.name);
 
-  if (requiresSSLOnly() && !generator.preparedUrl.includes('https')) {
+  if (requiresSSLOnly() && !requestData.preparedUrl.includes('https')) {
     const msg = 'Your Refocus instance is configured to require SSL for ' +
       'connections to remote data sources. Please update Sample Generator ' +
       '"' + generator.name + '" to specify an https connection url.';
-    generator.res = new errors.ValidationError(msg);
-    return Promise.resolve(generator);
+    requestData.res = new errors.ValidationError(msg);
+    return Promise.resolve(requestData);
   }
 
-  /*
-   * Don't bother sending request if prepareRemoteRequest already set error as
-   * generator.res.
-   */
-  if (generator.hasOwnProperty('res') && generator.res instanceof Error) {
-    return Promise.resolve(generator);
-  }
+  const req = generateRequest(generator, requestData);
 
-  const req = generateRequest(generator);
-
-  return new Promise((resolve) => {
-    req.end((err, res) => {
+  return new Promise((resolve, reject) => {
+    req.end((err, _res) => {
       if (err) {
         if (shouldRequestNewToken(err, generator)) {
           debug('sendRemoteRequest token expired, requesting a new one');
-          genAuth.updateGeneratorAuth(
-            generator.name, 'OAuthToken', null
-          );
-
-          // eslint-disable-next-line no-use-before-define
-          return doCollect(generator)
-            .then((resp) => {
-              if (resp) {
-                debug('sendRemoteRequest returned OK');
-                generator.res = resp.res;
-              }
-
-              return resolve(generator);
-            });
+          generator.OAuthToken = null;
+          reject(Error('OAuth token expired'));
         } // shouldRequestNewToken
 
         debug('sendRemoteRequest returned error %O', err);
         if (get(generator, 'connection.simple_oauth')) {
           const method = generator.connection.simple_oauth.method;
-          generator.res =
+          requestData.res =
             new Error(`simple-oauth2 (method=${method}): ${err.message}`);
         } else {
-          generator.res = err;
+          requestData.res = err;
         }
-      } else if (res) {
+      } else if (_res) {
         debug('sendRemoteRequest returned OK');
-        generator.res = res;
+        requestData.res = _res;
       }
 
-      return resolve(generator);
+      return resolve(requestData);
     });
   });
 } // sendRemoteRequest
@@ -159,145 +139,178 @@ function sendRemoteRequest(generator) {
  * Prepare and attach the token, connection, url, and headers to the generator
  * object.
  *
- * @param  {Object} generator - The generator object
- * @returns {Promise} - which resolves to the prepared generator object
+ * @param {Object} generator - The generator object
+ * @param {Array} subjects - The subjects to collect data for
+ * @returns {Object} - requestData object with attributes:
+ *  subjects, preparedUrl, preparedHeaders, res
  * @throws {ValidationError} if thrown by prepareUrl
  */
-function prepareRemoteRequest(generator) {
+function prepareRemoteRequest(generator, subjects) {
   debug('Entered "prepareRemoteRequest" for "%s"', generator.name);
-  const { context, aspects, subjects, connection } = generator;
-  return Promise.resolve()
+  const { context, aspects } = generator;
+  const requestData = { subjects };
 
-  // get new OAuthToken if necessary
-    .then(() => {
-      if (!genAuth.getGeneratorAuth(generator.name, 'OAuthToken') &&
-        get(generator, 'connection.simple_oauth')) {
-        if (generator.connection) {
-          generator.connection = rce.expandObject(connection, context);
-        }
+  // Prepare auth
+  const conn = generator.generatorTemplate.connection;
+  if (generator.OAuthToken) {
+    // Expecting accessToken or access_token from remote source.
+    const accessToken = generator.OAuthToken.accessToken ||
+      generator.OAuthToken.access_token;
+    const simpleOauth = get(generator, 'connection.simple_oauth');
+    if (get(simpleOauth, 'tokenFormat')) {
+      set(conn, AUTH_HEADER,
+        simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
+    } else if (accessToken) {
+      set(conn, AUTH_HEADER, accessToken);
+    }
+  }
 
-        const method = generator.connection.simple_oauth.method;
-        const simpleOauth = generator.connection.simple_oauth;
+  // Prepare headers
+  requestData.preparedHeaders = rce.prepareHeaders(conn.headers, context);
 
-        // special case for simple_oauth.salesforce
-        if (generator.connection.simple_oauth.salesforce) {
-          const credentials = {
-            clientId: simpleOauth.credentials.client.id,
-            clientSecret: simpleOauth.credentials.client.secret,
-            redirectUri: simpleOauth.credentials.client.redirectUri,
-          };
+  // Prepare url
+  requestData.preparedUrl = rce.prepareUrl(context, aspects, subjects, conn);
 
-          const org = nforce.createConnection(credentials);
-          return org.authenticate(simpleOauth.tokenConfig);
-        }
-
-        // otherwise when it's NOT simple_oauth.salesforce...
-        // eslint-disable-next-line global-require
-        const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
-        return oauth2[method].getToken(simpleOauth.tokenConfig)
-          .catch((err) => {
-            // Setting this Oauth error as the generator "res" attribute to
-            // force handleCollectResponse to generate error samples with the
-            // error message.
-            debug('simple-oauth2 (method=%s)', method, err);
-            generator.res =
-              new Error(`simple-oauth2 (method=${method}): ${err.message}`);
-          });
-      }
-
-      return null;
-    })
-    .then((token) => {
-      let generatorToken;
-      if (token) {
-        genAuth.updateGeneratorAuth(generator.name, 'OAuthToken', token);
-        generatorToken = token;
-      } else { // token exists in genAuth because of condition check before
-        generatorToken = genAuth.getGeneratorAuth(generator.name, 'OAuthToken');
-      }
-
-      // Prepare auth
-      const conn = generator.generatorTemplate.connection;
-      if (generatorToken) {
-        // Expecting accessToken or access_token from remote source.
-        const accessToken = generatorToken.accessToken ||
-          generatorToken.access_token;
-        const simpleOauth = get(generator, 'connection.simple_oauth');
-        if (get(simpleOauth, 'tokenFormat')) {
-          set(conn, AUTH_HEADER,
-            simpleOauth.tokenFormat.replace('{accessToken}', accessToken));
-        } else if (accessToken) {
-          set(conn, AUTH_HEADER, accessToken);
-        }
-      }
-
-      // Prepare headers
-      generator.preparedHeaders = rce.prepareHeaders(conn.headers, context);
-
-      // Prepare url
-      generator.preparedUrl = rce.prepareUrl(context, aspects, subjects, conn);
-
-      debug('prepareRemoteRequest: preparedGenerator: %O', sanitize({
-        preparedUrl: generator.preparedUrl,
-        preparedHeaders: generator.preparedHeaders,
-        OAuthToken: generatorToken,
-        connection: generator.connection,
-      }, ['OAuthToken', 'Authorization', 'simple_oauth']));
-      return generator;
-    });
+  debug('prepareRemoteRequest: preparedGenerator: %O', sanitize({
+    preparedUrl: requestData.preparedUrl,
+    preparedHeaders: requestData.preparedHeaders,
+    OAuthToken: generator.OAuthToken,
+    connection: generator.connection,
+  }, ['OAuthToken', 'Authorization', 'simple_oauth']));
+  return requestData;
 } // prepareRemoteRequest
+
+/**
+ * Get new OAuth token if necessary, and attach to generator
+ *
+ * @param {Object} generator - The generator object
+ * @returns {Promise}
+ * @throws {Error} - if token creation fails
+ */
+function attachOAuthToken(generator) {
+  const { context, connection } = generator;
+
+  return Promise.resolve()
+  .then(() => {
+    if (!generator.OAuthToken && get(generator, 'connection.simple_oauth')) {
+      if (generator.connection) {
+        generator.connection = rce.expandObject(connection, context);
+      }
+
+      const method = generator.connection.simple_oauth.method;
+      const simpleOauth = generator.connection.simple_oauth;
+
+      // special case for simple_oauth.salesforce
+      if (generator.connection.simple_oauth.salesforce) {
+        const credentials = {
+          clientId: simpleOauth.credentials.client.id,
+          clientSecret: simpleOauth.credentials.client.secret,
+          redirectUri: simpleOauth.credentials.client.redirectUri,
+        };
+
+        const org = nforce.createConnection(credentials);
+        return org.authenticate(simpleOauth.tokenConfig);
+      }
+
+      // otherwise when it's NOT simple_oauth.salesforce...
+      // eslint-disable-next-line global-require
+      const oauth2 = require('simple-oauth2').create(simpleOauth.credentials);
+      return oauth2[method].getToken(simpleOauth.tokenConfig);
+    }
+  })
+  .then((token) => {
+    if (token) {
+      generator.OAuthToken = token;
+    }
+  })
+  .catch((err) => {
+    const { method, credentials } = generator.connection.simple_oauth;
+    const { tokenHost, tokenPath } = credentials.auth;
+    err.message = `Error getting OAuth token (method=${method} ` +
+      `url=${tokenHost}/${tokenPath}): ${err.message}`;
+    throw err;
+  });
+} // attachOAuthToken
+
+/**
+ * Handle an error during collection. If it was caused by an expired token, get new token
+ * and retry. Otherwise, return the error to create error samples.
+ *
+ * @param {Object} generator - The generator object
+ * @param {Array} subjects - Resolved subjects from this generators subjectQuery
+ * @param {Error} err - The error that occurred when attempting to get the OAuth token
+ * @param {Boolean} bulk - bulk arg from collect function
+ * @returns {Object} - a requestData object with attributes:
+ *  subjects, preparedUrl, res
+ * @throws {Error} - if not a token expiration error
+ */
+function handleCollectError(generator, subjects, err, bulk) {
+  if (err.message === 'OAuth token expired') {
+    // retry collection
+    return collect(bulk, generator);
+  } else {
+    // attach subjects and throw error, to be converted into error samples later
+    err.subjects = subjects;
+    throw err;
+  }
+}
 
 /**
  * Collect data. Prepare, then send the remote request.
  *
- * @param  {Object} generator - The generator object
- * @returns {Promise} - resolves to a generator object with a "res"
- *  attribute carrying the response from the remote data source
+ * @param {Object} generator - The generator object
+ * @param {Array} subjects - The subjects to collect data for
+ * @returns {Promise} - resolves to a requestData object with attributes:
+ *  subjects, preparedUrl, preparedHeaders, res
+ * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
  */
-function doCollect(generator) {
-  debug('Entered "doCollect" for "%s"', generator.name);
-  return prepareRemoteRequest(generator)
-    .then(sendRemoteRequest);
-} // doCollect
+function doCollectBulk(generator, subjects) {
+  const requestData = prepareRemoteRequest(generator, subjects);
+  return sendRemoteRequest(generator, requestData);
+} // doCollectBulk
+
+/**
+ * Collect data. Prepare, then send the remote request.
+ *
+ * @param {Object} generator - The generator object
+ * @param {Array} subjects - The subjects to collect data for
+ * @returns {Promise} - resolves to an array of requestData objects with attributes:
+ *  subjects, preparedUrl, preparedHeaders, res
+ * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
+ */
+function doCollectBySubject(generator, subjects) {
+  return Promise.map(subjects, (subject) =>
+    doCollectBulk(generator, [subject])
+  );
+} // doCollectBySubject
 
 /**
  * Retrieves the list of subjects to collect data for, sets the array of
  * subjects into the generator, then prepares and executes the remote request.
  *
- * @param  {Object} generator - The generator object
- * @returns {Promise} - which resolves to a generator object with a "res"
- *  attribute carrying the response from the remote data source
- * @throws {ValidationError} if thrown by prepareUrl (from sendRemoteRequest).
+ * @param {Boolean} bulk - If true, send a single request. If false, send
+ * separate requests for each subject.
+ * @param {Object} generator - The generator object
+ * @returns {Promise} - resolves to an array of requestData objects with attributes:
+ *  subjects, preparedUrl, preparedHeaders, res
  */
-function collectBulk(generator) {
-  debug('Entered "collectBulk" for "%s"', generator.name);
-  return attachSubjectsToGenerator(generator)
-    .then(doCollect);
-} // collectBulk
-
-/**
- * Retrieves the list of subjects to collect data for, sets the array of
- * subjects into the generator, then prepares and executes the remote request
- * for each subject.
- *
- * @param  {Object} generator - The generator object
- * @returns {Promise} - which resolves to an array of generator objects, each
- *  with a "res" attribute carrying the response from the remote data source.
- */
-function collectBySubject(generator) {
-  debug('Entered "collectBySubject" for "%s"', generator.name);
-  return attachSubjectsToGenerator(generator)
-    .then((g) => bluebird.map(g.subjects, (subject) => {
-      // need to clone generator because we are doing async operation with
-      // generator data
-      const _g = JSON.parse(JSON.stringify(g));
-      _g.subjects = [subject];
-      return doCollect(_g);
-    }));
-} // collectBySubject
+function collect(bulk, generator) {
+  return getSubjectsForGenerator(generator)
+         .then((subjects) => Promise.resolve()
+           .then(() =>
+             attachOAuthToken(generator)
+           )
+           .then(() =>
+             bulk ? doCollectBulk(generator, subjects)
+                  : doCollectBySubject(generator, subjects)
+           )
+           .catch((err) =>
+             handleCollectError(generator, subjects, err, bulk)
+           )
+         );
+} // collect
 
 module.exports = {
-  collectBulk,
-  collectBySubject,
-  doCollect,
+  collectBulk: collect.bind(null, true),
+  collectBySubject: collect.bind(null, false),
 };

@@ -350,7 +350,7 @@ describe('test/utils/httpUtils.js >', () => {
     });
   });
 
-  describe('attachSubjectsToGenerator >', () => {
+  describe('getSubjectsForGenerator >', () => {
     const q = '?absolutePath=NorthAmerica.Canada';
     const generator = {
       refocus: {
@@ -372,9 +372,9 @@ describe('test/utils/httpUtils.js >', () => {
       const g = JSON.parse(JSON.stringify(generator));
       g.refocus.proxy = null;
 
-      httpUtils.attachSubjectsToGenerator(g)
-        .then((res) => {
-          expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
+      httpUtils.getSubjectsForGenerator(g)
+        .then((subjects) => {
+          expect(subjects).to.deep.equal(mockedResponse.foundSubjects);
           done();
         })
         .catch(done);
@@ -384,10 +384,10 @@ describe('test/utils/httpUtils.js >', () => {
       const g = JSON.parse(JSON.stringify(generator));
       g.refocus = {};
 
-      httpUtils.attachSubjectsToGenerator(g)
+      httpUtils.getSubjectsForGenerator(g)
         .then(() => done(new Error('Expecting error')))
         .catch((err) => {
-          expect(err).to.have.property('message', 'Missing refocus url');
+          expect(err).to.have.property('message', 'getSubjectsForGenerator: Missing refocus url');
           done();
         });
     });
@@ -397,7 +397,7 @@ describe('test/utils/httpUtils.js >', () => {
       g.subjectQuery = '';
       g.refocus.proxy = null;
 
-      httpUtils.attachSubjectsToGenerator(g)
+      httpUtils.getSubjectsForGenerator(g)
         .then(() => done(new Error('Expecting error')))
         .catch((err) => {
           expect(err).to.have.property('message', 'Missing subject query');
@@ -410,7 +410,7 @@ describe('test/utils/httpUtils.js >', () => {
       g.token = null;
       g.refocus.proxy = null;
 
-      httpUtils.attachSubjectsToGenerator(g)
+      httpUtils.getSubjectsForGenerator(g)
         .then(() => done(new Error('Expecting error')))
         .catch((err) => {
           expect(err).to.have.property('message', 'Missing token');
@@ -430,9 +430,9 @@ describe('test/utils/httpUtils.js >', () => {
       g.refocus.proxy = null;
       g.subjectQuery = q.slice(1);
 
-      httpUtils.attachSubjectsToGenerator(g)
-        .then((res) => {
-          expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
+      httpUtils.getSubjectsForGenerator(g)
+        .then((subjects) => {
+          expect(subjects).to.deep.equal(mockedResponse.foundSubjects);
           done();
         })
         .catch(done);
@@ -449,9 +449,9 @@ describe('test/utils/httpUtils.js >', () => {
       const g = JSON.parse(JSON.stringify(generator));
 
       const spy = sinon.spy(request, 'get');
-      httpUtils.attachSubjectsToGenerator(g)
-        .then((res) => {
-          expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
+      httpUtils.getSubjectsForGenerator(g)
+        .then((subjects) => {
+          expect(subjects).to.deep.equal(mockedResponse.foundSubjects);
           expect(spy.returnValues[0]._proxyUri).to.be.equal(refocusProxy);
           spy.restore();
           done();
@@ -482,9 +482,9 @@ describe('test/utils/httpUtils.js >', () => {
       const g = JSON.parse(JSON.stringify(generator));
       g.refocus.proxy = null;
 
-      httpUtils.attachSubjectsToGenerator(g)
-        .then((res) => {
-          expect(res.subjects).to.deep.equal(mockedResponse.foundSubjects);
+      httpUtils.getSubjectsForGenerator(g)
+        .then((subjects) => {
+          expect(subjects).to.deep.equal(mockedResponse.foundSubjects);
           done();
         })
         .catch(done);

@@ -103,27 +103,6 @@ function assignContext(ctx, def, collectorToken, res) {
 } // assignContext
 
 /**
- * Creates a repeater based on the bulk attribute of the of the generator
- * object, passing in either the "collectBulk" function or the
- * "collectBySubject" function, and the appropriate handler for each collect
- * function.
- *
- * @param {Object} generator - Generator object from the heartbeat
- * @throws {ValidationError} - Thrown by repeater.createGeneratorRepeater
- */
-function setupRepeater(generator) {
-  const genIsBulk = commonUtils.isBulk(generator);
-  debug('setupRepeater (%s) for generator %O', genIsBulk ? 'bulk' : 'by subject',
-    sanitize(generator, ['token', 'context']));
-  const collFunc = genIsBulk ? collectBulk : collectBySubject;
-  const handlerFunc =
-    genIsBulk ? handleCollectResponseBulk : handleCollectResponseBySubject;
-
-  const func = (gen) => collFunc(gen).then(handlerFunc);
-  repeater.createGeneratorRepeater(generator, func);
-} // setupRepeater
-
-/**
  * Set up generator repeaters for each generator and add them to the collector
  * config.
  *
@@ -153,7 +132,7 @@ function addGenerators(res) {
       config.generators[g.name] = g;
 
       try {
-        setupRepeater(g);
+        repeater.createGeneratorRepeater(g);
       } catch (err) {
         debug('addGenerators error for generator "%s":\n%s', g.name,
           err.message);
@@ -224,7 +203,7 @@ function updateGenerators(res) {
       // Repeaters cannot be updated--stop old ones and create new ones.
       try {
         repeater.stop(g.name);
-        setupRepeater(g);
+        repeater.createGeneratorRepeater(g);
       } catch (err) {
         debug('updateGenerators error for generator "%s":\n%s', g.name,
           err.message);

@@ -164,7 +164,7 @@ function validateSubjectQuery(q) {
   debug('validateSubjectQuery("%s")', q);
   if (!q) {
     const e = new ValidationError('Missing subject query');
-    logger.error('attachSubjectsToGenerator', e.message);
+    logger.error('getSubjectsForGenerator', e.message);
     throw e;
   }
 
@@ -191,21 +191,19 @@ function validateSubjectQuery(q) {
  *  {String} proxy - Optional proxy url
  *  {String} subjectQuery - the query string
  * @throws {ValidationError} if argument(s) is missing
- * @returns {Promise} Promise which resolves to generator object with subject
- *  array attached.
+ * @returns {Promise} - resolves to subjects array.
  */
-function attachSubjectsToGenerator(generator) {
+function getSubjectsForGenerator(generator) {
   const { url, proxy } = generator.refocus;
   const { token, subjectQuery, intervalSecs } = generator;
   const start = Date.now();
 
-  debug('attachSubjectsToGenerator(url=%s, token=%s, proxy=%s, ' +
+  debug('getSubjectsForGenerator(url=%s, token=%s, proxy=%s, ' +
     'subjectQuery=%s)', url, token ? 'HAS_TOKEN' : 'MISSING', proxy,
   subjectQuery);
 
   if (!url) {
-    const e = new ValidationError('Missing refocus url');
-    logger.error('attachSubjectsToGenerator', e.message);
+    const e = new ValidationError('getSubjectsForGenerator: Missing refocus url');
     return Promise.reject(e);
   }
 
@@ -224,7 +222,7 @@ function attachSubjectsToGenerator(generator) {
 
   if (!token) {
     const e = new ValidationError('Missing token');
-    logger.error('attachSubjectsToGenerator', e.message);
+    logger.error('getSubjectsForGenerator', e.message);
     return Promise.reject(e);
   }
 
@@ -238,9 +236,8 @@ function attachSubjectsToGenerator(generator) {
     }
 
     return req.then((res) => {
-      debug('attachSubjectsToGenerator returning %O', res.body);
-      generator.subjects = res.body || [];
-      return generator;
+      debug('getSubjectsForGenerator returning %O', res.body);
+      return res.body || [];
     });
   }
 
@@ -251,14 +248,14 @@ function attachSubjectsToGenerator(generator) {
       reject,
       numAttempts: 1,
       start,
-      cutoff: intervalSecs,
+      cutoff: intervalSecs * 1000,
     });
   });
-} // attachSubjectsToGenerator
+} // getSubjectsForGenerator
 
 module.exports = {
   doBulkUpsert,
   doPost,
-  attachSubjectsToGenerator,
+  getSubjectsForGenerator,
   validateSubjectQuery, // export for testing only
 };
