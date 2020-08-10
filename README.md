@@ -2,6 +2,8 @@
 
 # refocus-collector
 
+Note: this repository is infrequently maintained.
+
 ### Installation
 
 Prerequisite: NPM and Node.js
