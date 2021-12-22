@@ -41,7 +41,7 @@
     "fs": "0.0.1-security",
     "joi": "^13.7.0",
     "just-safe-get": "^1.3.0",
-    "just-safe-set": "^2.1.0",
+    "just-safe-set": "^2.2.3",
     "just-template": "^1.2.0",
     "nforce": "^1.10.2",
     "path": "^0.12.7",
