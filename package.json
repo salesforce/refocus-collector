@@ -50,7 +50,7 @@
     "superagent": "^3.8.3",
     "superagent-proxy": "^1.0.2",
     "validator": "^9.4.1",
-    "vm2": "^3.6.4",
+    "vm2": "^3.9.5",
     "winston": "^2.4.4"
   },
   "devDependencies": {
