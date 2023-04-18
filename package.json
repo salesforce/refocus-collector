@@ -48,7 +48,7 @@
     "repeat": "0.0.6",
     "simple-oauth2": "^1.6.0",
     "superagent": "^3.8.3",
-    "superagent-proxy": "^1.0.2",
+    "superagent-proxy": "^3.0.0",
     "validator": "^9.4.1",
     "vm2": "^3.6.4",
     "winston": "^2.4.4"
